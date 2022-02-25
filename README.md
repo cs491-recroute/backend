@@ -7,4 +7,6 @@ SERVICE_NAME must match with a folder name in the services folder
 
 Also, you can start all the microservices with `yarn start:all` command
 
-Ports of the microservices start from 3500 and increases by 1 for every microservice. Order is the same with the order in the services folder
+Ports of the microservices start from 3500 and increases by 1 for every microservice. Order is specified in `scripts/startService` file
+
+`yarn install:all` is used for installing all the dependencies in all services

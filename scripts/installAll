@@ -1,0 +1,6 @@
+yarn install
+for service in `ls ./services`; do
+  cd ./services/${service}
+  yarn install
+  cd ../..
+done

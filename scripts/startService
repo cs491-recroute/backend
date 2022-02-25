@@ -1,8 +1,5 @@
 startPort=3500
-services=()
-for service in `ls ./services`; do
-  services+=($service)
-done
+services=('user' 'flow')
 
 if [[ "${1}" = "all" ]]; then
   printf -v commaSeperated '%s,' "${services[@]}"
@@ -22,6 +19,6 @@ else
   if [[ "${found}" = "0" ]]; then
     echo "Unknown service!"
   else
-    PORT=$((${startPort} + ${serviceIndex})) yarn tsnd --respawn services/${services[$i]}
+    PORT=$((${startPort} + ${serviceIndex})) yarn tsnd --respawn services/${1}
   fi
 fi
