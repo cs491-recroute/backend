@@ -1,0 +1,27 @@
+startPort=3500
+services=()
+for service in `ls ./services`; do
+  services+=($service)
+done
+
+if [[ "${1}" = "all" ]]; then
+  printf -v commaSeperated '%s,' "${services[@]}"
+  command="yarn concurrently -c green,yellow,blue -n "$commaSeperated
+  for i in "${!services[@]}"; do
+    command+=" \"PORT=$((${startPort} + ${i})) yarn tsnd --respawn services/${services[$i]}\" "
+  done
+  eval $command
+else
+  found="0"
+  for i in "${!services[@]}"; do
+    if [[ "${services[$i]}" = "${1}" ]]; then
+        serviceIndex=${i};
+        found="1"
+    fi
+  done
+  if [[ "${found}" = "0" ]]; then
+    echo "Unknown service!"
+  else
+    PORT=$((${startPort} + ${serviceIndex})) yarn tsnd --respawn services/${services[$i]}
+  fi
+fi
