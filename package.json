@@ -12,8 +12,9 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "start:all": "bash ./scripts/startService all",
-    "start:service": "bash ./scripts/startService",
-    "install:all": "bash ./scripts/installAll"
+    "startAll": "bash ./scripts/startService all",
+    "startService": "bash ./scripts/startService",
+    "installAll": "bash ./scripts/installAll",
+    "syncAll": "bash ./scripts/syncAll"
   }
 }

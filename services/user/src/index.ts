@@ -1,10 +1,11 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { json } from 'body-parser';
 import { signupRouter } from './routes/signup';
+import { connectToDatabase } from '../../../common/utils';
+import mongoose from 'mongoose';
 require('dotenv').config();
 
-const listen = () => {
+const listen = async () => {
   const PORT = process.env.PORT;
   const app = express();
   app.use(json());
@@ -15,14 +16,4 @@ const listen = () => {
   })
 }
 
-// DB Connection
-const { DB_HOSTNAME, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME } = process.env;
-mongoose.connect(`mongodb://${DB_HOSTNAME}:${DB_PORT}`, {
-  user: DB_USERNAME,
-  pass: DB_PASSWORD,
-  dbName: DB_NAME,
-  authSource: 'admin',
-}).then(
-  () => listen(),
-  err => console.log(err)
-);
+connectToDatabase(mongoose.connect, () => listen(), err => console.error(err));

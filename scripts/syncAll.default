@@ -1,0 +1,9 @@
+USERNAME="##USERNAME##"
+REMOTE_PATH="/home/${USERNAME}/backend"
+REMOTE_HOST="92.205.57.121"
+
+RSYNC_ARGS=(--delete --verbose --archive --compress)
+RSYNC_ARGS+=(--exclude-from "./scripts/.rsyncignore")
+RSYNC_ARGS+=(. ${USERNAME}@${REMOTE_HOST}:${REMOTE_PATH})
+
+rsync "${RSYNC_ARGS[@]}"
