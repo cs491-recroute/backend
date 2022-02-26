@@ -5,7 +5,7 @@ if [[ "${1}" = "all" ]]; then
   printf -v commaSeperated '%s,' "${services[@]}"
   command="yarn concurrently -c green,yellow,blue -n "$commaSeperated
   for i in "${!services[@]}"; do
-    command+=" \"PORT=$((${startPort} + ${i})) yarn tsnd --respawn services/${services[$i]}\" "
+    command+=" \"PORT=$((${startPort} + ${i})) SERVICE_NAME=${services[$i]} yarn tsnd --respawn services/${services[$i]}\" "
   done
   eval $command
 else
@@ -19,6 +19,6 @@ else
   if [[ "${found}" = "0" ]]; then
     echo "Unknown service!"
   else
-    PORT=$((${startPort} + ${serviceIndex})) yarn tsnd --respawn services/${1}
+    PORT=$((${startPort} + ${serviceIndex})) SERVICE_NAME=${1} yarn tsnd --respawn services/${1}
   fi
 fi

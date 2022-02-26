@@ -1,14 +1,16 @@
-import { Schema, model, models } from 'mongoose';
+import { getModelForClass, prop, ReturnModelType } from '@typegoose/typegoose';
+import { SimpleModel } from './SimpleModel';
 
-export interface User {
-  name: string;
-  email: string;
-}
+export class User extends SimpleModel {
+  @prop({ required: true, type: String })
+  public name: string;
 
-export const UserSchema = new Schema<User>({
-  name: { type: String, required: true },
-  email: { type: String, required: true}
-})
+  @prop({ required: true, type: String, unique: true })
+  public email: string;
 
-export const UserModel = models.User || model<User>('User', UserSchema);
+  public static async build(this: ReturnModelType<typeof User>, attr: User) {
+    return this.create(attr);
+  }
+};
 
+export const UserModel = getModelForClass(User);

@@ -1,19 +1,15 @@
-import express from 'express';
-import { json } from 'body-parser';
-import { signupRouter } from './routes/signup';
-import { connectToDatabase } from '../../../common/utils';
 import mongoose from 'mongoose';
+import { json } from 'body-parser';
+import express from 'express';
+import { signupRouter } from './routes/signup';
+import { connectToDatabase, mountExpress } from '../../../common/utils';
 require('dotenv').config();
 
-const listen = async () => {
-  const PORT = process.env.PORT;
-  const app = express();
-  app.use(json());
-  app.use(signupRouter);
-  
-  app.listen(PORT, () => {
-    console.log(`User management microservice is listening on port ${PORT}`);
-  })
-}
-
-connectToDatabase(mongoose.connect, () => listen(), err => console.error(err));
+const app = express();
+connectToDatabase(mongoose.connect, 
+  () => mountExpress(app, [
+    json(), 
+    signupRouter
+  ]), 
+  err => console.error(err)
+);

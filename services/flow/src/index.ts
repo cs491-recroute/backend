@@ -1,10 +1,13 @@
-import express from 'express';
 import { json } from 'body-parser';
+import express from 'express';
+import { connectToDatabase, mountExpress } from '../../../common/utils';
+import mongoose from 'mongoose';
+require('dotenv').config();
 
-const PORT = process.env.PORT;
 const app = express();
-app.use(json());
-
-app.listen(PORT, () => {
-  console.log(`Flow management microservice is listening on port ${PORT}`);
-})
+connectToDatabase(mongoose.connect, 
+  () => mountExpress(app, [
+    json()
+  ]), 
+  err => console.error(err)
+);
