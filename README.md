@@ -11,4 +11,4 @@ Ports of the microservices start from 3500 and increases by 1 for every microser
 
 `yarn installAll` is used for installing all the dependencies in all services
 
-`yarn syncAll` is used for syncing files with the server. Change the username in the syncAll.default file to your server name and save it as **syncAll**
+`yarn deploy` is used for syncing files with the server. After running the command, it will ask for password.
