@@ -17,6 +17,6 @@
     "startAll": "bash ./scripts/startService all",
     "startService": "bash ./scripts/startService",
     "installAll": "bash ./scripts/installAll",
-    "syncAll": "bash ./scripts/syncAll"
+    "deploy": "bash ./scripts/deploy"
   }
 }

@@ -16,8 +16,9 @@ export function connectToDatabase(connectFunc: any, success: () => void, error: 
 export function mountExpress(app: Application, middlewares: Array<RequestHandler>) {
   const { PORT, SERVICE_NAME } = process.env;
 
+  // Logger
   app.use((req, res, next) => {
-    console.log(req.url);
+    console.log(`${SERVICE_NAME}:${req.url}`);
     next();
   });
   

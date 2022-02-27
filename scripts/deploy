@@ -1,4 +1,4 @@
-USERNAME="##USERNAME##"
+USERNAME="recroute"
 REMOTE_PATH="/home/${USERNAME}/backend"
 REMOTE_HOST="92.205.57.121"
 
