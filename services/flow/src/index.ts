@@ -6,10 +6,17 @@ import { flowRouter } from './routes/flow';
 require('dotenv').config();
 
 const app = express();
-connectToDatabase(mongoose.connect, 
-  () => mountExpress(app, [
-    json(),
-    flowRouter
-  ]), 
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require('./swagger/swagger.json');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+connectToDatabase(mongoose.connect,
+  () => {
+    mountExpress(app, [
+      json(),
+      flowRouter
+    ]);
+  },
   err => console.error(err)
 );

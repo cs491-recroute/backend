@@ -15,7 +15,9 @@
   },
   "scripts": {
     "startAll": "bash ./scripts/startService all",
+    "debugAll": "bash ./scripts/debugService all",
     "startService": "bash ./scripts/startService",
+    "debugService": "bash ./scripts/debugService",
     "installAll": "bash ./scripts/installAll",
     "deploy": "bash ./scripts/deploy"
   }

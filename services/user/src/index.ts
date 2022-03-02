@@ -7,11 +7,18 @@ import { companyRouter } from './routes/company';
 require('dotenv').config();
 
 const app = express();
-connectToDatabase(mongoose.connect, 
-  () => mountExpress(app, [
-    json(), 
-    signupRouter,
-    companyRouter
-  ]), 
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require('./swagger/swagger.json');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+connectToDatabase(mongoose.connect,
+  () => {
+    mountExpress(app, [
+      json(),
+      signupRouter,
+      companyRouter
+    ]);
+  },
   err => console.error(err)
 );
