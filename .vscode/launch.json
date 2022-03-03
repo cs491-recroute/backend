@@ -21,24 +21,6 @@
         },
         {
             "type": "node",
-            "request": "attach",
-            "name": "Attach to dev:debug",
-            "protocol": "inspector",
-            "port": 4323,
-            "restart": true,
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to dev:debug",
-            "protocol": "inspector",
-            "port": 4324,
-            "restart": true,
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "type": "node",
             "request": "launch",
             "name": "Debug",
             "protocol": "inspector",

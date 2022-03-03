@@ -14,8 +14,7 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "startAll": "bash ./scripts/startService all",
-    "debugAll": "bash ./scripts/debugService all",
+    "startProdService": "bash ./scripts/startProdService",
     "startService": "bash ./scripts/startService",
     "debugService": "bash ./scripts/debugService",
     "installAll": "bash ./scripts/installAll",
