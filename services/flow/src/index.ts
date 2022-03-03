@@ -3,6 +3,7 @@ import express from 'express';
 import { connectToDatabase, mountExpress } from '../../../common/utils';
 import mongoose from 'mongoose';
 import { flowRouter } from './routes/flow';
+import { formRouter } from './routes/form';
 require('dotenv').config();
 
 const app = express();
@@ -15,7 +16,8 @@ connectToDatabase(mongoose.connect,
   () => {
     mountExpress(app, [
       json(),
-      flowRouter
+      flowRouter,
+      formRouter
     ]);
   },
   err => console.error(err)

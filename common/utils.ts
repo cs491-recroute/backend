@@ -46,3 +46,7 @@ export function createMiddleware(callback: (req: Request, res: Response, next?: 
     }
   }
 }
+
+export function getUserID(req: Request) {
+  return req.query?.userID || '';
+}
