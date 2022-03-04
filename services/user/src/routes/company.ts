@@ -1,6 +1,6 @@
 import express from "express";
 import { createMiddleware } from "../../../../common/utils";
-import { Company, CompanyModel } from "../models/Company";
+import { Company, CompanyDocument, CompanyModel } from "../models/Company";
 
 const router = express.Router();
 
@@ -14,7 +14,13 @@ router.post('/api/savecompany', createMiddleware(async (req, res) => {
     }
    */
 
-  const company = await CompanyModel.build(req.body as Company);
+  const companyObj = req.body as Company;
+  const company: CompanyDocument = new CompanyModel({ companyObj });
+
+  if (company === null) {
+    return res.status(500).send({ message: "Unable to save! please contact recroute support." });
+  }
+
   await company.save();
   return res.status(200).send(company.id);
 }))

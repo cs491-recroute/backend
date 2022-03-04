@@ -1,15 +1,18 @@
-import { Schema, Types, model } from 'mongoose';
+import { Schema, Types, model, HydratedDocument } from 'mongoose';
 
-interface Company {
+export interface Company {
   name: String,
   domain: String,
-  users: [Types.ObjectId]
+  users: [Types.ObjectId],
+  flows: [Types.ObjectId]
 };
 
 const schema = new Schema<Company>({
   name: { type: String, required: true },
   domain: { type: String, required: true },
-  users: { type: [Schema.Types.ObjectId], ref: 'User' }
+  users: { type: [Schema.Types.ObjectId], ref: 'User' },
+  flows: { type: [Schema.Types.ObjectId], ref: 'Flow' }
 });
 
-export const CompanyModel = () => { return model<Company>("Company", schema) };
+export const CompanyModel = model<Company>("Company", schema);
+export type CompanyDocument = HydratedDocument<Company> | null; 

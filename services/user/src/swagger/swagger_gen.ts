@@ -6,7 +6,7 @@ const swaggerGenerator = (host: String) => {
             title: "User Management Service",
             description: "Manage operations related to a user"
         },
-        host: "localhost:3500",
+        host: host,
         definitions: {
             Company: {
                 name: "Google",
@@ -22,7 +22,7 @@ const swaggerGenerator = (host: String) => {
         }
     };
 
-    const outputFile = './swagger.json';
+    const outputFile = './services/user/src/swagger/swagger.json';
     const endpointsFiles = [`${__dirname}/../routes/*.ts`];
 
     swaggerAutogen(outputFile, endpointsFiles, doc);

@@ -1,6 +1,8 @@
 import express from "express";
 import { createMiddleware, getUserID } from "../../../../common/utils";
-import { User, UserModel, UserDocument } from "../models/User";
+import { SERVICES } from "../../constants/services";
+import { UserModel, UserDocument } from "../models/User";
+import { apiService } from "../services/apiService";
 
 const router = express.Router();
 
@@ -13,6 +15,11 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { flowID } = req.params;
+
+  // send userID to user service and get flowIDs
+  const { data: flows } = await apiService.useService(SERVICES.USER).get(`user/flows/${userID}`);
+
+  // check if flowId matches with any of the flows
 
   const user: UserDocument = await UserModel.findById(userID).populate('company');
 
@@ -29,12 +36,4 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   return res.status(401).send({ message: 'Unauthorized!' });
 }))
 
-router.get('/flow/:flowID', createMiddleware(async (req, res) => {
-  const { flowID } = req.params;
-  const userID = getUserID(req);
-
-  // TODO: Return flow if user has access, return 401 otherwise
-
-  return res.status(200).send({ name: 'Flow 2' });
-}))
 export { router as flowRouter }

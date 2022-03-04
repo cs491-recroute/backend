@@ -1,5 +1,4 @@
-import { Schema, Types, model } from 'mongoose';
-import { HydratedDocument } from "mongoose";
+import { Schema, Types, model, HydratedDocument } from 'mongoose';
 
 export interface User {
   name: String,

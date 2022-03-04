@@ -1,29 +1,18 @@
-import { getModelForClass, prop, Ref, ReturnModelType, DocumentType, PropType, buildSchema} from '@typegoose/typegoose';
-import { SimpleModel } from './SimpleModel';
-import { User } from './User';
-import { Types } from 'mongoose';
+import { Schema, Types, model, HydratedDocument } from 'mongoose';
 
-export class Company extends SimpleModel {
-  @prop({ required: true, type: String })
-  public name: string;
-
-  @prop({ required: true, type: String, unique: true })
-  public domain: string;
-  
-  @prop({ ref: User }, PropType.ARRAY)
-  public users: Ref<User>[];
-  /*
-  ABOVE STYLE USES REFS. IT MEANS USERS ARE STORED IN ANOTHER COLLECTION AND THEIR CORRESPONDING ID ARRAY IS STORED IN COMPANY.
-  IF COMPANY IS FETCHED, ONLY ID'S WILL BE RETURNED DEFAULT. HOWEVER, POPULATE FUNCTION CAN BE USED TO FETCH USERS ALSO.
-  IF YOU WANT TO INSERT THE SUBDOCUMENTS TO THE COLLECTION COMPLETELY, USE LIKE BELOW.
-
-  @prop({ type: User }, PropType.ARRAY)
-  public users: Types.DocumentArray<User> | User[];
-  */
-
-  public static async build(this: ReturnModelType<typeof Company>, attr: Company) {
-    return this.create(attr);
-  }
+export interface Company {
+  name: String,
+  domain: String,
+  users: [Types.ObjectId],
+  flows: [Types.ObjectId]
 };
 
-export const CompanyModel = getModelForClass(Company);
+const schema = new Schema<Company>({
+  name: { type: String, required: true },
+  domain: { type: String, required: true },
+  users: { type: [Schema.Types.ObjectId], ref: 'User' },
+  flows: { type: [Schema.Types.ObjectId], ref: 'Flow' }
+});
+
+export const CompanyModel = model<Company>("Company", schema);
+export type CompanyDocument = HydratedDocument<Company> | null; 
