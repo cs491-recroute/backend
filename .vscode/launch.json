@@ -4,20 +4,20 @@
         {
             "type": "node",
             "request": "attach",
-            "name": "Attach to dev:debug",
+            "name": "user",
             "protocol": "inspector",
             "port": 4321,
             "restart": true,
-            "cwd": "${workspaceRoot}"
+            "cwd": "${workspaceRoot}/services/user"
         },
         {
             "type": "node",
             "request": "attach",
-            "name": "Attach to dev:debug",
+            "name": "flow",
             "protocol": "inspector",
             "port": 4322,
             "restart": true,
-            "cwd": "${workspaceRoot}"
+            "cwd": "${workspaceRoot}/services/flow"
         },
         {
             "type": "node",

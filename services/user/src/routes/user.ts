@@ -7,21 +7,20 @@ const router = express.Router();
 
 router.get('/user/flows/:userID', createMiddleware(async (req, res) => {
     /**
-     * #swagger.description = 'Create a new company and add it to a database'
-     * #swagger.parameters['Company'] = { 
-       in: 'body',
-       required: true,
-       schema: { $ref: '#/definitions/Company'}
-      }
+     * #swagger.description = 'get flows of the user by userID'
      */
     const { userID } = req.params;
-    const user: UserDocument = await UserModel.findById(userID).populate('company');
+    const user: UserDocument = await UserModel.findById(userID);
 
     if (user === null) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
-    // return res.status(200).send((user.company as Company).flows); // TODO
+    const flows = await user.populate<{ company: Company }>('company').then(doc => {
+        return doc.company.flows;
+    });
+
+    return res.status(200).send(flows);
 }))
 
-export { router as companyRouter }
+export { router as userRouter }

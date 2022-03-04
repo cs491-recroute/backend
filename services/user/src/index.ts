@@ -5,6 +5,7 @@ import { signupRouter } from './routes/signup';
 import { connectToDatabase, mountExpress } from '../../../common/utils';
 import { companyRouter } from './routes/company';
 import { swaggerGenerator } from './swagger/swagger_gen';
+import { userRouter } from './routes/user';
 require('dotenv').config();
 
 const { PORT, HOST } = process.env;
@@ -20,7 +21,8 @@ connectToDatabase(mongoose.connect,
     mountExpress(app, [
       json(),
       signupRouter,
-      companyRouter
+      companyRouter,
+      userRouter
     ]);
   },
   err => console.error(err)
