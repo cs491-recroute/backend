@@ -1,8 +1,8 @@
 import express from "express";
-import { createMiddleware, getUserID } from "../../../../common/utils";
-import { SERVICES } from "../../constants/services";
+import { createMiddleware, getUserID } from "../../../../common/services/utils";
+import { SERVICES } from "../../../../common/constants/services";
 import { UserModel, UserDocument } from "../models/User";
-import { apiService } from "../services/apiService";
+import { apiService } from "../../../../common/services/apiService";
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   const { flowID } = req.params;
 
   // send userID to user service and get flowIDs
-  const { data: flows } = await apiService.useService(SERVICES.USER).get(`user/flows/${userID}`);
+  const { data: flows } = await apiService.useService(SERVICES.user).get(`user/flows/${userID}`);
 
   // check if flowId matches with any of the flows
 

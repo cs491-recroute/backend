@@ -1,5 +1,5 @@
 import express from "express";
-import { createMiddleware } from "../../../../common/utils";
+import { createMiddleware } from "../../../../common/services/utils";
 import { CompanyModel } from "../models/Company";
 import { UserModel } from "../models/User";
 
@@ -11,7 +11,7 @@ router.post('/api/saveuser', createMiddleware(async (req, res) => {
    * #swagger.parameters['User'] = { 
      in: 'body',
      required: true,
-     schema: { $ref: '#/definitions/User'}
+     schema: { user: { $ref: '#/definitions/User' } }
     }
    */
 

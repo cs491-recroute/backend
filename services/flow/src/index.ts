@@ -1,6 +1,6 @@
 import { json } from 'body-parser';
 import express from 'express';
-import { connectToDatabase, mountExpress } from '../../../common/utils';
+import { connectToDatabase, mountExpress } from '../../../common/services/utils';
 import mongoose from 'mongoose';
 import { flowRouter } from './routes/flow';
 import { formRouter } from './routes/form';

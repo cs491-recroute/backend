@@ -19,5 +19,8 @@
     "debugService": "bash ./scripts/debugService",
     "installAll": "bash ./scripts/installAll",
     "deploy": "bash ./scripts/deploy"
+  },
+  "dependencies": {
+    "axios": "^0.26.0"
   }
 }

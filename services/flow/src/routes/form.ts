@@ -1,5 +1,5 @@
 import express from "express";
-import { createMiddleware, getUserID } from "../../../../common/utils";
+import { createMiddleware, getUserID } from "../../../../common/services/utils";
 
 const router = express.Router();
 const app = express();

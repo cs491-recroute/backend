@@ -1,5 +1,5 @@
 import Axios, { AxiosInstance } from 'axios';
-import { SERVICES } from '../../constants/services';
+import { SERVICES } from '../constants/services';
 
 // eslint-disable-next-line no-unused-vars
 type ApiService = AxiosInstance & { useService: (service: SERVICES) => AxiosInstance }

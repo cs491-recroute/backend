@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
 export enum SERVICES {
-    USER = 3500,
-    FLOW = 3501,
+    user = 3500,
+    flow = 3501,
 }

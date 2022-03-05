@@ -1,5 +1,5 @@
 import express from "express";
-import { createMiddleware } from "../../../../common/utils";
+import { createMiddleware } from "../../../../common/services/utils";
 import { Company, CompanyDocument, CompanyModel } from "../models/Company";
 
 const router = express.Router();
