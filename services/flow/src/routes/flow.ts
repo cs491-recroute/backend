@@ -19,7 +19,8 @@ router.get('/flows', createMiddleware(async (req, res) => {
   */
   const userID = getUserID(req);
   try {
-    const flows = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);  
+    const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
+    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs} });
     return res.status(200).send(flows);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
