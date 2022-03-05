@@ -24,14 +24,15 @@ router.post('/api/saveuser', createMiddleware(async (req, res) => {
     return res.status(401).send('Your company is not registered to system. Please contact us.')
   }
 
-  // try {
-  //   const userModel = await UserModel.build({ email, name });
-  //   company.users.push(userModel.id);
-  //   await company.save();
-  //   return res.status(200).send(userModel.id);
-  // } catch (error: any) {
-  //   return res.status(400).send('Cannot create user: ' + error.message);
-  // }
+  try {
+    const user = new UserModel({ email, name });
+    company.users.push(user.id);
+    await company.save();
+    await user.save();
+    return res.status(200).send(user.id);
+  } catch (error: any) {
+    return res.status(400).send('Cannot create user: ' + error.message);
+  }
 }))
 
 export { router as signupRouter }
