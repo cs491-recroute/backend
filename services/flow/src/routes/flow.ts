@@ -17,7 +17,14 @@ router.get('/flows', createMiddleware(async (req, res) => {
     type: 'string'
   }
   */
-  res.status(200).send([{ name: 'Flow 1 ' }]);
+  const userID = getUserID(req);
+  try {
+    const flows = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);  
+    return res.status(200).send(flows);
+  } catch (error: any) {
+    return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
+  }
+
 }))
 
 router.get('/flow/:flowID', createMiddleware(async (req, res) => {
@@ -34,19 +41,21 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   const { flowID } = req.params;
 
   // send userID to user service and get flowIDs
-  const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/flows/${userID}`);
-
-  if (flows === null) {
-    return res.status(400).send({ message: "user fetch rrror!" });
+  try {
+    const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
+    if (flows === null) {
+      return res.status(400).send({ message: "user fetch rrror!" });
+    }
+    // check if flowId matches with any of the flows
+    if (flows.includes(flowID)) {
+      const flow = await FlowModel.findById(flowID);
+      return res.status(200).send(flow);
+    } else {
+      return res.status(400).send({ message: 'No flow found with the given ID'})
+    }
+  } catch (error: any) {
+    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
   }
-
-  // check if flowId matches with any of the flows
-  if (flows.includes(flowID)) {
-    return res.status(200).send({ flowID: flowID });
-  }
-
-  // TODO: Find the company of the user, get the flows in that company, determine which ones are accessible by user, return
-  return res.status(401).send({ message: 'Unauthorized!' });
 }))
 
 router.post('/flow', createMiddleware(async (req, res) => {
