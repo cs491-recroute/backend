@@ -19,17 +19,11 @@
             "restart": true,
             "cwd": "${workspaceRoot}/services/flow"
         },
+    ],
+    "compounds": [
         {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug",
-            "protocol": "inspector",
-            "cwd": "${workspaceRoot}",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run-script",
-                "dev"
-            ]
+            "name": "Debug All Services",
+            "configurations": ["flow", "user"]
         }
     ]
 }
