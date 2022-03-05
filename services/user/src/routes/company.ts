@@ -15,7 +15,7 @@ router.post('/api/savecompany', createMiddleware(async (req, res) => {
    */
 
   const companyObj = req.body as Company;
-  const company: CompanyDocument = new CompanyModel({ companyObj });
+  const company: CompanyDocument = new CompanyModel(companyObj);
 
   if (company === null) {
     return res.status(500).send({ message: "Unable to save! please contact recroute support." });

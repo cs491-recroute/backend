@@ -15,7 +15,7 @@ router.post('/api/saveuser', createMiddleware(async (req, res) => {
     }
    */
 
-  const email = req.body.email;
+  const { user: { email = '' } = {} } = req.body;
 
   const [name, domain] = email.split('@');
   const company = await CompanyModel.findOne({ domain: domain });

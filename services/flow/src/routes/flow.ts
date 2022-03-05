@@ -8,6 +8,10 @@ const router = express.Router();
 
 // Controllers
 
+router.get('/flows', createMiddleware(async (req, res) => {
+  res.status(200).send([{ name: 'Flow 1 '}]);
+}))
+
 router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   /**
     #swagger.description = 'Return all flows of a user's company'
@@ -17,7 +21,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   const { flowID } = req.params;
 
   // send userID to user service and get flowIDs
-  const { data: flows } = await apiService.useService(SERVICES.user).get(`user/flows/${userID}`);
+  const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/flows/${userID}`);
 
   // check if flowId matches with any of the flows
 

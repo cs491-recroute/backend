@@ -6,20 +6,28 @@ if [[ "${1}" = "all" ]]; then
   printf -v commaSeperated '%s,' "${services[@]}"
   command="yarn concurrently -c green,yellow,blue -n "$commaSeperated
   for i in "${!services[@]}"; do
+    export ${services[$i]}_RUNNING=1
     command+=" \"PORT=$((${startPort} + ${i})) SERVICE_NAME=${services[$i]} HOST=localhost yarn tsnd --ignore-watch services/${services[$i]}/src/swagger/swagger.json --respawn --inspect=$((${debugPort} + ${i})) services/${services[$i]}\" "
   done
   eval $command
 else
-  found="0"
-  for i in "${!services[@]}"; do
-    if [[ "${services[$i]}" = "${1}" ]]; then
-        serviceIndex=${i};
-        found="1"
+  printf -v commaSeperated '%s,' "$@"
+  command="yarn concurrently -c green,yellow,blue -n "$commaSeperated
+  for service in "$@"
+  do
+    export ${service}_RUNNING=1
+    found="0"
+    for i in "${!services[@]}"; do
+      if [[ "${services[$i]}" = "$service" ]]; then
+          serviceIndex=${i};
+          found="1"
+      fi
+    done
+    if [[ "${found}" = "0" ]]; then
+      echo "Unknown service!"
+    else
+      command+=" \"PORT=$((${startPort} + ${serviceIndex})) SERVICE_NAME=$service HOST=localhost yarn tsnd --ignore-watch services/$service/src/swagger/swagger.json --respawn --inspect=$((${debugPort} + ${i})) services/$service\""
     fi
   done
-  if [[ "${found}" = "0" ]]; then
-    echo "Unknown service!"
-  else
-    PORT=$((${startPort} + ${serviceIndex})) SERVICE_NAME=${1} HOST=localhost yarn tsnd --ignore-watch services/${services[$i]}/src/swagger/swagger.json --respawn --inspect=$((${debugPort} + ${serviceIndex})) services/${1}
-  fi
+  eval $command
 fi
