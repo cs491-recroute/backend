@@ -17,10 +17,12 @@ router.get('/flows', createMiddleware(async (req, res) => {
     type: 'string'
   }
   */
+
   const userID = getUserID(req);
+
   try {
     const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
-    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs} });
+    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs } });
     return res.status(200).send(flows);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
@@ -45,14 +47,21 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   try {
     const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
     if (flows === null) {
-      return res.status(400).send({ message: "user fetch rrror!" });
+      return res.status(400).send({ message: "user fetch error!" });
     }
+
     // check if flowId matches with any of the flows
     if (flows.includes(flowID)) {
       const flow = await FlowModel.findById(flowID);
+
+      // flowID is missing int the document
+      if (flow === null) {
+        return res.status(400).send({ message: 'No flow found with the given ID' });
+      }
       return res.status(200).send(flow);
-    } else {
-      return res.status(400).send({ message: 'No flow found with the given ID'})
+    }
+    else {
+      return res.status(400).send({ message: 'No flow found with the given ID' });
     }
   } catch (error: any) {
     return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
@@ -79,19 +88,19 @@ router.post('/flow', createMiddleware(async (req, res) => {
 
   const flowModel: FlowDocument = new FlowModel(flow);
 
-  const { status } = await apiService.useService(SERVICES.user).post(`/user/${userID}/flow/${flowModel.id}`);
-
-  if (status !== 200) {
-    res.status(400).send({ message: "Error saving flow in company!" });
+  try {
+    await apiService.useService(SERVICES.user).post(`/user/${userID}/flow/${flowModel.id}`);
+  } catch (error: any) {
+    return res.status(400).send({ message: "Error saving flow in company!", errorMessage: error.message });
   }
 
   try {
     await flowModel.save();
   } catch (error: any) {
-    res.status(400).send({ message: "Error saving flow!", errorMessage: error.message });
+    return res.status(400).send({ message: "Error saving flow!", errorMessage: error.message });
   }
 
-  res.status(200).send({ flowID: flowModel.id });
+  return res.status(200).send({ flowID: flowModel.id });
 }))
 
 export { router as flowRouter }
