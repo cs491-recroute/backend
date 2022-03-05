@@ -9,7 +9,7 @@ const router = express.Router();
 // Controllers
 
 router.get('/flows', createMiddleware(async (req, res) => {
-  res.status(200).send([{ name: 'Flow 1 '}]);
+  res.status(200).send([{ name: 'Flow 1 ' }]);
 }))
 
 router.get('/flow/:flowID', createMiddleware(async (req, res) => {
@@ -17,24 +17,23 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
     #swagger.description = 'Return all flows of a user's company'
    */
 
-  const userID = getUserID(req);
+  //const userID = getUserID(req);
+  const { userID } = req.query;
   const { flowID } = req.params;
 
   // send userID to user service and get flowIDs
   const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/flows/${userID}`);
 
-  // check if flowId matches with any of the flows
-
-  const user: UserDocument = await UserModel.findById(userID).populate('company');
-
-  if (user === null) {
-    return res.status(400).send({ message: 'No user found for provided userID' });
+  if (flows === null) {
+    return res.status(400).send({ message: "user fetch rrror!" });
   }
 
-  //const user = await UserModel.findById(userID).populate('company');
-  //if (user?.company.flows.includes(flowID)) {
-  //  return res.status(200).send(await FlowModel.findById(flowID));
-  //
+  console.log(flows);
+
+  // check if flowId matches with any of the flows
+  if (flows.includes(flowID)) {
+    return res.status(200).send({ flowID: flowID });
+  }
 
   // TODO: Find the company of the user, get the flows in that company, determine which ones are accessible by user, return
   return res.status(401).send({ message: 'Unauthorized!' });

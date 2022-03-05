@@ -16,9 +16,7 @@ router.get('/user/flows/:userID', createMiddleware(async (req, res) => {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
-    const flows = await user.populate<{ company: Company }>('company').then(doc => {
-        return doc.company.flows;
-    });
+    const { company: { flows } } = await user.populate<{ company: Company }>('company');
 
     return res.status(200).send(flows);
 }))

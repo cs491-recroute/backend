@@ -25,7 +25,7 @@ router.post('/api/saveuser', createMiddleware(async (req, res) => {
   }
 
   try {
-    const user = new UserModel({ email, name });
+    const user = new UserModel({ email, name, company: company.id });
     company.users.push(user.id);
     await company.save();
     await user.save();
