@@ -1,16 +1,14 @@
 import express from "express";
 import { createMiddleware } from "../../../../common/services/utils";
-import { Company, CompanyDocument, CompanyModel } from "../models/Company";
+import { Company, CompanyModel } from "../models/Company";
 import { UserDocument, UserModel } from "../models/User";
 import { Types } from "mongoose";
-import { companyRouter } from "./company";
-//const { Types } = require("mongoose");
 
 const router = express.Router();
 
 router.get('/user/flows/:userID', createMiddleware(async (req, res) => {
     /**
-     * #swagger.description = 'get flows of the user by userID'
+     * #swagger.description = 'get flows of the user by userID - ( used by FlowService )'
      */
     const { userID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
@@ -26,7 +24,7 @@ router.get('/user/flows/:userID', createMiddleware(async (req, res) => {
 
 router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
     /**
-     * #swagger.description = 'get flows of the user by userID'
+     * #swagger.description = 'get flows of the user by userID - ( used by FlowService )'
      */
     const { userID, flowID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);

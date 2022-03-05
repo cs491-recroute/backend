@@ -9,16 +9,28 @@ const router = express.Router();
 // Controllers
 
 router.get('/flows', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Return all flows of a user's company'
+    #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
   res.status(200).send([{ name: 'Flow 1 ' }]);
 }))
 
 router.get('/flow/:flowID', createMiddleware(async (req, res) => {
-  /**
-    #swagger.description = 'Return all flows of a user's company'
-   */
+  /*
+    #swagger.description = 'Return the flow according to flowID'
+    #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
 
-  //const userID = getUserID(req);
-  const { userID } = req.query;
+  const userID = getUserID(req);
   const { flowID } = req.params;
 
   // send userID to user service and get flowIDs
@@ -37,23 +49,27 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   return res.status(401).send({ message: 'Unauthorized!' });
 }))
 
-router.post('/flow/:userID', createMiddleware(async (req, res) => {
-  /**
-   * #swagger.description = 'Create a new flow and add it to a database'
-   * #swagger.parameters['Flow'] = { 
-     in: 'body',
-     required: true,
-     schema: { $ref: '#/definitions/Flow'}
-    }
-   */
+router.post('/flow', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Create a new flow'
+  #swagger.parameters['Flow'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Flow'}
+  }
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
 
-  const { userID } = req.params;
+  const userID = getUserID(req);
   const flow: Flow = req.body;
 
   const flowModel: FlowDocument = new FlowModel(flow);
 
-  // send userID to user service and get flowIDs
-  const { status } = await (await apiService.useService(SERVICES.user).post(`/user/${userID}/flow/${flowModel.id}`));
+  const { status } = await apiService.useService(SERVICES.user).post(`/user/${userID}/flow/${flowModel.id}`);
 
   if (status !== 200) {
     res.status(400).send({ message: "Error saving flow in company!" });

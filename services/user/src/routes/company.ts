@@ -4,10 +4,10 @@ import { Company, CompanyDocument, CompanyModel } from "../models/Company";
 
 const router = express.Router();
 
-router.post('/api/savecompany', createMiddleware(async (req, res) => {
-  /**
-   * #swagger.description = 'Create a new company and add it to a database'
-   * #swagger.parameters['Company'] = { 
+router.post('/company', createMiddleware(async (req, res) => {
+  /*
+   #swagger.description = 'Create a new company and add it to a database'
+   #swagger.parameters['Company'] = { 
      in: 'body',
      required: true,
      schema: { $ref: '#/definitions/Company'}
