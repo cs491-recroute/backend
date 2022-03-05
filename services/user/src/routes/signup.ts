@@ -1,6 +1,6 @@
 import express from "express";
 import { createMiddleware } from "../../../../common/services/utils";
-import { CompanyModel } from "../models/Company";
+import { CompanyDocument, CompanyModel } from "../models/Company";
 import { UserModel } from "../models/User";
 
 const router = express.Router();
@@ -18,7 +18,7 @@ router.post('/api/saveuser', createMiddleware(async (req, res) => {
   const { user: { email = '' } = {} } = req.body;
 
   const [name, domain] = email.split('@');
-  const company = await CompanyModel.findOne({ domain: domain });
+  const company: CompanyDocument = await CompanyModel.findOne({ domain: domain });
 
   if (!company) {
     return res.status(401).send('Your company is not registered to system. Please contact us.')

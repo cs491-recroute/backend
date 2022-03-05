@@ -6,7 +6,12 @@ const swaggerGenerator = (host: String) => {
             title: "Flow Management Service",
             description: "Manage operations related to a flow"
         },
-        host: host
+        host: host,
+        definitions: {
+            Flow: {
+                name: "Senior Java Developer - 1"
+            }
+        }
     };
 
     const outputFile = './services/flow/src/swagger/swagger.json';
