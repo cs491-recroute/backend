@@ -10,10 +10,15 @@ const app = express();
 // Controllers
 
 router.get('/templates/form', createMiddleware(async (req, res) => {
-  /**
-   * #swagger.description = 'Return all form templates that user can access'
+  /*
+    #swagger.description = 'Return all form templates that user can access'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
    */
-  
+
   const userID = getUserID(req);
 
   try {
@@ -26,8 +31,13 @@ router.get('/templates/form', createMiddleware(async (req, res) => {
 }))
 
 router.post('/templates/form', createMiddleware(async (req, res) => {
-  /**
-   * #swagger.description = 'Create a new form template to company of the specified user'
+  /*
+    #swagger.description = 'Create a new form template to company of the specified user'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
    */
 
   const userID = getUserID(req);

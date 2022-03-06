@@ -1,4 +1,3 @@
-import { timeStamp } from 'console';
 import { Schema, Types, model, HydratedDocument } from 'mongoose';
 
 export interface User {
@@ -14,4 +13,4 @@ const schema = new Schema<User>({
 }, { timestamps: true });
 
 export const UserModel = model<User>("User", schema);
-export type UserDocument = HydratedDocument<User> | null; 
+export type UserDocument = HydratedDocument<User> | null;

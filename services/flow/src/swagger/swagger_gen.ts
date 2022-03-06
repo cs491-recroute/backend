@@ -10,6 +10,12 @@ const swaggerGenerator = (host: String) => {
         definitions: {
             Flow: {
                 name: "Senior Java Developer - 1"
+            },
+            Stage: {
+                type: 0,
+                stageID: "Example: FormID",
+                startDate: new Date(Date.now()).toISOString(),
+                endDate: new Date(Date.now()).toISOString()
             }
         }
     };
