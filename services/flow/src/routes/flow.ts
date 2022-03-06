@@ -49,7 +49,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   try {
     const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
     if (flows === null) {
-      return res.status(400).send({ message: "user fetch error!" });
+      return res.status(400).send({ message: "Unauthorized!" });
     }
 
     // check if flowId matches with any of the flows

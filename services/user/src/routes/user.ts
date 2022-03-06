@@ -20,7 +20,7 @@ router.get('/user/:userID/flows', createMiddleware(async (req, res) => {
     const { company: { flows } } = await user.populate<{ company: Company }>('company');
 
     return res.status(200).send(flows);
-}))
+}));
 
 router.get('/user/:userID/forms', createMiddleware(async (req, res) => {
     /**
@@ -36,7 +36,7 @@ router.get('/user/:userID/forms', createMiddleware(async (req, res) => {
     const { company: { forms } } = await user.populate<{ company: Company }>('company');
 
     return res.status(200).send(forms);
-}))
+}));
 
 router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
     /**
@@ -59,7 +59,7 @@ router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
         return res.status(400).send({ message: "Error updating company!", errorMessage: error.message });
     }
     return res.status(200).send("Nice");
-}))
+}));
 
 router.post('/user/:userID/form/:formID', createMiddleware(async (req, res) => {
     /**
@@ -75,13 +75,13 @@ router.post('/user/:userID/form/:formID', createMiddleware(async (req, res) => {
     const { company } = await user.populate<{ company: Company }>('company');
 
     company.forms.push(new Types.ObjectId(formID));
-    
+
     try {
         await CompanyModel.updateOne(company);
     } catch (error: any) {
         return res.status(400).send({ message: "Error updating company!", errorMessage: error.message });
     }
     return res.status(200).send("Nice");
-}))
+}));
 
 export { router as userRouter }

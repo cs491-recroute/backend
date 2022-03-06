@@ -50,6 +50,45 @@ router.post('/templates/form', createMiddleware(async (req, res) => {
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot create form template!', errorMessage: error.message });
   }
-}))
+}));
+
+router.get('/form/:formID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Return form according to formID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+  */
+
+  const userID = getUserID(req);
+  const { formID } = req.params;
+
+  // send userID to user service and get flowIDs
+  try {
+    const { data: forms } = await apiService.useService(SERVICES.user).get(`/user/${userID}/forms`);
+    if (forms === null) {
+      return res.status(401).send({ message: "Unauthorized!" });
+    }
+
+    // check if flowId matches with any of the flows
+    if (forms.includes(formID)) {
+      const form = await FormModel.findById(formID);
+
+      // flowID is missing int the document
+      if (form === null) {
+        return res.status(400).send({ message: 'No form found with the given ID' });
+      }
+      return res.status(200).send(form);
+    }
+    else {
+      return res.status(400).send({ message: 'No form found with the given ID' });
+    }
+  } catch (error: any) {
+    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+  }
+
+}));
 
 export { router as formRouter }
