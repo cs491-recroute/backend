@@ -6,9 +6,9 @@ export interface Form {
 };
 
 const schema = new Schema<Form>({
-    name: { type: String, required: true },
+    name: { type: String, required: true, default: 'Form' },
     isTemplate: { type: Boolean, required: true }
 }, { timestamps: true });
 
-export const FormModel = model<Form>("Flow", schema);
+export const FormModel = model<Form>("Form", schema);
 export type FormDocument = HydratedDocument<Form> | null; 
