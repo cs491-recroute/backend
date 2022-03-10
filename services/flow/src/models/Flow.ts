@@ -1,4 +1,5 @@
-import { Schema, Types, model, HydratedDocument } from 'mongoose';
+import { Schema, model, HydratedDocument } from 'mongoose';
+import './Interview'; // Interview must be imported because it is used in StageSchema
 import { Stage, StageSchema } from './Stage';
 
 export interface Flow {

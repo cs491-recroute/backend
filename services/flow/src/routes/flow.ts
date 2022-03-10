@@ -3,7 +3,7 @@ import { createMiddleware, getUserID } from "../../../../common/services/utils";
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
 import { Flow, FlowDocument, FlowModel } from "../models/Flow";
-import { Stage, StageDocument, StageModel } from "../models/Stage";
+import { Stage, StageDocument, StageModel, StageType } from "../models/Stage";
 import { Types } from "mongoose";
 
 const router = express.Router();
@@ -54,12 +54,31 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
 
     // check if flowId matches with any of the flows
     if (flows.includes(flowID)) {
-      const flow = await FlowModel.findById(flowID);
-
+      let flow: FlowDocument = await FlowModel.findById(flowID);
+      
       // flowID is missing int the document
       if (flow === null) {
         return res.status(400).send({ message: 'No flow found with the given ID' });
       }
+
+      for (const type in StageType) {
+        flow = await flow?.populate(`stages.${type}`) as FlowDocument;
+      }
+
+      // Insert stage props (form, test, interview props) to every stage
+      const response = flow?.toJSON();
+      response?.stages.forEach((stage: any, index) => {
+        response.stages[index] = Object.keys(stage).reduce((acc, key) => {
+          if (Object.values(StageType).includes(key as StageType)) {
+            if (stage[key]){
+              return {...acc, stageProps: stage[key]};
+            }
+            return acc;
+          }
+          return { ...acc, [key]: stage[key] };
+        }, { type: stage.type, stageID: stage.stageID });
+      })
+
       return res.status(200).send(flow);
     }
     else {
@@ -142,7 +161,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
 
       flow.stages.push(stageModel);
       await flow.save();
-      return res.status(200).send(flow);
+      return res.status(200).send({ stage: stageModel});
     }
     else {
       return res.status(400).send({ message: 'No flow found with the given ID' });
