@@ -79,7 +79,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
         }, { type: stage.type, stageID: stage.stageID });
       })
 
-      return res.status(200).send(flow);
+      return res.status(200).send(response);
     }
     else {
       return res.status(400).send({ message: 'No flow found with the given ID' });
