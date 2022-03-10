@@ -102,7 +102,7 @@ router.post('/flow', createMiddleware(async (req, res) => {
     return res.status(400).send({ message: "Error saving flow!", errorMessage: error.message });
   }
 
-  return res.status(200).send({ flowID: flowModel.id });
+  return res.status(200).send({ flow: flowModel });
 }));
 
 router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {

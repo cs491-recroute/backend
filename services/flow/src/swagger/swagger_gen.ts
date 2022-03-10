@@ -12,7 +12,7 @@ const swaggerGenerator = (host: String) => {
                 name: "Senior Java Developer - 1"
             },
             Stage: {
-                type: 0,
+                type: 'FORM',
                 stageID: "Example: FormID",
                 startDate: new Date(Date.now()).toISOString(),
                 endDate: new Date(Date.now()).toISOString()

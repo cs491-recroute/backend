@@ -1,9 +1,9 @@
 import { Schema, Types, model, HydratedDocument } from 'mongoose';
 
 export enum StageType {
-    FORM,
-    TEST,
-    INTERVIEW
+    FORM = 'FORM',
+    TEST = 'TEST',
+    INTERVIEW = 'INTERVIEW'
 }
 
 export interface Stage {
@@ -14,7 +14,7 @@ export interface Stage {
 };
 
 export const StageSchema = new Schema<Stage>({
-    type: { type: Number, enum: StageType, required: true },
+    type: { type: String, enum: StageType, required: true },
     stageID: { type: Schema.Types.ObjectId, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true }
