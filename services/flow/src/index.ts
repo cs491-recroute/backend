@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { flowRouter } from './routes/flow';
 import { formRouter } from './routes/form';
 import { swaggerGenerator } from './swagger/swagger_gen';
+import { interviewRouter } from './routes/interview';
 require('dotenv').config();
 
 const { PORT, HOST } = process.env;
@@ -20,7 +21,8 @@ connectToDatabase(mongoose.connect,
     mountExpress(app, [
       json(),
       flowRouter,
-      formRouter
+      formRouter,
+      interviewRouter
     ]);
   },
   err => console.error(err)

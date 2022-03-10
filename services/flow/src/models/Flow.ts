@@ -2,8 +2,8 @@ import { Schema, Types, model, HydratedDocument } from 'mongoose';
 import { Stage, StageSchema } from './Stage';
 
 export interface Flow {
-    name: String
-    stages: Stage[]
+    name: String;
+    stages: Stage[];
 };
 
 const schema = new Schema<Flow>({
