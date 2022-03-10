@@ -142,7 +142,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   const { flowID } = req.params;
   const userID = getUserID(req);
   const stage: Stage = req.body;
-  const stageModel: StageDocument = new StageModel(stage);
+  let stageModel: StageDocument = new StageModel(stage);
 
   try {
     const { data: flows } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
@@ -161,7 +161,22 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
 
       flow.stages.push(stageModel);
       await flow.save();
-      return res.status(200).send({ stage: stageModel});
+
+      for (const type in StageType) {
+        stageModel = await stageModel?.populate(`${type}`) as StageDocument;
+      }
+      let response: any = stageModel?.toJSON();
+      response = Object.keys(response).reduce((acc, key) => {
+        if (Object.values(StageType).includes(key as StageType)) {
+          if (response[key]){
+            return {...acc, stageProps: response[key]};
+          }
+          return acc;
+        }
+        return { ...acc, [key]: response[key] };
+      }, { type: stage.type, stageID: stage.stageID });
+
+      return res.status(200).send({ stage: response });
     }
     else {
       return res.status(400).send({ message: 'No flow found with the given ID' });
