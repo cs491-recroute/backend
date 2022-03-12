@@ -16,6 +16,13 @@ const swaggerGenerator = (host: String) => {
                 stageID: "Example: FormID",
                 startDate: new Date(Date.now()).toISOString(),
                 endDate: new Date(Date.now()).toISOString()
+            },
+            Condition: {
+                from: 'Stage ID 1',
+                to: 'Stage ID 2',
+                field: 'Field ID 1: Optional',
+                operation: 'gte',
+                value: '10'
             }
         }
     };

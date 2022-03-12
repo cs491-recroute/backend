@@ -151,4 +151,40 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   }
 }));
 
+router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Create new condition to flow with specified information'
+    #swagger.parameters['Condition'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/Condition'}
+    }
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const { flowID } = req.params;
+  const userID = getUserID(req);
+  const condition: Condition = req.body;
+  
+  try {
+    const flow = await getUserFlow(userID, flowID);
+    const fromIndex = flow.stages.findIndex(stage => stage.id === condition.from);
+    const toIndex = flow.stages.findIndex(stage => stage.id === condition.to);
+
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex + 1 === toIndex)  {
+      let conditionModel: ConditionDocument = new ConditionModel(condition);
+      flow.conditions.push(conditionModel);
+      await flow.save();
+      return res.status(200).send({ condition: conditionModel });
+    }
+    return res.status(400).send({ message: 'Invalid condition'});
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}))
+
 export { router as flowRouter }
