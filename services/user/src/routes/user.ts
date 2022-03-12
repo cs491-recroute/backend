@@ -11,15 +11,16 @@ router.get('/user/:userID/flows', createMiddleware(async (req, res) => {
      * #swagger.description = 'get flows of the user by userID - ( used by FlowService )'
      */
     const { userID } = req.params;
-    const user: UserDocument = await UserModel.findById(userID);
-
-    if (user === null) {
+    try {
+        const user: UserDocument = await UserModel.findById(userID);
+        if (user === null) {
+            return res.status(400).send({ message: "No user found with UserID!" });
+        }
+        const { company: { flows } } = await user.populate<{ company: Company }>('company');
+        return res.status(200).send(flows);
+    } catch (error) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
-
-    const { company: { flows } } = await user.populate<{ company: Company }>('company');
-
-    return res.status(200).send(flows);
 }));
 
 router.get('/user/:userID/forms', createMiddleware(async (req, res) => {
