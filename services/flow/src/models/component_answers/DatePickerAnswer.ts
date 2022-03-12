@@ -1,14 +1,9 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
-export interface DatePicker {
-    type: String;
-    title: String;
+export interface DatePickerAnswer {
+    date: Date;
 };
 
-export const datePickerSchema = new Schema<DatePicker>({
-    type: { type: String, defualt: "datePicker" },
-    title: { type: String, required: true, default: 'DatePicker' },
-}, { timestamps: true });
-
-//export const DatePickerModel = model<DatePicker>("DatePicker", schema);
-//export type DatePickerDocument = HydratedDocument<DatePicker> | null; 
+export const datePickerAnswerSchema = new Schema<DatePickerAnswer>({
+    date: { type: Date }
+}, { _id: false });

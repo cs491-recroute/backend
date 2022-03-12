@@ -1,9 +1,11 @@
-import { Schema, model, HydratedDocument, Types } from 'mongoose';
+import { Schema } from 'mongoose';
 import { Address, addressSchema, ComponentTypes, DatePicker, datePickerSchema, DropDown, dropDownSchema, FullName, fullNameSchema, Header, headerSchema, LongText, longTextSchema, MultipleChoice, multipleChoiceSchema, Phone, phoneSchema, ShortText, shortTextSchema, SingleChoice, singleChoiceSchema, Upload, uploadSchema } from './components';
 import { numberSchema } from './components/Number';
 
 export interface Component {
     type: ComponentTypes;
+    required: Boolean;
+
     address: Address;
     datePicker: DatePicker;
     dropDown: DropDown;
@@ -18,8 +20,10 @@ export interface Component {
     upload: Upload;
 }
 
-const schema = new Schema<Component>({
+export const componentSchema = new Schema<Component>({
     type: { type: String, required: true },
+    required: { type: Boolean, required: true },
+
     address: { type: addressSchema },
     datePicker: { type: datePickerSchema },
     dropDown: { type: dropDownSchema },
@@ -33,6 +37,3 @@ const schema = new Schema<Component>({
     singleChoice: { type: singleChoiceSchema },
     upload: { type: uploadSchema },
 }, { timestamps: true });
-
-export const ComponentModel = model<Component>("Component", schema);
-export type ComponentDocument = HydratedDocument<Component> | null; 

@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface Header {
     type: String;
@@ -7,10 +7,7 @@ export interface Header {
 };
 
 export const headerSchema = new Schema<Header>({
-    type: { type: String, defualt: "header" },
+    type: { type: String, default: "header" },
     title: { type: String, required: true, default: 'Header' },
     placeholder: { type: String, required: true, default: 'Header' },
-}, { timestamps: true });
-
-// const HeaderModel = model<Header>("Header", schema);
-//export type HeaderDocument = HydratedDocument<Header> | null; 
+}, { _id: false });

@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface DropDown {
     type: String;
@@ -8,11 +8,8 @@ export interface DropDown {
 };
 
 export const dropDownSchema = new Schema<DropDown>({
-    type: { type: String, defualt: "dropDown" },
+    type: { type: String, default: "dropDown" },
     title: { type: String, required: true, default: 'Address' },
     placeholder: { type: String, required: true, default: 'Select' },
     options: { type: [String], required: true, default: ["Option 1", "Option 2", "Option 3"] },
-}, { timestamps: true });
-
-//export const DropDownModel = model<DropDown>("DropDown", schema);
-//export type DropDownDocument = HydratedDocument<DropDown> | null; 
+}, { _id: false });

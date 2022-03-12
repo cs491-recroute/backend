@@ -14,10 +14,11 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "startProdService": "yarn installAll && bash ./scripts/startProdService",
-    "startService": "yarn installAll && bash ./scripts/startService",
-    "debugService": "yarn installAll && bash ./scripts/debugService",
+    "startProdService": "yarn installAll && bash ./scripts/generateSwagger prod && bash ./scripts/startProdService",
+    "startService": "yarn installAll && bash ./scripts/generateSwagger && bash ./scripts/startService",
+    "debugService": "yarn installAll && bash ./scripts/generateSwagger && bash ./scripts/debugService",
     "installAll": "bash ./scripts/installAll",
+    "generateSwagger": "bash ./scripts/generateSwagger",
     "deploy": "bash ./scripts/deploy"
   },
   "dependencies": {

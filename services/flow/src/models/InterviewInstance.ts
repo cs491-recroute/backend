@@ -16,5 +16,5 @@ export const InterviewInstanceSchema = new Schema<InterviewInstance>({
     grade: { type: Number, required: false, default: undefined }
 }, { timestamps: true });
 
-export const InterviewInstanceModel = model<InterviewInstance>("InterviewInstance", InterviewInstanceSchema);
-export type InterviewInstanceDocument = HydratedDocument<InterviewInstance> | null; 
+//export const InterviewInstanceModel = model<InterviewInstance>("InterviewInstance", InterviewInstanceSchema);
+//export type InterviewInstanceDocument = HydratedDocument<InterviewInstance> | null; 

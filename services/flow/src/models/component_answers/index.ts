@@ -1,17 +1,16 @@
-import { Address, addressSchema } from './Address';
-import { DatePicker } from './DatePicker';
-import { DropDown } from './DropDown';
-import { FullName } from './FullName';
-import { Header } from './Header';
-import { LongText } from './LongText';
-import { MultipleChoice } from './MultipleChoice';
-import { Phone } from './Phone';
-import { ShortText } from './ShortText';
-import { SingleChoice } from './SingleChoice';
-import { Upload } from './Upload';
+export { AddressAnswer, addressAnswerSchema } from './AddressAnswer';
+export { DatePickerAnswer, datePickerAnswerSchema } from './DatePickerAnswer';
+export { DropDownAnswer, dropDownAnswerSchema } from './DropDownAnswer';
+export { FullNameAnswer, fullNameAnswerSchema } from './FullNameAnswer';
+export { LongTextAnswer, longTextAnswerSchema } from './LongTextAnswer';
+export { MultipleChoiceAnswer, multipleChoiceAnswerSchema } from './MultipleChoiceAnswer';
+export { NumberAnswer, numberAnswerSchema } from './NumberAnswer'
+export { PhoneAnswer, phoneAnswerSchema } from './PhoneAnswer';
+export { ShortTextAnswer, shortTextAnswerSchema } from './ShortTextAnswer';
+export { SingleChoiceAnswer, singleChoiceAnswerSchema } from './SingleChoiceAnswer';
+export { UploadAnswer, uploadAnswerSchema } from './UploadAnswer';
 
-export type ComponentTypes = Address | DatePicker | DropDown | FullName |
-    Header | LongText | MultipleChoice | Number |
-    Phone | ShortText | SingleChoice | Upload;
+export type ComponentAnswerTypes = "addressAnswer" | "datePickerAnswer" | "dropDownAnswer" | "fullNameAnswer" |
+    "longTextAnswer" | "multipleChoiceAnswer" | "phoneAnswer" | "shortTextAnswer" |
+    "singleChoiceAnswer" | "uploadAnswer";
 
-export type ComponentTypeSchemas = addressSchema

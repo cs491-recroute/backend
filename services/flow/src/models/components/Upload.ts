@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface Upload {
     type: String;
@@ -6,9 +6,6 @@ export interface Upload {
 };
 
 export const uploadSchema = new Schema<Upload>({
-    type: { type: String, defualt: 'upload' },
+    type: { type: String, default: 'upload' },
     title: { type: String, required: true, default: 'Upload file' }
-}, { timestamps: true });
-
-//export const UploadAdressModel = model<Upload>("SingleChoice", schema);
-//export type UploadDocument = HydratedDocument<Upload> | null; 
+}, { _id: false });

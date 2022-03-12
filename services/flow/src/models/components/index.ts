@@ -12,5 +12,5 @@ export { Upload, uploadSchema } from './Upload';
 
 export type ComponentTypes = "address" | "datePicker" | "dropDown" | "fullName" |
     "header" | "longText" | "multipleChoice" | "phone" |
-    "shortText" | "singleChoice" | "UploadType";
+    "shortText" | "singleChoice" | "upload";
 

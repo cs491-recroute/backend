@@ -19,5 +19,5 @@ const schema = new Schema<Interview>({
     interviewers: { type: [Schema.Types.ObjectId], required: true }
 }, { timestamps: true });
 
-export const InterviewModel = model<Interview>("Interview", schema);
-export type InterviewDocument = HydratedDocument<Interview> | null; 
+//export const InterviewModel = model<Interview>("Interview", schema);
+//export type InterviewDocument = HydratedDocument<Interview> | null; 

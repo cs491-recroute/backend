@@ -1,0 +1,11 @@
+startPort=3500
+services=('user' 'flow')
+host="localhost"
+
+if [[ "${1}" = "prod" ]]; then
+    host="92.205.57.121"
+fi
+
+for i in "${!services[@]}"; do
+    PORT=$((${startPort} + ${i})) HOST=${host} node services/${services[$i]}/src/swagger/swagger_gen.js
+done

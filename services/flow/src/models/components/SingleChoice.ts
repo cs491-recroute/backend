@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface SingleChoice {
     type: String;
@@ -7,10 +7,7 @@ export interface SingleChoice {
 };
 
 export const singleChoiceSchema = new Schema<SingleChoice>({
-    type: { type: String, defualt: 'singleChoice' },
+    type: { type: String, default: 'singleChoice' },
     title: { type: String, required: true, default: 'Choose one.' },
     options: { type: [String], required: true, default: ["Option 1", "Option 2", "Option 3"] },
-}, { timestamps: true });
-
-//export const SingleChoiceAdressModel = model<SingleChoice>("SingleChoice", schema);
-//export type SingleChoiceDocument = HydratedDocument<SingleChoice> | null; 
+}, { _id: false });

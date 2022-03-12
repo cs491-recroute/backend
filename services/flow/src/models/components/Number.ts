@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface Number {
     type: String;
@@ -7,10 +7,7 @@ export interface Number {
 };
 
 export const numberSchema = new Schema<Number>({
-    type: { type: String, defualt: "number" },
+    type: { type: String, default: "number" },
     title: { type: String, required: true, default: "Number" },
     placeholder: { type: String, required: true, default: "Number" },
-}, { timestamps: true });
-
-//export const NumberModel = model<Number>("Number", schema);
-//export type NumberDocument = HydratedDocument<Number> | null; 
+}, { _id: false });

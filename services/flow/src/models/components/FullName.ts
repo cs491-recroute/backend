@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface FullName {
     type: String;
@@ -7,10 +7,7 @@ export interface FullName {
 };
 
 export const fullNameSchema = new Schema<FullName>({
-    type: { type: String, defualt: "fullName" },
+    type: { type: String, default: "fullName" },
     titles: { type: [String], required: true, default: ["Name", "Surname"] },
     placeholders: { type: [String], required: true, default: ["Name", "Surname"] },
-}, { timestamps: true });
-
-//export const FullNameModel = model<FullName>("FullName", schema);
-//export type FullNameDocument = HydratedDocument<FullName> | null; 
+}, { _id: false });

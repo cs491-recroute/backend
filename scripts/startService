@@ -6,7 +6,7 @@ if [[ "${1}" = "all" ]]; then
   command="yarn concurrently -c green,yellow,blue -n "$commaSeperated
   for i in "${!services[@]}"; do
     export ${services[$i]}_RUNNING=1
-    command+=" \"PORT=$((${startPort} + ${i})) SERVICE_NAME=${services[$i]} HOST=localhost yarn tsnd --ignore-watch services/${services[$i]}/src/swagger/swagger.json --respawn services/${services[$i]}\" "
+    command+=" \"PORT=$((${startPort} + ${i})) SERVICE_NAME=${services[$i]} HOST=localhost yarn tsnd --respawn services/${services[$i]}\" "
   done
   eval $command
 else
@@ -25,7 +25,7 @@ else
     if [[ "${found}" = "0" ]]; then
       echo "Unknown service!"
     else
-      command+=" \"PORT=$((${startPort} + ${serviceIndex})) SERVICE_NAME=$service HOST=localhost yarn tsnd --ignore-watch services/$service/src/swagger/swagger.json --respawn services/$service\""
+      command+=" \"PORT=$((${startPort} + ${serviceIndex})) SERVICE_NAME=$service HOST=localhost yarn tsnd --respawn services/$service\""
     fi
   done
   eval $command

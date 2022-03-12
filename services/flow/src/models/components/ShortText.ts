@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface ShortText {
     type: String;
@@ -7,10 +7,7 @@ export interface ShortText {
 };
 
 export const shortTextSchema = new Schema<ShortText>({
-    type: { type: String, defualt: "shortText" },
+    type: { type: String, default: "shortText" },
     title: { type: String, required: true, default: "Short Text" },
     placeholder: { type: String, required: true, default: "Text" },
-}, { timestamps: true });
-
-//export const ShortTextModel = model<ShortText>("ShortText", schema);
-//export type ShortTextDocument = HydratedDocument<ShortText> | null; 
+}, { _id: false });

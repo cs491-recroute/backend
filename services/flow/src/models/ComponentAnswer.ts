@@ -1,13 +1,34 @@
-import { Schema, model, HydratedDocument, Types } from 'mongoose';
-import { ComponentTypes } from './components';
+import { Schema } from 'mongoose';
+import { ComponentAnswerTypes, AddressAnswer, DatePickerAnswer, DropDownAnswer, FullNameAnswer, LongTextAnswer, MultipleChoiceAnswer, PhoneAnswer, ShortTextAnswer, SingleChoiceAnswer, UploadAnswer, addressAnswerSchema, datePickerAnswerSchema, dropDownAnswerSchema, fullNameAnswerSchema, longTextAnswerSchema, multipleChoiceAnswerSchema, phoneAnswerSchema, shortTextAnswerSchema, singleChoiceAnswerSchema, uploadAnswerSchema, numberAnswerSchema, NumberAnswer, } from './component_answers';
 
 export interface ComponentAnswer {
-    item: String | Number;
+    type: ComponentAnswerTypes;
+
+    addressAnswer: AddressAnswer;
+    datePickerAnswer: DatePickerAnswer;
+    dropDownAnswer: DropDownAnswer;
+    fullNameAnswer: FullNameAnswer;
+    longTextAnswer: LongTextAnswer;
+    multipleChoiceAnswer: MultipleChoiceAnswer;
+    numberAnswer: NumberAnswer;
+    phoneAnswer: PhoneAnswer;
+    shortTextAnswer: ShortTextAnswer;
+    singleChoiceAnswer: SingleChoiceAnswer;
+    uploadAnswer: UploadAnswer;
 }
 
-const schema = new Schema<ComponentAnswer>({
-    item: { type: Schema.Types.Mixed, required: true }
-}, { timestamps: true });
+export const componentAnswerSchema = new Schema<ComponentAnswer>({
+    type: { type: String, required: true },
 
-export const ComponentAnswerModel = model<ComponentAnswer>("ComponentAnswer", schema);
-export type ComponentAnswerDocument = HydratedDocument<ComponentAnswer> | null; 
+    addressAnswer: { type: addressAnswerSchema },
+    datePickerAnswer: { type: datePickerAnswerSchema },
+    dropDownAnswer: { type: dropDownAnswerSchema },
+    fullNameAnswer: { type: fullNameAnswerSchema },
+    longTextAnswer: { type: longTextAnswerSchema },
+    multipleChoiceAnswer: { type: multipleChoiceAnswerSchema },
+    numberAnswer: { type: numberAnswerSchema },
+    phoneAnswer: { type: phoneAnswerSchema },
+    shortTextAnswer: { type: shortTextAnswerSchema },
+    singleChoiceAnswer: { type: singleChoiceAnswerSchema },
+    uploadAnswer: { type: uploadAnswerSchema },
+}, { timestamps: true });
