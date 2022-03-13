@@ -10,7 +10,7 @@ export interface InterviewInstance {
 
 export const InterviewInstanceSchema = new Schema<InterviewInstance>({
     interviewee: { type: Schema.Types.ObjectId, required: true },
-    interviewer: { type: Schema.Types.ObjectId, required: true },
+    interviewer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     startTime: { type: Date, required: true },
     lengthInMins: { type: Number, required: true },
     grade: { type: Number, required: false, default: undefined }

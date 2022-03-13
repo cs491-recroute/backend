@@ -1,9 +1,9 @@
 import { Schema } from 'mongoose';
 
-export interface DropDownAnswer {
+export interface DropDownSubmission {
     selection: String;
 };
 
-export const dropDownAnswerSchema = new Schema<DropDownAnswer>({
+export const dropDownSubmissionSchema = new Schema<DropDownSubmission>({
     selection: { type: String }
 }, { _id: false });

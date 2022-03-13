@@ -1,9 +1,9 @@
 import { Schema } from 'mongoose';
 
-export interface AddressAnswer {
+export interface AddressSubmission {
     address: String;
 };
 
-export const addressAnswerSchema = new Schema<AddressAnswer>({
+export const addressSubmissionSchema = new Schema<AddressSubmission>({
     address: { type: String },
 }, { _id: false });

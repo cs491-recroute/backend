@@ -1,9 +1,9 @@
 import { Schema, model, HydratedDocument } from 'mongoose';
 
-export interface UploadAnswer {
+export interface UploadSubmission {
     fileName: String
 };
 
-export const uploadAnswerSchema = new Schema<UploadAnswer>({
+export const uploadSubmissionSchema = new Schema<UploadSubmission>({
     fileName: { type: String }
 }, { _id: false });

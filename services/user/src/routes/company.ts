@@ -1,6 +1,7 @@
 import express from "express";
-import { createMiddleware } from "../../../../common/services/utils";
+import { createMiddleware, getUserID } from "../../../../common/services/utils";
 import { Company, CompanyDocument, CompanyModel } from "../models/Company";
+import { UserDocument, UserModel } from "../models/User";
 
 const router = express.Router();
 
@@ -35,15 +36,40 @@ router.get('/company', createMiddleware(async (req, res) => {
     }
    */
 
-  const companyObj = req.body as Company;
-  const company: CompanyDocument = new CompanyModel(companyObj);
+  const userID = getUserID(req);
+  const user: UserDocument = await UserModel.findById(userID);
+  if (user === null) {
+    return res.status(400).send({ message: "No user found with UserID!" });
+  }
+  const { company } = await user.populate<{ company: Company }>('company');
 
   if (company === null) {
-    return res.status(500).send({ message: "Unable to save! please contact recroute support." });
+    return res.status(500).send({ message: "Unable to get company please contact recroute support." });
   }
+  return res.status(200).send(company);
+}));
 
-  await company.save();
-  return res.status(200).send(company.id);
-}))
+router.get('/company/interviewer', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Get interviewers of a company'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+  */
+
+  const userID = getUserID(req);
+  const user: UserDocument = await UserModel.findById(userID);
+  if (user === null) {
+    return res.status(400).send({ message: "No user found with UserID!" });
+  }
+  const { company } = await user.populate<{ company: Company }>('company');
+
+  if (company === null) {
+    return res.status(500).send({ message: "Unable to get company please contact recroute support." });
+  }
+  return res.status(200).send(company);
+}));
 
 export { router as companyRouter }

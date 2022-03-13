@@ -1,9 +1,9 @@
 import { Schema, model, HydratedDocument } from 'mongoose';
 
-export interface SingleChoiceAnswer {
+export interface SingleChoiceSubmission {
     selection: String;
 };
 
-export const singleChoiceAnswerSchema = new Schema<SingleChoiceAnswer>({
+export const singleChoiceSubmissionSchema = new Schema<SingleChoiceSubmission>({
     selection: { type: String }
 }, { _id: false });

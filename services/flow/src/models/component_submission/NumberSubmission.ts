@@ -1,9 +1,9 @@
 import { Schema } from 'mongoose';
 
-export interface NumberAnswer {
+export interface NumberSubmission {
     number: Number
 };
 
-export const numberAnswerSchema = new Schema<NumberAnswer>({
+export const numberSubmissionSchema = new Schema<NumberSubmission>({
     number: { type: Number }
 }, { _id: false });

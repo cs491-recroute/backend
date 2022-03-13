@@ -16,7 +16,7 @@ const schema = new Schema<Interview>({
     breakLengthInMins: { type: Number, required: true, default: 15 },
     instances: { type: [InterviewInstanceSchema], required: false, default: [] },
     startTime: { type: Date, required: true, default: new Date(Date.now()) },
-    interviewers: { type: [Schema.Types.ObjectId], required: true }
+    interviewers: { type: [Schema.Types.ObjectId], ref: 'Interviewer', required: true }
 }, { timestamps: true });
 
 export const InterviewModel = model<Interview>("Interview", schema);

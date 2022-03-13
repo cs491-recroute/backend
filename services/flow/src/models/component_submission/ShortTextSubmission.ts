@@ -1,9 +1,9 @@
 import { Schema, model, HydratedDocument } from 'mongoose';
 
-export interface ShortTextAnswer {
+export interface ShortTextSubmission {
     text: String;
 };
 
-export const shortTextAnswerSchema = new Schema<ShortTextAnswer>({
+export const shortTextSubmissionSchema = new Schema<ShortTextSubmission>({
     text: { type: String, maxlength: 100 }
 }, { _id: false });
