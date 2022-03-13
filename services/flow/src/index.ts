@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { flowRouter } from './routes/flow';
 import { formRouter } from './routes/form';
 import { interviewRouter } from './routes/interview';
+import { testRouter } from './routes/test';
 require('dotenv').config();
 
 const app = express();
@@ -18,7 +19,8 @@ connectToDatabase(mongoose.connect,
       json(),
       flowRouter,
       formRouter,
-      interviewRouter
+      interviewRouter,
+      testRouter
     ]);
   },
   err => console.error(err)
