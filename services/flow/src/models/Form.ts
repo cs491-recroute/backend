@@ -1,10 +1,10 @@
 import { Schema, model, HydratedDocument } from 'mongoose';
-import { Component, componentSchema } from './Component';
+import { ComponentDocument, componentSchema } from './Component';
 
 export interface Form {
     name: String;
     isTemplate: boolean;
-    components: Component[];
+    components: ComponentDocument[];
 };
 
 const schema = new Schema<Form>({

@@ -14,7 +14,7 @@ export const InterviewInstanceSchema = new Schema<InterviewInstance>({
     startTime: { type: Date, required: true },
     lengthInMins: { type: Number, required: true },
     grade: { type: Number, required: false, default: undefined }
-}, { timestamps: true });
+}, { timestamps: true, autoCreate: false });
 
 //export const InterviewInstanceModel = model<InterviewInstance>("InterviewInstance", InterviewInstanceSchema);
 //export type InterviewInstanceDocument = HydratedDocument<InterviewInstance> | null; 

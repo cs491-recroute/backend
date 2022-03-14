@@ -8,6 +8,7 @@
             "protocol": "inspector",
             "port": 4321,
             "restart": true,
+            "program": "${workspaceRoot}/services/user/src/index.ts",
             "cwd": "${workspaceRoot}/services/user"
         },
         {
@@ -17,13 +18,17 @@
             "protocol": "inspector",
             "port": 4322,
             "restart": true,
+            "program": "${workspaceRoot}/services/flow/src/index.ts",
             "cwd": "${workspaceRoot}/services/flow"
         },
     ],
     "compounds": [
         {
             "name": "Debug All Services",
-            "configurations": ["flow", "user"]
+            "configurations": [
+                "flow",
+                "user"
+            ]
         }
     ]
 }

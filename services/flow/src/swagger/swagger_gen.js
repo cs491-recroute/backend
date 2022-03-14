@@ -28,12 +28,19 @@ const doc = {
             operation: 'gte',
             value: '10'
         },
-        Component: {
+        ComponentWithValues: {
             type: "dropDown",
             required: true,
             title: "Select your city",
             placeholder: "Select.",
             options: ["Ankara", "Istanbul", "Izmir"]
+        },
+        ComponentWithOptions: {
+            type: "dropDown",
+            required: true,
+            title: "Select your city",
+            placeholder: "Select.",
+            options: [{ key: 0, value: "Ankara" }]
         }
     }
 };

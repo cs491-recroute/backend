@@ -1,34 +1,37 @@
-import { Schema } from 'mongoose';
-import { ComponentSubmissionTypes, AddressSubmission, DatePickerSubmission, DropDownSubmission, FullNameSubmission, LongTextSubmission, MultipleChoiceSubmission, PhoneSubmission, ShortTextSubmission, SingleChoiceSubmission, UploadSubmission, addressSubmissionSchema, datePickerSubmissionSchema, dropDownSubmissionSchema, fullNameSubmissionSchema, longTextSubmissionSchema, multipleChoiceSubmissionSchema, phoneSubmissionSchema, shortTextSubmissionSchema, singleChoiceSubmissionSchema, uploadSubmissionSchema, numberSubmissionSchema, NumberSubmission, } from './component_submission';
+import { Schema, Types } from 'mongoose';
+import { Option, optionSchema } from './Component';
+
+export type ComponentSubmissionTypes = "addressSubmission" | "datePickerSubmission" | "dropDownSubmission" | "fullNameSubmission" |
+    "longTextSubmission" | "multipleChoiceSubmission" | "phoneSubmission" | "shortTextSubmission" |
+    "singleChoiceSubmission" | "uploadSubmission";
 
 export interface ComponentSubmission {
-    type: ComponentSubmissionTypes;
-
-    addressSubmission: AddressSubmission;
-    datePickerSubmission: DatePickerSubmission;
-    dropDownSubmission: DropDownSubmission;
-    fullNameSubmission: FullNameSubmission;
-    longTextSubmission: LongTextSubmission;
-    multipleChoiceSubmission: MultipleChoiceSubmission;
-    numberSubmission: NumberSubmission;
-    phoneSubmission: PhoneSubmission;
-    shortTextSubmission: ShortTextSubmission;
-    singleChoiceSubmission: SingleChoiceSubmission;
-    uploadSubmission: UploadSubmission;
+    componentId: Types.ObjectId,
+    type: ComponentSubmissionTypes,
+    address: String,
+    date: Date,
+    selection: Option,
+    selections: Option[],
+    name: String,
+    surname: String,
+    text: String,
+    number: Number,
+    countryCode: String,
+    phoneNumber: String,
+    fileName: String
 }
 
 export const componentSubmissionSchema = new Schema<ComponentSubmission>({
+    componentId: { type: Schema.Types.ObjectId, required: true },
     type: { type: String, required: true },
-
-    addressSubmission: { type: addressSubmissionSchema },
-    datePickerSubmission: { type: datePickerSubmissionSchema },
-    dropDownSubmission: { type: dropDownSubmissionSchema },
-    fullNameSubmission: { type: fullNameSubmissionSchema },
-    longTextSubmission: { type: longTextSubmissionSchema },
-    multipleChoiceSubmission: { type: multipleChoiceSubmissionSchema },
-    numberSubmission: { type: numberSubmissionSchema },
-    phoneSubmission: { type: phoneSubmissionSchema },
-    shortTextSubmission: { type: shortTextSubmissionSchema },
-    singleChoiceSubmission: { type: singleChoiceSubmissionSchema },
-    uploadSubmission: { type: uploadSubmissionSchema },
-}, { timestamps: true });
+    address: { type: String, default: undefined },
+    date: { type: Date, default: undefined },
+    selection: { type: optionSchema, default: undefined },
+    selections: { type: [optionSchema], default: undefined },
+    name: { type: String, default: undefined },
+    surname: { type: String, default: undefined },
+    text: { type: String, default: undefined },
+    number: { type: Number, default: undefined },
+    countryCode: { type: String, default: undefined },
+    fileName: { type: String, default: undefined }
+}, { timestamps: true, autoCreate: false });

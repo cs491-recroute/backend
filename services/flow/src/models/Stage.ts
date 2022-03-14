@@ -18,7 +18,7 @@ export const StageSchema = new Schema<Stage>({
     stageID: { type: Schema.Types.ObjectId, required: true },
     startDate: { type: Date },
     endDate: { type: Date }
-}, { timestamps: true, toJSON: { virtuals: true } });
+}, { timestamps: true, toJSON: { virtuals: true }, autoCreate: false });
 
 StageSchema.virtual(StageType.FORM, {
     ref: 'Form',

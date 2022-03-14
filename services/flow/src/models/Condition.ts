@@ -25,7 +25,7 @@ export const ConditionSchema = new Schema<Condition>({
   field: { type: Schema.Types.ObjectId },
   operation: { type: String, enum: OPERATIONS, required: true },
   value: { type: String, required: true }
-}, { timestamps: true });
+}, { timestamps: true, autoCreate: false });
 
 export const ConditionModel = model<Condition>("Condition", ConditionSchema);
 export type ConditionDocument = HydratedDocument<Condition> | null; 

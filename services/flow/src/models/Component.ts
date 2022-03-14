@@ -1,39 +1,38 @@
-import { Schema } from 'mongoose';
-import { Address, addressSchema, ComponentTypes, DatePicker, datePickerSchema, DropDown, dropDownSchema, FullName, fullNameSchema, Header, headerSchema, LongText, longTextSchema, MultipleChoice, multipleChoiceSchema, Phone, phoneSchema, ShortText, shortTextSchema, SingleChoice, singleChoiceSchema, Upload, uploadSchema } from './components';
-import { numberSchema } from './components/Number';
+import { Schema, model, HydratedDocument } from 'mongoose';
+
+export type ComponentTypes = "address" | "datePicker" | "dropDown" | "fullName" |
+    "header" | "longText" | "multipleChoice" | "phone" |
+    "shortText" | "singleChoice" | "upload";
+
+export interface Option {
+    key: Number,
+    value: String
+};
+
+export const optionSchema = new Schema<Option>({
+    key: { type: Number },
+    value: { type: String }
+}, { _id: false });
 
 export interface Component {
     type: ComponentTypes;
     required: Boolean;
-
-    address: Address;
-    datePicker: DatePicker;
-    dropDown: DropDown;
-    fullName: FullName;
-    header: Header;
-    longText: LongText;
-    multipleChoice: MultipleChoice;
-    number: Number;
-    phone: Phone;
-    shortText: ShortText;
-    singleChoice: SingleChoice;
-    upload: Upload;
+    title: String;
+    titles: String[];
+    placeholder: String;
+    placeholders: String[];
+    options: Option[];
 }
 
 export const componentSchema = new Schema<Component>({
     type: { type: String, required: true },
     required: { type: Boolean, required: true },
+    title: { type: String, default: undefined },
+    titles: { type: [String], default: undefined },
+    placeholder: { type: String, default: undefined },
+    placeholders: { type: [String], default: undefined },
+    options: { type: [optionSchema], default: undefined }
+}, { timestamps: true, autoCreate: false });
 
-    address: { type: addressSchema },
-    datePicker: { type: datePickerSchema },
-    dropDown: { type: dropDownSchema },
-    fullName: { type: fullNameSchema },
-    header: { type: headerSchema },
-    longText: { type: longTextSchema },
-    multipleChoice: { type: multipleChoiceSchema },
-    number: { type: numberSchema },
-    phone: { type: phoneSchema },
-    shortText: { type: shortTextSchema },
-    singleChoice: { type: singleChoiceSchema },
-    upload: { type: uploadSchema },
-}, { timestamps: true });
+export const ComponentModel = model<Component>("Component", componentSchema);
+export type ComponentDocument = HydratedDocument<Component> | null; 
