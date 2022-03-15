@@ -59,7 +59,7 @@ router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
     } catch (error: any) {
         return res.status(400).send({ message: "Error updating company!", errorMessage: error.message });
     }
-    return res.status(200).send("Nice");
+    return res.status(200).send();
 }));
 
 router.post('/user/:userID/form/:formID', createMiddleware(async (req, res) => {
@@ -82,7 +82,46 @@ router.post('/user/:userID/form/:formID', createMiddleware(async (req, res) => {
     } catch (error: any) {
         return res.status(400).send({ message: "Error updating company!", errorMessage: error.message });
     }
-    return res.status(200).send("Nice");
+    return res.status(200).send();
+}));
+
+router.get('/user/:userID/interviews', createMiddleware(async (req, res) => {
+    /**
+     * #swagger.description = 'get interviews of the user by userID - ( used by FlowService )'
+     */
+    const { userID } = req.params;
+    const user: UserDocument = await UserModel.findById(userID);
+
+    if (user === null) {
+        return res.status(400).send({ message: "No user found with UserID!" });
+    }
+
+    const { company: { interviews } } = await user.populate<{ company: Company }>('company');
+
+    return res.status(200).send(interviews);
+}));
+
+router.post('/user/:userID/interview/:interviewID', createMiddleware(async (req, res) => {
+    /**
+     * #swagger.description = 'add interview to user's company - ( used by FlowService )'
+     */
+    const { userID, interviewID } = req.params;
+    const user: UserDocument = await UserModel.findById(userID);
+
+    if (user === null) {
+        return res.status(400).send({ message: "No user found with UserID!" });
+    }
+
+    const { company } = await user.populate<{ company: Company }>('company');
+
+    company.interviews.push(new Types.ObjectId(interviewID));
+
+    try {
+        await CompanyModel.updateOne(company);
+    } catch (error: any) {
+        return res.status(400).send({ message: "Error updating company!", errorMessage: error.message });
+    }
+    return res.status(200).send();
 }));
 
 router.get('/user/:userID/tests', createMiddleware(async (req, res) => {
@@ -98,7 +137,7 @@ router.get('/user/:userID/tests', createMiddleware(async (req, res) => {
 
     const { company: { tests } } = await user.populate<{ company: Company }>('company');
 
-    return res.status(200).send(tests);
+    return res.status(200).send();
 }));
 
 router.post('/user/:userID/test/:testID', createMiddleware(async (req, res) => {
@@ -121,7 +160,7 @@ router.post('/user/:userID/test/:testID', createMiddleware(async (req, res) => {
     } catch (error: any) {
         return res.status(400).send({ message: "Error updating company!", errorMessage: error.message });
     }
-    return res.status(200).send("Nice");
+    return res.status(200).send();
 }));
 
 export { router as userRouter }

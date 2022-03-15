@@ -7,7 +7,6 @@
             "name": "user",
             "protocol": "inspector",
             "port": 4321,
-            "restart": true,
             "program": "${workspaceRoot}/services/user/src/index.ts",
             "cwd": "${workspaceRoot}/services/user"
         },
@@ -17,7 +16,6 @@
             "name": "flow",
             "protocol": "inspector",
             "port": 4322,
-            "restart": true,
             "program": "${workspaceRoot}/services/flow/src/index.ts",
             "cwd": "${workspaceRoot}/services/flow"
         },

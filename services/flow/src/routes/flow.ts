@@ -9,7 +9,9 @@ import { getUserFlow } from "../controllers/flowController";
 import { InterviewModel } from "../models/Interview";
 import { getUserForm } from "../controllers/formController";
 import { Types } from 'mongoose';
-import { FormDocument } from "../models/Form";
+import { FormDocument, FormModel } from "../models/Form";
+import { TestModel } from "../models/Test";
+import { Prop } from "../models/Prop";
 
 const router = express.Router();
 
@@ -140,13 +142,13 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
       formClone._id = new Types.ObjectId;
       formClone.isNew = true;
       formClone.isTemplate = false;
+      formClone.save();
       stageModel.stageID = formClone._id;
       try {
         await apiService.useService(SERVICES.user).post(`/user/${userID}/form/${formClone.id}`);
       } catch (error: any) {
         return res.status(400).send({ message: "Form cannot be added to the company.", errorMessage: error.message || error });
       }
-      formClone.save();
     }
 
     // if the stage is an interview then create an empty interviewModel and set its id to stageID
@@ -154,6 +156,11 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
       const interviewModel = await new InterviewModel();
       interviewModel.save();
       stageModel.stageID = interviewModel.id;
+      try {
+        await apiService.useService(SERVICES.user).post(`/user/${userID}/interview/${interviewModel.id}`);
+      } catch (error: any) {
+        return res.status(400).send({ message: "Interview cannot be added to the company.", errorMessage: error.message || error });
+      }
     }
 
     flow.stages.push(stageModel);
@@ -176,6 +183,99 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
     }, { type: stage.type, stageID: stage.stageID });
 
     return res.status(200).send({ stage: response });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Update stage prop with stageID'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['StageProp'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Prop'}
+  }
+  */
+
+  const { flowID, stageID } = req.params;
+  const userID = getUserID(req);
+  const stageProp = req.body as Prop;
+
+  // check prop for inconvenient change requests
+  switch (stageProp.name) {
+    case "_id" || "id":
+      return res.status(400).send({ message: "id cannot be changed." });
+    case "type":
+      return res.status(400).send({ message: "Type of a stage cannot be changed." });
+    case "stageID":
+      return res.status(400).send({ message: "Referance `stageID` of a stage cannot be changed." });
+  }
+
+  try {
+    const flow = await getUserFlow(userID, flowID);
+
+    // find stage in flow
+    var stage = flow.stages.find(x => x?.id === stageID);
+    if (stage === undefined) {
+      return res.status(400).send({ message: "Stage is not found." });
+    }
+
+    // update stage
+    (stage as any)[stageProp.name] = stageProp.value;
+
+    await flow.save();
+
+    return res.status(200).send(stage);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Delete stage with stageID'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
+
+  const { flowID, stageID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    const flow = await getUserFlow(userID, flowID);
+
+    // find stage in flow
+    var stage = flow.stages.find(x => x?.id === stageID);
+    if (stage === undefined) {
+      return res.status(400).send({ message: "Stage is not found." });
+    }
+
+    // delete recursively
+    switch (stage.type) {
+      case StageType.FORM:
+        await FormModel.findByIdAndDelete(stage.stageID);
+        break;
+      case StageType.TEST:
+        await TestModel.findByIdAndDelete(stage.stageID);
+        break;
+      case StageType.INTERVIEW:
+        await InterviewModel.findByIdAndDelete(stage.stageID);
+        break;
+    }
+
+    stage.remove();
+    await flow.save();
+
+    return res.status(200).send(true);
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }

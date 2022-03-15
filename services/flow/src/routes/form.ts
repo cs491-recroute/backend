@@ -2,16 +2,18 @@ import express from "express";
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
 import { createMiddleware, getUserID } from "../../../../common/services/utils";
-import { Component, ComponentDocument, ComponentModel } from "../models/Component";
+import { Component, ComponentModel } from "../models/Component";
 import { FormDocument, FormModel } from "../models/Form";
-import { Types } from 'mongoose';
 import { getUserForm } from "../controllers/formController";
 import { valuesToOptions } from "../services/formService";
+import { Prop } from "../models/Prop";
 
 
 const router = express.Router();
 
 // Controllers
+
+// TEMPLATES
 
 router.get('/templates/form', createMiddleware(async (req, res) => {
   /*
@@ -56,6 +58,8 @@ router.post('/templates/form', createMiddleware(async (req, res) => {
   }
 }));
 
+// FORMS
+
 router.get('/form/:formID', createMiddleware(async (req, res) => {
   /*
     #swagger.description = 'Return form according to formID'
@@ -94,6 +98,46 @@ router.get('/form/:formID', createMiddleware(async (req, res) => {
   }
 
 }));
+
+router.put('/form/:formID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Update form prop with formID'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['FormProp'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Prop'}
+  }
+  */
+
+  const { formID } = req.params;
+  const userID = getUserID(req);
+  const formProp = req.body as Prop;
+
+  // check prop for inconvenient change requests
+  switch (formProp.name) {
+    case "_id" || "id":
+      return res.status(400).send({ message: "id cannot be changed." });
+  }
+
+  try {
+    const form = await getUserForm(userID, formID);
+
+    // update form
+    (form as any)[formProp.name] = formProp.value;
+    await form.save();
+
+    return res.status(200).send(form);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+// COMPONENTS
 
 router.get('/form/:formID/component', createMiddleware(async (req, res) => {
   /*
@@ -142,7 +186,7 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
 
   const component: Component = req.body as Component;
 
-  // send userID to user service and get flowIDs
+  // send userID to user service and get form
   try {
     const form = await getUserForm(userID, formID);
     form.components.push(new ComponentModel(component));
@@ -162,42 +206,89 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
 
 router.put('/form/:formID/component/:componentID', createMiddleware(async (req, res) => {
   /*
-    #swagger.description = 'Change component in form with formID'
+    #swagger.description = 'Update component prop in form with formID and componentID'
     #swagger.parameters['userID'] = { 
       in: 'query',
       required: true,
       type: 'string'
     }
-    #swagger.parameters['Component'] = { 
+    #swagger.parameters['ComponentProp'] = { 
       in: 'body',
       required: true,
-      schema: { $ref: '#/definitions/ComponentWithOptions'}
+      schema: { $ref: '#/definitions/Prop'}
     }
    */
 
   const userID = getUserID(req);
-  const { formID } = req.params;
-  const { componentID } = req.params;
-  const component: Component = req.body as Component;
+  const { formID, componentID } = req.params;
+  const componentProp = req.body as Prop;
 
-  // send userID to user service and get flow
+  // check prop for inconvenient change requests
+  switch (componentProp.name) {
+    case "_id" || "id":
+      return res.status(400).send({ message: "id cannot be changed." });
+    case "type":
+      return res.status(400).send({ message: "Type of a stage cannot be changed." });
+    case "options":
+      componentProp.value = valuesToOptions(componentProp.value);
+      break;
+  }
+
+  // send userID to user service and get form
   try {
     const form = await getUserForm(userID, formID);
 
-    const oldComponent = form.components.find(x => x?.id == componentID);
+    const component = form.components.find(x => x?.id == componentID);
 
-    if (oldComponent === null) {
+    if (component === null) {
       return res.status(400).send({ message: 'No component found with the given ID' });
     }
 
+    (component as any)[componentProp.name] = componentProp.value;
+
     try {
-      oldComponent?.set(component);
       await form.save();
     } catch (error: any) {
       return res.status(400).send({ message: "Component save error!", errorMessage: error.message });
     }
 
     return res.status(200).send(form);
+  } catch (error: any) {
+    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+  }
+}));
+
+router.delete('/form/:formID/component/:componentID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Change component in form with formID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const userID = getUserID(req);
+  const { formID, componentID } = req.params;
+
+  // send userID to user service and get form
+  try {
+    const form = await getUserForm(userID, formID);
+
+    const component = form.components.find(x => x?.id == componentID);
+
+    if (component === null || component === undefined) {
+      return res.status(400).send({ message: 'No component found with the given ID' });
+    }
+
+    try {
+      component.remove();
+      await form.save();
+    } catch (error: any) {
+      return res.status(400).send({ message: "Form save error!", errorMessage: error.message });
+    }
+
+    return res.status(200).send();
   } catch (error: any) {
     return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
   }

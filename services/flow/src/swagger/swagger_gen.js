@@ -21,6 +21,10 @@ const doc = {
             startDate: new Date(Date.now()).toISOString(),
             endDate: new Date(Date.now()).toISOString()
         },
+        Prop: {
+            name: "title",
+            value: null
+        },
         Condition: {
             from: 'Stage ID 1',
             to: 'Stage ID 2',
