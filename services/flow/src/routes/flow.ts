@@ -1,3 +1,4 @@
+import { TestDocument } from './../models/Test';
 import express from "express";
 import { createMiddleware, getUserID } from "../../../../common/services/utils";
 import { SERVICES } from "../../../../common/constants/services";
@@ -8,6 +9,7 @@ import { Condition, ConditionDocument, ConditionModel } from "../models/Conditio
 import { getUserFlow } from "../controllers/flowController";
 import { InterviewModel } from "../models/Interview";
 import { getUserForm } from "../controllers/formController";
+import { getUserTest } from '../controllers/testController';
 import { Types } from 'mongoose';
 import { FormDocument, FormModel } from "../models/Form";
 import { TestModel } from "../models/Test";
@@ -135,31 +137,49 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   try {
     const flow = await getUserFlow(userID, flowID);
 
-    // if the stage is form, then clone it then add it to stage
-    if (stage.type === StageType.FORM) {
-      const form: FormDocument = await getUserForm(userID, stageModel.stageID.toString());
-      var formClone = form;
-      formClone._id = new Types.ObjectId;
-      formClone.isNew = true;
-      formClone.isTemplate = false;
-      formClone.save();
-      stageModel.stageID = formClone._id;
-      try {
-        await apiService.useService(SERVICES.user).post(`/user/${userID}/form/${formClone.id}`);
-      } catch (error: any) {
-        return res.status(400).send({ message: "Form cannot be added to the company.", errorMessage: error.message || error });
+    switch (stage.type) {
+      case StageType.FORM: {
+        // if the stage is form, then clone it then add it to stage
+        const form: FormDocument = await getUserForm(userID, stageModel.stageID.toString());
+        var formClone = form;
+        formClone._id = new Types.ObjectId;
+        formClone.isNew = true;
+        formClone.isTemplate = false;
+        await formClone.save();
+        stageModel.stageID = formClone._id;
+        try {
+          await apiService.useService(SERVICES.user).post(`/user/${userID}/form/${formClone.id}`);
+        } catch (error: any) {
+          return res.status(400).send({ message: "Form cannot be added to the company.", errorMessage: error.message || error });
+        }
+        break;
       }
-    }
-
-    // if the stage is an interview then create an empty interviewModel and set its id to stageID
-    else if (stage.type === StageType.INTERVIEW) {
-      const interviewModel = await new InterviewModel();
-      interviewModel.save();
-      stageModel.stageID = interviewModel.id;
-      try {
-        await apiService.useService(SERVICES.user).post(`/user/${userID}/interview/${interviewModel.id}`);
-      } catch (error: any) {
-        return res.status(400).send({ message: "Interview cannot be added to the company.", errorMessage: error.message || error });
+      case StageType.TEST: {
+        // if the stage is test, add the clone of it to the flow
+        const test: TestDocument = await getUserTest(userID, stageModel.stageID.toString());
+        test._id = new Types.ObjectId;
+        test.isNew = true;
+        test.isTemplate = false;
+        await test.save();
+        stageModel.stageID = test._id;
+        try {
+          await apiService.useService(SERVICES.user).post(`/user/${userID}/test/${test.id}`);
+        } catch (error: any) {
+          return res.status(400).send({ message: "Test cannot be added to the company.", errorMessage: error.message || error });
+        }
+        break;
+      }
+      case StageType.INTERVIEW: {
+        // if the stage is an interview then create an empty interviewModel and set its id to stageID
+        const interviewModel = new InterviewModel();
+        interviewModel.save();
+        stageModel.stageID = interviewModel.id;
+        try {
+          await apiService.useService(SERVICES.user).post(`/user/${userID}/interview/${interviewModel.id}`);
+        } catch (error: any) {
+          return res.status(400).send({ message: "Interview cannot be added to the company.", errorMessage: error.message || error });
+        }
+        break;
       }
     }
 

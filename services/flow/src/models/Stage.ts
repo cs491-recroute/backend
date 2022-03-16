@@ -27,7 +27,7 @@ StageSchema.virtual(StageType.FORM, {
     justOne: true
 });
 StageSchema.virtual(StageType.TEST, {
-    ref: 'Form', // TODO: Change to test after creating test model
+    ref: 'Test',
     localField: 'stageID',
     foreignField: '_id',
     justOne: true
