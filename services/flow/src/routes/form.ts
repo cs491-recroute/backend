@@ -29,8 +29,8 @@ router.get('/templates/form', createMiddleware(async (req, res) => {
 
   try {
     const { data: formIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/forms`);
-    const forms: FormDocument[] = await FormModel.find({ '_id': { $in: formIDs } });
-    return res.status(200).send(forms);
+    const formTemplates: FormDocument[] = await FormModel.find({ '_id': { $in: formIDs }, isTemplate: true });
+    return res.status(200).send(formTemplates);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
   }

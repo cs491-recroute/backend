@@ -24,8 +24,8 @@ router.get('/templates/test', createMiddleware(async (req, res) => {
 
   try {
     const { data: testIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/tests`);
-    const tests: TestDocument[] = await TestModel.find({ '_id': { $in: testIDs } });
-    return res.status(200).send(tests);
+    const testTemplates: TestDocument[] = await TestModel.find({ '_id': { $in: testIDs }, isTemplate: true });
+    return res.status(200).send(testTemplates);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user tests!', errorMessage: error.message });
   }

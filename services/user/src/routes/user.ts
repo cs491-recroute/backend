@@ -137,7 +137,7 @@ router.get('/user/:userID/tests', createMiddleware(async (req, res) => {
 
     const { company: { tests } } = await user.populate<{ company: Company }>('company');
 
-    return res.status(200).send();
+    return res.status(200).send(tests);
 }));
 
 router.post('/user/:userID/test/:testID', createMiddleware(async (req, res) => {
