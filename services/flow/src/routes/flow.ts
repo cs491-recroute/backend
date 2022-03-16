@@ -69,7 +69,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
           return acc;
         }
         return { ...acc, [key]: stage[key] };
-      }, { type: stage.type, stageID: stage.stageID, _id: stage.id });
+      }, { type: stage.type, stageID: stage.stageID, durationSpecified: stage.durationSpecified, _id: stage.id });
     })
     return res.status(200).send(response);
   } catch (error: any) {
@@ -230,6 +230,56 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
     (stage as any)[stageProp.name] = stageProp.value;
 
     await flow.save();
+
+    return res.status(200).send(stage);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Update stage prop with stageID'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['Stage'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Stage'}
+  }
+  */
+
+  const { flowID, stageID } = req.params;
+  const userID = getUserID(req);
+  const newStage = req.body as Stage;
+
+  try {
+    const flow = await getUserFlow(userID, flowID);
+
+    // find stage in flow
+    var stage = flow.stages.find(x => x?.id === stageID);
+    if (stage === undefined) {
+      return res.status(400).send({ message: "Stage is not found." });
+    }
+
+    // check prop for inconvenient change requests
+    if (stage.type !== newStage.type) {
+      return res.status(400).send({ message: "Type of a stage cannot be changed." });
+    }
+    if (stage.stageID.toString() !== newStage.stageID as any) {
+      return res.status(400).send({ message: "Referance `stageID` of a stage cannot be changed." });
+    }
+
+    // update stage
+    stage.set(newStage);
+    try {
+      await flow.save();
+    } catch (error: any) {
+      return res.status(400).send({ message: "flow save error!", errorMessage: error.message || error });
+    }
 
     return res.status(200).send(stage);
   } catch (error: any) {

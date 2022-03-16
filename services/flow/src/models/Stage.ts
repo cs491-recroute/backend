@@ -9,6 +9,7 @@ export enum StageType {
 export interface Stage {
     type: StageType;
     stageID: Types.ObjectId;
+    durationSpecified: Boolean;
     startDate?: Date;
     endDate?: Date;
 };
@@ -16,6 +17,7 @@ export interface Stage {
 export const StageSchema = new Schema<Stage>({
     type: { type: String, enum: StageType, required: true },
     stageID: { type: Schema.Types.ObjectId, required: true },
+    durationSpecified: { type: Boolean, required: true },
     startDate: { type: Date },
     endDate: { type: Date }
 }, { timestamps: true, toJSON: { virtuals: true }, autoCreate: false });
