@@ -18,7 +18,6 @@ const doc = {
         Stage: {
             type: 'FORM',
             stageID: "Example: FormID",
-            durationSpecified: true,
             startDate: new Date(Date.now()).toISOString(),
             endDate: new Date(Date.now()).toISOString()
         },

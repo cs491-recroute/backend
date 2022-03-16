@@ -69,7 +69,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
           return acc;
         }
         return { ...acc, [key]: stage[key] };
-      }, { type: stage.type, stageID: stage.stageID, durationSpecified: stage.durationSpecified, _id: stage.id });
+      }, { type: stage.type, stageID: stage.stageID, _id: stage.id });
     })
     return res.status(200).send(response);
   } catch (error: any) {

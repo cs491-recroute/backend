@@ -8,7 +8,6 @@ export interface Flow {
     stages: NonNullable<StageDocument>[];
     conditions: NonNullable<ConditionDocument>[];
     active: Boolean;
-    durationSpecified: Boolean;
     startDate?: Date;
     endDate?: Date;
 };
@@ -18,7 +17,6 @@ const schema = new Schema<Flow>({
     stages: { type: [StageSchema], default: [] },
     conditions: { type: [ConditionSchema], default: [] },
     active: { type: Boolean, required: true, default: false },
-    durationSpecified: { type: Boolean, required: true },
     startDate: { type: Date },
     endDate: { type: Date }
 }, { timestamps: true });
