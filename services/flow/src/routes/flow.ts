@@ -280,8 +280,8 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
     const flow = await getUserFlow(userID, flowID);
 
     // find stage in flow
-    var stage = flow.stages.find(x => x?.id === stageID);
-    if (stage === undefined) {
+    var stage = flow.stages.find(x => x?.id === stageID) as StageDocument;
+    if (stage === undefined || stage === null) {
       return res.status(400).send({ message: "Stage is not found." });
     }
 
@@ -295,13 +295,33 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
 
     // update stage
     stage.set(newStage);
+
     try {
       await flow.save();
     } catch (error: any) {
       return res.status(400).send({ message: "flow save error!", errorMessage: error.message || error });
     }
 
-    return res.status(200).send(stage);
+    let stageModel: StageDocument = new StageModel(stage);
+
+    for (const type in StageType) {
+      stageModel = await stageModel?.populate(`${type}`) as StageDocument;
+    }
+
+    let response: any = stageModel?.toJSON();
+
+    // parse JSON for easy use on frontend
+    response = Object.keys(response).reduce((acc, key) => {
+      if (Object.values(StageType).includes(key as StageType)) {
+        if (response[key]) {
+          return { ...acc, stageProps: response[key] };
+        }
+        return acc;
+      }
+      return { ...acc, [key]: response[key] };
+    }, { type: stage.type, stageID: stage.stageID });
+
+    return res.status(200).send({ stage: response });
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
