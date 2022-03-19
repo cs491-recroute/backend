@@ -64,6 +64,11 @@ const doc = {
             title: "Select your city",
             placeholder: "Select.",
             options: [{ key: 0, value: "Ankara" }]
+        },
+        Question: {
+            type: "coding",
+            description: "Please answer",
+            testCases: [{ input: 1, output: 2 }, { input: 'test', output: 'tset' }]
         }
     }
 };

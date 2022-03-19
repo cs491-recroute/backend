@@ -1,3 +1,4 @@
+import { QuestionModel, QuestionDocument } from './../models/Question';
 import { TestModel, TestDocument } from './../models/Test';
 import express from "express";
 import { SERVICES } from "../../../../common/constants/services";
@@ -54,6 +55,28 @@ router.post('/templates/test', createMiddleware(async (req, res) => {
   }
 }));
 
+router.get('/test/:testID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Return test according to testID'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
+
+    const userID = getUserID(req);
+    const { testID } = req.params;
+  
+    try {
+      const test: TestDocument = await getUserTest(userID, testID);
+      return res.status(200).send(test);
+    } catch (error: any) {
+      return res.status(400).send({ message: error.message || error })
+    }
+  
+}));
+
 router.put('/test/:testID', createMiddleware(async (req, res) => {
   /*
   #swagger.description = 'Update test prop with testID'
@@ -90,6 +113,36 @@ router.put('/test/:testID', createMiddleware(async (req, res) => {
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
+}));
+
+router.post('/test/:testID/question', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Add new question to test'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['Question'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Question'}
+  }
+  */
+
+  const { testID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    const test: TestDocument = await getUserTest(userID, testID);
+    const question: QuestionDocument = new QuestionModel(req.body);
+    test.questions.push(question);
+    await test.save();
+    return res.status(200).send(question);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message })
+  }
+  
 }));
 
 export { router as testRouter }
