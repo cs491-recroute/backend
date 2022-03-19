@@ -85,6 +85,20 @@ router.post('/user/:userID/form/:formID', createMiddleware(async (req, res) => {
     return res.status(200).send();
 }));
 
+router.get('/user/:userID/isInterviewer', createMiddleware(async (req, res) => {
+    /**
+     * #swagger.description = 'get isInterviewer prop of the user by userID - ( used by FlowService )'
+     */
+    const { userID } = req.params;
+    const user: UserDocument = await UserModel.findById(userID);
+
+    if (user === null) {
+        return res.status(400).send({ message: "No user found with UserID!" });
+    }
+
+    return res.status(200).send(user?.isInterviewer);
+}));
+
 router.get('/user/:userID/interviews', createMiddleware(async (req, res) => {
     /**
      * #swagger.description = 'get interviews of the user by userID - ( used by FlowService )'

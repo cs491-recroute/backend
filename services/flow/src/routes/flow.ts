@@ -77,7 +77,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   };
-}))
+}));
 
 router.post('/flow', createMiddleware(async (req, res) => {
   /*
@@ -112,6 +112,92 @@ router.post('/flow', createMiddleware(async (req, res) => {
   }
 
   return res.status(200).send({ flow: flowModel });
+}));
+
+router.put('/flow/:flowID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Update a single flow property'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['FlowProp'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Prop'}
+  }
+  */
+
+  const userID = getUserID(req);
+  const { flowID } = req.params;
+  const flowProp = req.body as Prop;
+
+  // check prop for inconvenient change requests
+  switch (flowProp.name) {
+    case "_id" || "id":
+      return res.status(400).send({ message: "id cannot be changed." });
+    case "stages":
+      return res.status(400).send({ message: "Stages of flow cannot be updated from this controller." });
+    case "conditions":
+      return res.status(400).send({ message: "Conditions of flow cannot be updated from this controller." });
+    case "applicants":
+      return res.status(400).send({ message: "Applicants of flow cannot be updated from this controller." });
+  }
+
+  try {
+    const flow = await getUserFlow(userID, flowID);
+    (flow as any)[flowProp.name] = flowProp.value;
+    await flow.save();
+
+    return res.status(200).send({ flow: flow });
+  } catch (error: any) {
+    return res.status(400).send({ message: "Error saving flow!", errorMessage: error.message });
+  }
+}));
+
+router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Update flow properties'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['Flow'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Flow'}
+  }
+  */
+
+  const userID = getUserID(req);
+  const { flowID } = req.params;
+  const flow = req.body as Flow;
+
+  // check prop for inconvenient change requests
+  if ((flow as any).id || (flow as any)._id) {
+    return res.status(400).send({ message: "id cannot be changed." });
+  }
+  if (flow?.stages) {
+    return res.status(400).send({ message: "Stages of flow cannot be updated from this controller." });
+  }
+  if (flow?.conditions) {
+    return res.status(400).send({ message: "Conditions of flow cannot be updated from this controller." });
+  }
+  if (flow?.applicants) {
+    return res.status(400).send({ message: "Applicants of flow cannot be updated from this controller." });
+  }
+
+  try {
+    const oldFlow = await getUserFlow(userID, flowID);
+    oldFlow.set(flow);
+    await oldFlow.save();
+
+    return res.status(200).send({ flow: oldFlow });
+  } catch (error: any) {
+    return res.status(400).send({ message: "Error saving flow!", errorMessage: error.message });
+  }
 }));
 
 router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {

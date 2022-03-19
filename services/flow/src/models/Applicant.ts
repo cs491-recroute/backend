@@ -1,23 +1,25 @@
 import { Schema, model, HydratedDocument, Types } from 'mongoose';
+import { ComponentSubmission, componentSubmissionSchema } from './ComponentSubmission';
 import { InterviewInstance, InterviewInstanceSchema } from './InterviewInstance';
 
-export interface Interview {
-    name: String;
-    interviewLenghtInMins: Number;
-    breakLengthInMins: Number;
-    instances: InterviewInstance[];
-    startTime: Date;
-    interviewers: Types.ObjectId[];
+export interface FormSubmission {
+    formID: Types.ObjectId,
+    componentSubmissions: ComponentSubmission[];
+}
+export interface Applicant {
+    email: String,
+    formSubmissions?: FormSubmission[]
 };
 
-const schema = new Schema<Interview>({
-    name: { type: String, required: true, default: 'Interview' },
-    interviewLenghtInMins: { type: Number, required: true, default: 60 },
-    breakLengthInMins: { type: Number, required: true, default: 15 },
-    instances: { type: [InterviewInstanceSchema], required: false, default: [] },
-    startTime: { type: Date, required: true, default: new Date(Date.now()) },
-    interviewers: { type: [Schema.Types.ObjectId], ref: 'Interviewer', required: true }
-}, { timestamps: true });
+const formSubmissionSchema = new Schema<FormSubmission>({
+    formID: { type: Schema.Types.ObjectId, ref: 'Form', required: true },
+    componentSubmissions: { type: [componentSubmissionSchema], default: [] }
+}, { timestamps: true, autoCreate: false });
 
-export const InterviewModel = model<Interview>("Interview", schema);
-export type InterviewDocument = HydratedDocument<Interview> | null; 
+export const applicantSchema = new Schema<Applicant>({
+    email: { type: String, required: true },
+    formSubmissions: { type: [formSubmissionSchema] }
+}, { timestamps: true, autoCreate: false });
+
+export const ApplicantModel = model<Applicant>("Applicant", applicantSchema);
+export type ApplicantDocument = HydratedDocument<Applicant> | null;

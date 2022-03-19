@@ -13,13 +13,32 @@ const doc = {
     host: host,
     definitions: {
         Flow: {
-            name: "Senior Java Developer - 1"
+            name: "Senior Java Developer - 1",
+            active: false,
+            startDate: new Date(Date.now()).toISOString(),
+            endDate: new Date(Date.now()).toISOString()
         },
         Stage: {
             type: 'FORM',
             stageID: "Example: FormID",
             startDate: new Date(Date.now()).toISOString(),
             endDate: new Date(Date.now()).toISOString()
+        },
+        Interview: {
+            name: 'Developer Interview - 1',
+            interviewLenghtInMins: 60,
+            breakLengthInMins: 15,
+            startTime: new Date(Date.now()).toISOString(),
+            interviewers: ["6223d54f9c27487fa395cc89"]
+        },
+        InterviewInstance: {
+            interviewee: "6223aad1ff1298ffb1e1ecc8",
+            interviewer: "6223d54f9c27487fa395cc89",
+            startTime: new Date(Date.now()).toISOString(),
+            lengthInMins: 60
+        },
+        Grade: {
+            grade: 78
         },
         Prop: {
             name: "title",
