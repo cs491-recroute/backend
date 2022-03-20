@@ -172,7 +172,7 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
     #swagger.parameters['Component'] = { 
       in: 'body',
       required: true,
-      schema: { $ref: '#/definitions/ComponentWithValues'}
+      schema: { $ref: '#/definitions/Component'}
     }
    */
 

@@ -6,6 +6,7 @@ import { flowRouter } from './routes/flow';
 import { formRouter } from './routes/form';
 import { interviewRouter } from './routes/interview';
 import { testRouter } from './routes/test';
+import { submissionRouter } from './routes/submission';
 require('dotenv').config();
 
 const app = express();
@@ -20,7 +21,8 @@ connectToDatabase(mongoose.connect,
       flowRouter,
       formRouter,
       interviewRouter,
-      testRouter
+      testRouter,
+      submissionRouter
     ]);
   },
   err => console.error(err)

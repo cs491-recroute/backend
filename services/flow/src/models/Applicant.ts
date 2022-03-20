@@ -1,6 +1,5 @@
 import { Schema, model, HydratedDocument, Types } from 'mongoose';
 import { ComponentSubmission, componentSubmissionSchema } from './ComponentSubmission';
-import { InterviewInstance, InterviewInstanceSchema } from './InterviewInstance';
 
 export interface FormSubmission {
     formID: Types.ObjectId,

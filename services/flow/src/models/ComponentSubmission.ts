@@ -7,7 +7,6 @@ export type ComponentSubmissionTypes = "addressSubmission" | "datePickerSubmissi
 
 export interface ComponentSubmission {
     componentId: Types.ObjectId,
-    type: ComponentSubmissionTypes,
     address: String,
     date: Date,
     selection: Option,
@@ -23,7 +22,6 @@ export interface ComponentSubmission {
 
 export const componentSubmissionSchema = new Schema<ComponentSubmission>({
     componentId: { type: Schema.Types.ObjectId, required: true },
-    type: { type: String, required: true },
     address: { type: String, default: undefined },
     date: { type: Date, default: undefined },
     selection: { type: optionSchema, default: undefined },

@@ -5,6 +5,21 @@ const host = HOST + ":" + PORT;
 
 const swaggerAutogen = require('swagger-autogen')();
 
+const ComponentSubmission = {
+    componentId: "62370430195640b4f300ceaa",
+    address: "",
+    date: "",
+    selection: { key: 0, value: "Ankara" },
+    selections: [{ key: 0, value: "Ankara" }],
+    name: "",
+    surname: "",
+    text: "",
+    number: 56,
+    countryCode: "+90",
+    phoneNumber: "5332956882",
+    fileName: ""
+};
+
 const doc = {
     info: {
         title: "Flow Management Service",
@@ -51,19 +66,17 @@ const doc = {
             operation: 'gte',
             value: '10'
         },
-        ComponentWithValues: {
+        Component: {
             type: "dropDown",
             required: true,
             title: "Select your city",
             placeholder: "Select.",
-            options: ["Ankara", "Istanbul", "Izmir"]
+            options: ["Ankara", "Istanbul", "Izmir"],
+            titles: [""],
+            placeholders: [""],
         },
-        ComponentWithOptions: {
-            type: "dropDown",
-            required: true,
-            title: "Select your city",
-            placeholder: "Select.",
-            options: [{ key: 0, value: "Ankara" }]
+        FormSubmission: {
+            componentSubmissions: [ComponentSubmission]
         },
         Question: {
             type: "coding",
