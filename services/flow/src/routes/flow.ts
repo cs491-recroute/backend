@@ -200,6 +200,28 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
   }
 }));
 
+router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Delete the flow according to flowID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+  */
+
+  const userID = getUserID(req);
+  const { flowID } = req.params;
+
+  try {
+    let flow = await getUserFlow(userID, flowID);
+    await flow.remove();
+    return res.status(200).send();
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  };
+}));
+
 router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   /*
   #swagger.description = 'Create stage and add it to a flow'

@@ -282,7 +282,7 @@ router.delete('/form/:formID/component/:componentID', createMiddleware(async (re
     }
 
     try {
-      component.remove();
+      await component.remove();
       await form.save();
     } catch (error: any) {
       return res.status(400).send({ message: "Form save error!", errorMessage: error.message });
