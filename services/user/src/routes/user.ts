@@ -13,7 +13,7 @@ router.get('/user/:userID/flows', createMiddleware(async (req, res) => {
     const { userID } = req.params;
     try {
         const user: UserDocument = await UserModel.findById(userID);
-        if (user === null) {
+        if (!user) {
             return res.status(400).send({ message: "No user found with UserID!" });
         }
         const { company: { flows } } = await user.populate<{ company: Company }>('company');
@@ -30,7 +30,7 @@ router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
     const { userID, flowID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -53,7 +53,7 @@ router.delete('/user/:userID/flow/:flowID', createMiddleware(async (req, res) =>
     const { userID, flowID } = req.params;
     try {
         const user: UserDocument = await UserModel.findById(userID);
-        if (user === null) {
+        if (!user) {
             return res.status(400).send({ message: "No user found with UserID!" });
         }
         const { company } = await user.populate<{ company: CompanyDocument }>('company');
@@ -84,7 +84,7 @@ router.get('/user/:userID/forms', createMiddleware(async (req, res) => {
     const { userID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -100,7 +100,7 @@ router.post('/user/:userID/form/:formID', createMiddleware(async (req, res) => {
     const { userID, formID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -123,7 +123,7 @@ router.delete('/user/:userID/form/:formID', createMiddleware(async (req, res) =>
     const { userID, formID } = req.params;
     try {
         const user: UserDocument = await UserModel.findById(userID);
-        if (user === null) {
+        if (!user) {
             return res.status(400).send({ message: "No user found with UserID!" });
         }
         const { company } = await user.populate<{ company: CompanyDocument }>('company');
@@ -154,7 +154,7 @@ router.get('/user/:userID/isInterviewer', createMiddleware(async (req, res) => {
     const { userID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -168,7 +168,7 @@ router.get('/user/:userID/interviews', createMiddleware(async (req, res) => {
     const { userID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -184,7 +184,7 @@ router.post('/user/:userID/interview/:interviewID', createMiddleware(async (req,
     const { userID, interviewID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -207,7 +207,7 @@ router.delete('/user/:userID/interview/:interviewID', createMiddleware(async (re
     const { userID, interviewID } = req.params;
     try {
         const user: UserDocument = await UserModel.findById(userID);
-        if (user === null) {
+        if (!user) {
             return res.status(400).send({ message: "No user found with UserID!" });
         }
         const { company } = await user.populate<{ company: CompanyDocument }>('company');
@@ -238,7 +238,7 @@ router.get('/user/:userID/tests', createMiddleware(async (req, res) => {
     const { userID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -254,7 +254,7 @@ router.post('/user/:userID/test/:testID', createMiddleware(async (req, res) => {
     const { userID, testID } = req.params;
     const user: UserDocument = await UserModel.findById(userID);
 
-    if (user === null) {
+    if (!user) {
         return res.status(400).send({ message: "No user found with UserID!" });
     }
 
@@ -277,7 +277,7 @@ router.delete('/user/:userID/test/:testID', createMiddleware(async (req, res) =>
     const { userID, testID } = req.params;
     try {
         const user: UserDocument = await UserModel.findById(userID);
-        if (user === null) {
+        if (!user) {
             return res.status(400).send({ message: "No user found with UserID!" });
         }
         const { company } = await user.populate<{ company: CompanyDocument }>('company');

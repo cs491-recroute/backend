@@ -6,7 +6,7 @@ export async function getUserForm(userID: string, formID: string): Promise<NonNu
     try {
         const { data: forms } = await apiService.useService(SERVICES.user).get(`/user/${userID}/forms`);
 
-        if (forms === null) {
+        if (!forms) {
             throw new Error("User has no forms!");
         }
 
@@ -16,7 +16,7 @@ export async function getUserForm(userID: string, formID: string): Promise<NonNu
 
         const form: FormDocument = await FormModel.findById(formID);
 
-        if (form === null) {
+        if (!form) {
             throw new Error("Not found");
         }
 

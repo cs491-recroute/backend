@@ -6,7 +6,7 @@ export async function getUserTest(userID: string, testID: string): Promise<NonNu
     try {
         const { data: tests } = await apiService.useService(SERVICES.user).get(`/user/${userID}/tests`);
 
-        if (tests === null) {
+        if (!tests) {
             throw new Error("User has no tests!");
         }
 
@@ -16,7 +16,7 @@ export async function getUserTest(userID: string, testID: string): Promise<NonNu
 
         const test: TestDocument = await TestModel.findById(testID);
 
-        if (test === null) {
+        if (!test) {
             throw new Error("Not found");
         }
 

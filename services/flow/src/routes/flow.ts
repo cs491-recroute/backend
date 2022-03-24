@@ -37,7 +37,7 @@ router.get('/flows', createMiddleware(async (req, res) => {
 
   try {
     const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
-    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs } });
+    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs } }).select({ "applicants": 0 });
     return res.status(200).send(flows);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
@@ -352,8 +352,8 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
     const flow = await getUserFlow(userID, flowID);
 
     // find stage in flow
-    var stage = flow.stages.find(x => x?.id === stageID);
-    if (stage === undefined) {
+    var stage = (flow.stages as any).id(stageID) as StageDocument;
+    if (!stage) {
       return res.status(400).send({ message: "Stage is not found." });
     }
 
@@ -410,8 +410,8 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
     const flow = await getUserFlow(userID, flowID);
 
     // find stage in flow
-    var stage = flow.stages.find(x => x?.id === stageID) as StageDocument;
-    if (stage === undefined || stage === null) {
+    var stage = (flow.stages as any).id(stageID) as StageDocument;
+    if (!stage) {
       return res.status(400).send({ message: "Stage is not found." });
     }
 
@@ -470,8 +470,8 @@ router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) 
     const flow = await getUserFlow(userID, flowID);
 
     // find stage in flow
-    var stage = flow.stages.find(x => x?.id === stageID);
-    if (stage === undefined) {
+    var stage = (flow.stages as any).id(stageID) as StageDocument;
+    if (!stage) {
       return res.status(400).send({ message: "Stage is not found." });
     }
 

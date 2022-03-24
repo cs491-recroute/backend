@@ -1,7 +1,7 @@
 import express from "express";
 import { createMiddleware, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
-import { getUserFlow } from "../controllers/flowController";
+import { getUserFlow, getUserFlowWithApplicants } from "../controllers/flowController";
 import { FlowDocument, FlowModel } from "../models/Flow";
 import { ApplicantModel, FormSubmission } from "../models/Applicant";
 import { Types } from 'mongoose';
@@ -28,10 +28,10 @@ router.get('/flow/:flowID/applicant/:applicantID', createMiddleware(async (req, 
 
   // send userID to user service and get form
   try {
-    const flow: any = await getUserFlow(userID, flowID);
+    const flow: any = await getUserFlowWithApplicants(userID, flowID);
     const applicant = flow.applicants?.id(applicantID);
 
-    if (applicant === null || applicant === undefined) {
+    if (!applicant) {
       return res.status(400).send({ message: "Applicant not found!" });
     }
 
@@ -56,9 +56,9 @@ router.get('/flow/:flowID/applicants', createMiddleware(async (req, res) => {
 
   // send userID to user service and get form
   try {
-    const flow: FlowDocument = await getUserFlow(userID, flowID);
+    const flow: FlowDocument = await getUserFlowWithApplicants(userID, flowID);
 
-    if (flow.applicants === null || flow.applicants === undefined) {
+    if (flow.applicants) {
       return res.status(400).send({ message: "There is no applicants in this flow." });
     }
 
@@ -89,7 +89,7 @@ router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(asy
     // get flow and check if applicant already exists
     const flow = await FlowModel.findById(flowID);
 
-    if (flow === null || flow === undefined) {
+    if (!flow) {
       return res.status(400).send({ message: "Flow not found!" });
     }
 
@@ -103,7 +103,7 @@ router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(asy
     // check all form components in form if they are required and satisfied
     const form = await FormModel.findById(formID);
 
-    if (form === null || form === undefined) {
+    if (!form) {
       return res.status(400).send({ message: "Form not found!" });
     }
 

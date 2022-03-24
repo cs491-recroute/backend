@@ -6,7 +6,7 @@ export async function getUserInterview(userID: string, interviewID: string): Pro
     try {
         const { data: interviews } = await apiService.useService(SERVICES.user).get(`/user/${userID}/interviews`);
 
-        if (interviews === null) {
+        if (!interviews) {
             throw new Error("User has no interviews!");
         }
 
@@ -16,7 +16,7 @@ export async function getUserInterview(userID: string, interviewID: string): Pro
 
         const interview: InterviewDocument = await InterviewModel.findById(interviewID);
 
-        if (interview === null) {
+        if (!interview) {
             throw new Error("Not found");
         }
 

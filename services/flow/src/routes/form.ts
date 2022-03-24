@@ -30,7 +30,7 @@ router.get('/templates/form', createMiddleware(async (req, res) => {
   try {
     const { data: formIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/forms`);
     const formTemplates: FormDocument[] = await FormModel.find({ '_id': { $in: formIDs }, isTemplate: true });
-    if (formTemplates === null || formTemplates === undefined) {
+    if (!formTemplates) {
       return res.status(400).send({ message: "No template found matching formID!" });
     }
     return res.status(200).send(formTemplates);
@@ -248,7 +248,7 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
 
     const component = (form.components as any).id(componentID);
 
-    if (component === null) {
+    if (!component) {
       return res.status(400).send({ message: 'No component found with the given ID' });
     }
 
@@ -285,7 +285,7 @@ router.delete('/form/:formID/component/:componentID', createMiddleware(async (re
 
     const component = (form.components as any).id(componentID);
 
-    if (component === null || component === undefined) {
+    if (!component) {
       return res.status(400).send({ message: 'No component found with the given ID' });
     }
 

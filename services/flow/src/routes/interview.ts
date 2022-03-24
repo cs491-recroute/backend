@@ -122,7 +122,7 @@ router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', crea
 
     const applicant = (flow.applicants as any)?.id(instance.interviewee);
 
-    if (applicant === null) {
+    if (!applicant) {
       return res.status(400).send({ message: "Interviewee is not found!" });
     }
 
@@ -135,7 +135,7 @@ router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', crea
     const interview = await getUserInterview(userID, interviewID);
     const oldInstance = (interview.instances as any)?.id(instanceID);
 
-    if (oldInstance === null || oldInstance === undefined) {
+    if (!oldInstance) {
       return res.status(400).send({ message: "Instance with instanceID not found!" });
     }
 
@@ -217,7 +217,7 @@ router.put('/interview/:interviewID/instance/:instanceID/', createMiddleware(asy
     const interview = await getUserInterview(userID, interviewID);
     const instance = (interview.instances as any)?.id(instanceID);
 
-    if (instance === null || instance === undefined) {
+    if (!instance) {
       return res.status(400).send({ message: "Instance with instanceID not found!" });
     }
 

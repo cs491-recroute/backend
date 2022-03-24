@@ -18,7 +18,7 @@ router.post('/company', createMiddleware(async (req, res) => {
   const companyObj = req.body as Company;
   const company: CompanyDocument = new CompanyModel(companyObj);
 
-  if (company === null) {
+  if (!company) {
     return res.status(500).send({ message: "Unable to save! please contact recroute support." });
   }
 
@@ -38,12 +38,12 @@ router.get('/company', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const user: UserDocument = await UserModel.findById(userID);
-  if (user === null) {
+  if (!user) {
     return res.status(400).send({ message: "No user found with UserID!" });
   }
   const { company } = await user.populate<{ company: Company }>('company');
 
-  if (company === null) {
+  if (!company) {
     return res.status(500).send({ message: "Unable to get company please contact recroute support." });
   }
   return res.status(200).send(company);
@@ -61,12 +61,12 @@ router.get('/company/interviewer', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const user: UserDocument = await UserModel.findById(userID);
-  if (user === null) {
+  if (!user) {
     return res.status(400).send({ message: "No user found with UserID!" });
   }
   const { company } = await user.populate<{ company: Company }>('company');
 
-  if (company === null) {
+  if (!company) {
     return res.status(500).send({ message: "Unable to get company please contact recroute support." });
   }
   return res.status(200).send(company);
