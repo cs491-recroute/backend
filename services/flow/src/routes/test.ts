@@ -6,6 +6,7 @@ import { apiService } from "../../../../common/services/apiService";
 import { createMiddleware, getUserID } from "../../../../common/services/utils";
 import { Prop } from '../models/Prop';
 import { getUserTest } from '../controllers/testController';
+import { deleteTest } from '../services/testService';
 
 const router = express.Router();
 
@@ -30,8 +31,7 @@ router.get('/templates/test', createMiddleware(async (req, res) => {
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user tests!', errorMessage: error.message });
   }
-}))
-
+}));
 
 router.post('/templates/test', createMiddleware(async (req, res) => {
   /*
@@ -55,6 +55,27 @@ router.post('/templates/test', createMiddleware(async (req, res) => {
   }
 }));
 
+router.get('/templates/test/:testID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Delete test template with testID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const { testID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    await deleteTest(userID, testID); // TODO: check if it is template
+    return res.status(200).send({ message: "Successful" });
+  } catch (error: any) {
+    return res.status(400).send({ errorMessage: error.message });
+  }
+}));
+
 router.get('/test/:testID', createMiddleware(async (req, res) => {
   /*
   #swagger.description = 'Return test according to testID'
@@ -65,16 +86,16 @@ router.get('/test/:testID', createMiddleware(async (req, res) => {
   }
   */
 
-    const userID = getUserID(req);
-    const { testID } = req.params;
-  
-    try {
-      const test: TestDocument = await getUserTest(userID, testID);
-      return res.status(200).send(test);
-    } catch (error: any) {
-      return res.status(400).send({ message: error.message || error })
-    }
-  
+  const userID = getUserID(req);
+  const { testID } = req.params;
+
+  try {
+    const test: TestDocument = await getUserTest(userID, testID);
+    return res.status(200).send(test);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error })
+  }
+
 }));
 
 router.put('/test/:testID', createMiddleware(async (req, res) => {
@@ -142,7 +163,7 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
   } catch (error: any) {
     return res.status(400).send({ message: error.message })
   }
-  
+
 }));
 
 export { router as testRouter }

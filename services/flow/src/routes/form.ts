@@ -5,7 +5,7 @@ import { createMiddleware, getUserID } from "../../../../common/services/utils";
 import { Component, ComponentModel } from "../models/Component";
 import { FormDocument, FormModel } from "../models/Form";
 import { getUserForm } from "../controllers/formController";
-import { valuesToOptions } from "../services/formService";
+import { deleteForm, valuesToOptions } from "../services/formService";
 import { Prop } from "../models/Prop";
 
 
@@ -30,11 +30,14 @@ router.get('/templates/form', createMiddleware(async (req, res) => {
   try {
     const { data: formIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/forms`);
     const formTemplates: FormDocument[] = await FormModel.find({ '_id': { $in: formIDs }, isTemplate: true });
+    if (formTemplates === null || formTemplates === undefined) {
+      return res.status(400).send({ message: "No template found matching formID!" });
+    }
     return res.status(200).send(formTemplates);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
   }
-}))
+}));
 
 router.post('/templates/form', createMiddleware(async (req, res) => {
   /*
@@ -58,6 +61,27 @@ router.post('/templates/form', createMiddleware(async (req, res) => {
   }
 }));
 
+router.delete('/templates/form/:formID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'delete form template with formID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const { formID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    await deleteForm(userID, formID); // TODO: check if it is template
+    return res.status(200).send({ message: "Successful" });
+  } catch (error: any) {
+    return res.status(400).send({ errorMessage: error.message });
+  }
+}));
+
 // FORMS
 
 router.get('/form/:formID', createMiddleware(async (req, res) => {
@@ -75,26 +99,10 @@ router.get('/form/:formID', createMiddleware(async (req, res) => {
 
   // send userID to user service and get flowIDs
   try {
-    const { data: forms } = await apiService.useService(SERVICES.user).get(`/user/${userID}/forms`);
-    if (forms === null) {
-      return res.status(401).send({ message: "Unauthorized!" });
-    }
-
-    // check if flowId matches with any of the flows
-    if (forms.includes(formID)) {
-      const form = await FormModel.findById(formID);
-
-      // flowID is missing int the document
-      if (form === null) {
-        return res.status(400).send({ message: 'No form found with the given ID' });
-      }
-      return res.status(200).send(form);
-    }
-    else {
-      return res.status(400).send({ message: 'No form found with the given ID' });
-    }
+    const form = await getUserForm(userID, formID);
+    return res.status(200).send(form);
   } catch (error: any) {
-    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+    return res.status(400).send({ message: error.message });
   }
 
 }));
@@ -238,7 +246,7 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
   try {
     const form = await getUserForm(userID, formID);
 
-    const component = form.components.find(x => x?.id == componentID);
+    const component = (form.components as any).id(componentID);
 
     if (component === null) {
       return res.status(400).send({ message: 'No component found with the given ID' });
@@ -275,7 +283,7 @@ router.delete('/form/:formID/component/:componentID', createMiddleware(async (re
   try {
     const form = await getUserForm(userID, formID);
 
-    const component = form.components.find(x => x?.id == componentID);
+    const component = (form.components as any).id(componentID);
 
     if (component === null || component === undefined) {
       return res.status(400).send({ message: 'No component found with the given ID' });

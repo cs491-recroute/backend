@@ -14,6 +14,10 @@ import { Types } from 'mongoose';
 import { FormDocument, FormModel } from "../models/Form";
 import { TestModel } from "../models/Test";
 import { Prop } from "../models/Prop";
+import { deleteFlow } from '../services/flowService';
+import { deleteForm } from '../services/formService';
+import { deleteTest } from '../services/testService';
+import { deleteInterview } from '../services/interviewService';
 
 const router = express.Router();
 
@@ -214,8 +218,7 @@ router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
   const { flowID } = req.params;
 
   try {
-    let flow = await getUserFlow(userID, flowID);
-    await flow.remove();
+    await deleteFlow(userID, flowID);
     return res.status(200).send();
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
@@ -475,17 +478,17 @@ router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) 
     // delete recursively
     switch (stage.type) {
       case StageType.FORM:
-        await FormModel.findByIdAndDelete(stage.stageID);
+        await deleteForm(userID, stage.stageID.toString());
         break;
       case StageType.TEST:
-        await TestModel.findByIdAndDelete(stage.stageID);
+        await deleteTest(userID, stage.stageID.toString());
         break;
       case StageType.INTERVIEW:
-        await InterviewModel.findByIdAndDelete(stage.stageID);
+        await deleteInterview(userID, stage.stageID.toString());
         break;
     }
 
-    stage.remove();
+    await stage.remove();
     await flow.save();
 
     return res.status(200).send(true);
