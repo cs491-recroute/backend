@@ -159,7 +159,7 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
     const question: QuestionDocument = new QuestionModel(req.body);
     test.questions.push(question);
     await test.save();
-    return res.status(200).send(question);
+    return res.status(200).send(test);
   } catch (error: any) {
     return res.status(400).send({ message: error.message })
   }
