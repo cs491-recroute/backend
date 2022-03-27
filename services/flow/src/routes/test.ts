@@ -167,4 +167,33 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
 
 }));
 
+router.put('/test/:testID/question/:questionID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Edit question of the test'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['Question'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Question'}
+  }
+  */
+
+  const { testID, questionID } = req.params;
+  const userID = getUserID(req);
+  const question = getBody<Question>(req, QuestionKeys);
+  
+  try {
+    const test: TestDocument = await getUserTest(userID, testID);
+    (test.questions as any).id(questionID).set(question);
+    await test.save();
+    return res.status(200).send((test.questions as any).id(questionID));
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message })
+  }
+}));
+
 export { router as testRouter }
