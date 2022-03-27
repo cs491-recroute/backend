@@ -14,7 +14,7 @@ import { Types } from 'mongoose';
 import { FormDocument, FormModel } from "../models/Form";
 import { TestModel } from "../models/Test";
 import { Prop, PropKeys } from "../models/Prop";
-import { deleteFlow } from '../services/flowService';
+import { deleteFlow, parseStageProps, parseStages } from '../services/flowService';
 import { deleteForm } from '../services/formService';
 import { deleteTest } from '../services/testService';
 import { deleteInterview } from '../services/interviewService';
@@ -66,17 +66,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
 
     // Insert stage props (form, test, interview props) to every stage
     const response = flow.toJSON();
-    response?.stages.forEach((stage: any, index) => {
-      response.stages[index] = Object.keys(stage).reduce((acc, key) => {
-        if (Object.values(StageType).includes(key as StageType)) {
-          if (stage[key]) {
-            return { ...acc, stageProps: stage[key] };
-          }
-          return acc;
-        }
-        return { ...acc, [key]: stage[key] };
-      }, { type: stage.type, stageID: stage.stageID, _id: stage.id });
-    })
+    parseStages(response);
     return res.status(200).send(response);
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
@@ -303,15 +293,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
     let response: any = stageModel?.toJSON();
 
     // parse JSON for easy use on frontend
-    response = Object.keys(response).reduce((acc, key) => {
-      if (Object.values(StageType).includes(key as StageType)) {
-        if (response[key]) {
-          return { ...acc, stageProps: response[key] };
-        }
-        return acc;
-      }
-      return { ...acc, [key]: response[key] };
-    }, { type: stage.type, stageID: stage.stageID });
+    response = parseStageProps(response, stage);
 
     return res.status(200).send({ stage: response });
   } catch (error: any) {
@@ -372,15 +354,7 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
     let response: any = stageModel?.toJSON();
 
     // parse JSON for easy use on frontend
-    response = Object.keys(response).reduce((acc, key) => {
-      if (Object.values(StageType).includes(key as StageType)) {
-        if (response[key]) {
-          return { ...acc, stageProps: response[key] };
-        }
-        return acc;
-      }
-      return { ...acc, [key]: response[key] };
-    }, { type: stage.type, stageID: stage.stageID });
+    response = parseStageProps(response, stage);
 
     return res.status(200).send({ stage: response });
   } catch (error: any) {
@@ -439,15 +413,7 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
     let response: any = stageModel?.toJSON();
 
     // parse JSON for easy use on frontend
-    response = Object.keys(response).reduce((acc, key) => {
-      if (Object.values(StageType).includes(key as StageType)) {
-        if (response[key]) {
-          return { ...acc, stageProps: response[key] };
-        }
-        return acc;
-      }
-      return { ...acc, [key]: response[key] };
-    }, { type: stage.type, stageID: stage.stageID });
+    response = parseStageProps(response, stage);
 
     return res.status(200).send({ stage: response });
   } catch (error: any) {
