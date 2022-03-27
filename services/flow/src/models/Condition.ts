@@ -28,4 +28,18 @@ export const ConditionSchema = new Schema<Condition>({
 }, { timestamps: true, autoCreate: false });
 
 export const ConditionModel = model<Condition>("Condition", ConditionSchema);
-export type ConditionDocument = HydratedDocument<Condition> | null; 
+export type ConditionDocument = HydratedDocument<Condition> | null;
+export const ConditionKeys = [
+  "componentId",
+  "address",
+  "date",
+  "selection",
+  "selections",
+  "name",
+  "surname",
+  "text",
+  "number",
+  "countryCode",
+  "phoneNumber",
+  "fileName"
+];

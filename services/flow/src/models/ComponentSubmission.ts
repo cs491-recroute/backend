@@ -33,3 +33,18 @@ export const componentSubmissionSchema = new Schema<ComponentSubmission>({
     countryCode: { type: String, default: undefined },
     fileName: { type: String, default: undefined }
 }, { timestamps: true, autoCreate: false });
+
+export const ComponentSubmissionKeys = [
+    "componentId",
+    "address",
+    "date",
+    "selection",
+    "selections",
+    "name",
+    "surname",
+    "text",
+    "number",
+    "countryCode",
+    "phoneNumber",
+    "fileName"
+];

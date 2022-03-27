@@ -25,4 +25,13 @@ const schema = new Schema<Flow>({
 }, { timestamps: true });
 
 export const FlowModel = model<Flow>("Flow", schema);
-export type FlowDocument = HydratedDocument<Flow> | null; 
+export type FlowDocument = HydratedDocument<Flow> | null;
+export const FlowKeys = [
+    "name",
+    "stages",
+    "conditions",
+    "active",
+    "startDate",
+    "endDate",
+    "applicants"
+];

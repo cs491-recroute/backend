@@ -35,4 +35,13 @@ export const componentSchema = new Schema<Component>({
 }, { timestamps: true, autoCreate: false });
 
 export const ComponentModel = model<Component>("Component", componentSchema);
-export type ComponentDocument = HydratedDocument<Component> | null; 
+export type ComponentDocument = HydratedDocument<Component> | null;
+export const ComponentKeys = [
+    "type",
+    "required",
+    "title",
+    "titles",
+    "placeholder",
+    "placeholders",
+    "options"
+];

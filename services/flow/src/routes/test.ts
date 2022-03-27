@@ -1,10 +1,10 @@
-import { QuestionModel, QuestionDocument } from './../models/Question';
+import { QuestionModel, QuestionDocument, Question, QuestionKeys } from './../models/Question';
 import { TestModel, TestDocument } from './../models/Test';
 import express from "express";
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
-import { createMiddleware, getUserID } from "../../../../common/services/utils";
-import { Prop } from '../models/Prop';
+import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
+import { Prop, PropKeys } from '../models/Prop';
 import { getUserTest } from '../controllers/testController';
 import { deleteTest } from '../services/testService';
 
@@ -115,7 +115,7 @@ router.put('/test/:testID', createMiddleware(async (req, res) => {
 
   const { testID } = req.params;
   const userID = getUserID(req);
-  const testProp = req.body as Prop;
+  const testProp = getBody<Prop>(req, PropKeys);
 
   // check prop for inconvenient change requests
   switch (testProp.name) {
@@ -153,11 +153,12 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
 
   const { testID } = req.params;
   const userID = getUserID(req);
+  const question = getBody<Question>(req, QuestionKeys);
 
   try {
     const test: TestDocument = await getUserTest(userID, testID);
-    const question: QuestionDocument = new QuestionModel(req.body);
-    test.questions.push(question);
+    const questionModel: QuestionDocument = new QuestionModel(question);
+    test.questions.push(questionModel);
     await test.save();
     return res.status(200).send(test);
   } catch (error: any) {

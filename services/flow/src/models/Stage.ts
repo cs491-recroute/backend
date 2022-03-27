@@ -40,4 +40,10 @@ StageSchema.virtual(StageType.INTERVIEW, {
 });
 
 export const StageModel = model<Stage>("Stage", StageSchema);
-export type StageDocument = HydratedDocument<Stage> | null; 
+export type StageDocument = HydratedDocument<Stage> | null;
+export const StageKeys = [
+    "type",
+    "stageID",
+    "startDate",
+    "endDate"
+];

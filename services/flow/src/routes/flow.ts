@@ -1,11 +1,11 @@
 import { TestDocument } from './../models/Test';
 import express from "express";
-import { createMiddleware, getUserID } from "../../../../common/services/utils";
+import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
-import { Flow, FlowDocument, FlowModel } from "../models/Flow";
-import { Stage, StageDocument, StageModel, StageType } from "../models/Stage";
-import { Condition, ConditionDocument, ConditionModel } from "../models/Condition";
+import { Flow, FlowDocument, FlowKeys, FlowModel } from "../models/Flow";
+import { Stage, StageDocument, StageKeys, StageModel, StageType } from "../models/Stage";
+import { Condition, ConditionDocument, ConditionKeys, ConditionModel } from "../models/Condition";
 import { getUserFlow } from "../controllers/flowController";
 import { InterviewModel } from "../models/Interview";
 import { getUserForm } from "../controllers/formController";
@@ -13,7 +13,7 @@ import { getUserTest } from '../controllers/testController';
 import { Types } from 'mongoose';
 import { FormDocument, FormModel } from "../models/Form";
 import { TestModel } from "../models/Test";
-import { Prop } from "../models/Prop";
+import { Prop, PropKeys } from "../models/Prop";
 import { deleteFlow } from '../services/flowService';
 import { deleteForm } from '../services/formService';
 import { deleteTest } from '../services/testService';
@@ -99,7 +99,7 @@ router.post('/flow', createMiddleware(async (req, res) => {
   */
 
   const userID = getUserID(req);
-  const flow: Flow = req.body;
+  const flow = getBody<Flow>(req, FlowKeys);
 
   const flowModel: FlowDocument = new FlowModel(flow);
 
@@ -135,7 +135,7 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const flowProp = req.body as Prop;
+  const flowProp = getBody<Prop>(req, PropKeys);
 
   // check prop for inconvenient change requests
   switch (flowProp.name) {
@@ -177,7 +177,7 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const flow = req.body as Flow;
+  const flow = getBody<Flow>(req, FlowKeys);
 
   // check prop for inconvenient change requests
   if ((flow as any).id || (flow as any)._id) {
@@ -242,7 +242,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
 
   const { flowID } = req.params;
   const userID = getUserID(req);
-  const stage: Stage = req.body;
+  const stage = getBody<Stage>(req, StageKeys);
   let stageModel: StageDocument = new StageModel(stage);
 
   try {
@@ -336,7 +336,8 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
 
   const { flowID, stageID } = req.params;
   const userID = getUserID(req);
-  const stageProp = req.body as Prop;
+  const stageProp = getBody<Prop>(req, PropKeys);
+
 
   // check prop for inconvenient change requests
   switch (stageProp.name) {
@@ -404,7 +405,8 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
 
   const { flowID, stageID } = req.params;
   const userID = getUserID(req);
-  const newStage = req.body as Stage;
+  const newStage = getBody<Stage>(req, StageKeys);
+
 
   try {
     const flow = await getUserFlow(userID, flowID);
@@ -514,7 +516,7 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
 
   const { flowID } = req.params;
   const userID = getUserID(req);
-  const condition: Condition = req.body;
+  const condition = getBody<Condition>(req, ConditionKeys);
 
   try {
     const flow = await getUserFlow(userID, flowID);

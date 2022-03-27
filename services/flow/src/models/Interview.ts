@@ -20,4 +20,12 @@ const schema = new Schema<Interview>({
 }, { timestamps: true });
 
 export const InterviewModel = model<Interview>("Interview", schema);
-export type InterviewDocument = HydratedDocument<Interview> | null; 
+export type InterviewDocument = HydratedDocument<Interview> | null;
+export const InterviewKeys = [
+    "name",
+    "interviewLenghtInMins",
+    "breakLengthInMins",
+    "instances",
+    "startTime",
+    "interviewers"
+];

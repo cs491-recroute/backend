@@ -16,4 +16,9 @@ const schema = new Schema<Form>({
 }, { timestamps: true });
 
 export const FormModel = model<Form>("Form", schema);
-export type FormDocument = HydratedDocument<Form> | null; 
+export type FormDocument = HydratedDocument<Form> | null;
+export const FormKeys = [
+    "name",
+    "isTemplate",
+    "components"
+];

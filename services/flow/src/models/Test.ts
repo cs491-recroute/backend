@@ -14,4 +14,9 @@ const schema = new Schema<Test>({
 }, { timestamps: true });
 
 export const TestModel = model<Test>("Test", schema);
-export type TestDocument = HydratedDocument<Test> | null; 
+export type TestDocument = HydratedDocument<Test> | null;
+export const StageKeys = [
+    "name",
+    "isTemplate",
+    "questions"
+];

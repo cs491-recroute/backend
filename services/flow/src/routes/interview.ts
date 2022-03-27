@@ -1,10 +1,10 @@
 import express from "express";
-import { createMiddleware, getUserID } from "../../../../common/services/utils";
+import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { getUserFlow } from "../controllers/flowController";
 import { getUserInterview, getUserIsInterviewer } from "../controllers/interviewController";
-import { Interview } from "../models/Interview";
-import { InterviewInstance } from "../models/InterviewInstance";
-import { Prop } from "../models/Prop";
+import { Interview, InterviewKeys } from "../models/Interview";
+import { InterviewInstance, InterviewInstanceKeys } from "../models/InterviewInstance";
+import { Prop, PropKeys } from "../models/Prop";
 
 const router = express.Router();
 
@@ -26,7 +26,8 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
   */
   const userID = getUserID(req);
   const { interviewID } = req.params;
-  const interview = req.body as Interview;
+  const interview = getBody<Interview>(req, InterviewKeys);
+
 
   if (interview.instances) {
     return res.status(400).send({ message: "Instances of an interview cannot be updated from this controller." });
@@ -68,7 +69,8 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   */
   const userID = getUserID(req);
   const { interviewID } = req.params;
-  const interviewProp = req.body as Prop;
+  const interviewProp = getBody<Prop>(req, PropKeys);
+
 
   // check prop for inconvenient change requests
   switch (interviewProp.name) {
@@ -111,7 +113,8 @@ router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', crea
   */
   const userID = getUserID(req);
   const { flowID, interviewID, instanceID } = req.params;
-  const instance = req.body as InterviewInstance;
+  const instance = getBody<InterviewInstance>(req, InterviewInstanceKeys);
+
 
   try {
     // check if interviewer match with the company
@@ -191,7 +194,7 @@ router.put('/interview/:interviewID/instance/:instanceID/', createMiddleware(asy
 
   const userID = getUserID(req);
   const { interviewID, instanceID } = req.params;
-  const instanceProp = req.body as Prop;
+  const instanceProp = getBody<Prop>(req, PropKeys);
 
   // check prop for inconvenient change requests
   switch (instanceProp.name) {

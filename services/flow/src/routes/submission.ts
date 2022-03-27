@@ -1,9 +1,9 @@
 import express from "express";
-import { createMiddleware, getUserID } from "../../../../common/services/utils";
+import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
-import { getUserFlow, getUserFlowWithApplicants } from "../controllers/flowController";
+import { getUserFlowWithApplicants } from "../controllers/flowController";
 import { FlowDocument, FlowModel } from "../models/Flow";
-import { ApplicantModel, FormSubmission } from "../models/Applicant";
+import { ApplicantModel, FormSubmission, FormSubmissionKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
 
 
@@ -80,8 +80,7 @@ router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(asy
     }
    */
   const { flowID, formID, email } = req.params;
-
-  const formSubmission: FormSubmission = req.body;
+  const formSubmission = getBody<FormSubmission>(req, FormSubmissionKeys);
   formSubmission.formID = new Types.ObjectId(formID);
 
   // send userID to user service and get form

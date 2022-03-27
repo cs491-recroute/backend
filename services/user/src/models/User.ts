@@ -30,3 +30,11 @@ const schema = new Schema<User>({
 
 export const UserModel = model<User>("User", schema);
 export type UserDocument = HydratedDocument<User> | null;
+export const UserKeys = [
+  "name",
+  "email",
+  "company",
+  "isInterviewer",
+  "availableTimes",
+  "interviewInstances"
+];

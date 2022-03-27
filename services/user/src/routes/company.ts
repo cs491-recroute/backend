@@ -1,6 +1,6 @@
 import express from "express";
-import { createMiddleware, getUserID } from "../../../../common/services/utils";
-import { Company, CompanyDocument, CompanyModel } from "../models/Company";
+import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
+import { Company, CompanyDocument, CompanyKeys, CompanyModel } from "../models/Company";
 import { UserDocument, UserModel } from "../models/User";
 
 const router = express.Router();
@@ -14,16 +14,15 @@ router.post('/company', createMiddleware(async (req, res) => {
      schema: { $ref: '#/definitions/Company'}
     }
    */
+  const company = getBody<Company>(req, CompanyKeys);
+  const companyModel: CompanyDocument = new CompanyModel(company);
 
-  const companyObj = req.body as Company;
-  const company: CompanyDocument = new CompanyModel(companyObj);
-
-  if (!company) {
+  if (!companyModel) {
     return res.status(500).send({ message: "Unable to save! please contact recroute support." });
   }
 
-  await company.save();
-  return res.status(200).send(company.id);
+  await companyModel.save();
+  return res.status(200).send(companyModel.id);
 }));
 
 router.get('/company', createMiddleware(async (req, res) => {

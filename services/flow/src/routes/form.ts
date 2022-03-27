@@ -1,12 +1,12 @@
 import express from "express";
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
-import { createMiddleware, getUserID } from "../../../../common/services/utils";
-import { Component, ComponentModel } from "../models/Component";
+import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
+import { Component, ComponentKeys, ComponentModel } from "../models/Component";
 import { FormDocument, FormModel } from "../models/Form";
 import { getUserForm } from "../controllers/formController";
 import { deleteForm, valuesToOptions } from "../services/formService";
-import { Prop } from "../models/Prop";
+import { Prop, PropKeys } from "../models/Prop";
 
 
 const router = express.Router();
@@ -124,7 +124,8 @@ router.put('/form/:formID', createMiddleware(async (req, res) => {
 
   const { formID } = req.params;
   const userID = getUserID(req);
-  const formProp = req.body as Prop;
+  const formProp = getBody<Prop>(req, PropKeys);
+
 
   // check prop for inconvenient change requests
   switch (formProp.name) {
@@ -192,7 +193,7 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
     req.body.options = valuesToOptions(req.body.options);
   }
 
-  const component: Component = req.body as Component;
+  const component = getBody<Component>(req, ComponentKeys);
 
   // send userID to user service and get form
   try {
@@ -229,7 +230,8 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
 
   const userID = getUserID(req);
   const { formID, componentID } = req.params;
-  const componentProp = req.body as Prop;
+  const componentProp = getBody<Prop>(req, PropKeys);
+
 
   // check prop for inconvenient change requests
   switch (componentProp.name) {

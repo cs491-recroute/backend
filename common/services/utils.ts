@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, Application, RequestHandler, ErrorRequestHandler } from 'express';
+import { NextFunction, Request, Response, Application, RequestHandler } from 'express';
 
 export function connectToDatabase(connectFunc: any, success: () => void, error: (err: string) => void) {
   const { DB_HOSTNAME, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME } = process.env;
@@ -21,14 +21,14 @@ export function mountExpress(app: Application, middlewares: Array<RequestHandler
     console.log(`${SERVICE_NAME}:${req.url}`);
     next();
   });
-  
+
   app.use(middlewares);
-  
+
   // Error handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const statusCode = err.statusCode || 500;
     console.error(err.message, err.stack);
-    res.status(statusCode).json({'message': err.message});
+    res.status(statusCode).json({ 'message': err.message });
     return;
   });
 
@@ -49,4 +49,20 @@ export function createMiddleware(callback: (req: Request, res: Response, next?: 
 
 export function getUserID(req: Request): string {
   return req.query?.userID?.toString() || '';
+}
+
+export function getBody<Type>(req: Request, keys: string[]): Type {
+  const body = {} as any;
+
+  for (let prop of Object.getOwnPropertyNames(req.body)) {
+    if (keys.includes(prop)) {
+      if (req.body[prop] !== null) {
+        body[prop] = req.body[prop];
+      } else {
+        body[prop] = undefined;
+      }
+    }
+  }
+
+  return body;
 }

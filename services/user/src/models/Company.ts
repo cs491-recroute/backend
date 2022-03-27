@@ -21,4 +21,13 @@ const schema = new Schema<Company>({
 }, { timestamps: true });
 
 export const CompanyModel = model<Company>("Company", schema);
-export type CompanyDocument = HydratedDocument<Company> | null; 
+export type CompanyDocument = HydratedDocument<Company> | null;
+export const CompanyKeys = [
+  "name",
+  "domain",
+  "users",
+  "flows",
+  "forms",
+  "tests",
+  "interviews"
+];
