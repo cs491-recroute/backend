@@ -2,6 +2,7 @@ import { Schema, model, HydratedDocument, Types } from 'mongoose';
 import { InterviewInstance, InterviewInstanceSchema } from './InterviewInstance';
 
 export interface Interview {
+    flowID: Types.ObjectId,
     name: String;
     interviewLenghtInMins: Number;
     breakLengthInMins: Number;
@@ -11,6 +12,7 @@ export interface Interview {
 };
 
 const schema = new Schema<Interview>({
+    flowID: { type: Schema.Types.ObjectId, ref: 'Flow' },
     name: { type: String, required: true, default: 'Interview' },
     interviewLenghtInMins: { type: Number, required: true, default: 60 },
     breakLengthInMins: { type: Number, required: true, default: 15 },
@@ -22,6 +24,7 @@ const schema = new Schema<Interview>({
 export const InterviewModel = model<Interview>("Interview", schema);
 export type InterviewDocument = HydratedDocument<Interview> | null;
 export const InterviewKeys = [
+    "flowID",
     "name",
     "interviewLenghtInMins",
     "breakLengthInMins",

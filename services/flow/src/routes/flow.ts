@@ -11,8 +11,7 @@ import { InterviewModel } from "../models/Interview";
 import { getUserForm } from "../controllers/formController";
 import { getUserTest } from '../controllers/testController';
 import { Types } from 'mongoose';
-import { FormDocument, FormModel } from "../models/Form";
-import { TestModel } from "../models/Test";
+import { FormDocument } from "../models/Form";
 import { Prop, PropKeys } from "../models/Prop";
 import { deleteFlow, parseStageProps, parseStages } from '../services/flowService';
 import { deleteForm } from '../services/formService';
@@ -246,6 +245,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
         formClone._id = new Types.ObjectId;
         formClone.isNew = true;
         formClone.isTemplate = false;
+        formClone.flowID = new Types.ObjectId(flowID);
         await formClone.save();
         stageModel.stageID = formClone._id;
         try {
@@ -261,6 +261,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
         test._id = new Types.ObjectId;
         test.isNew = true;
         test.isTemplate = false;
+        test.flowID = new Types.ObjectId(flowID);
         await test.save();
         stageModel.stageID = test._id;
         try {
@@ -273,6 +274,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
       case StageType.INTERVIEW: {
         // if the stage is an interview then create an empty interviewModel and set its id to stageID
         const interviewModel = new InterviewModel();
+        interviewModel.flowID = new Types.ObjectId(flowID);
         interviewModel.save();
         stageModel.stageID = interviewModel.id;
         try {

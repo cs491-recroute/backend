@@ -17,7 +17,8 @@ export interface ComponentSubmission {
     number: Number,
     countryCode: String,
     phoneNumber: String,
-    fileName: String
+    fileName: String,
+    email: String
 }
 
 export const componentSubmissionSchema = new Schema<ComponentSubmission>({

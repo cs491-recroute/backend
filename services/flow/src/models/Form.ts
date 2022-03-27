@@ -1,15 +1,15 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
-import { SERVICES } from '../../../../common/constants/services';
-import { apiService } from '../../../../common/services/apiService';
+import { Schema, model, HydratedDocument, Types } from 'mongoose';
 import { ComponentDocument, componentSchema } from './Component';
 
 export interface Form {
-    name: String;
-    isTemplate: boolean;
-    components: ComponentDocument[];
+    flowID: Types.ObjectId,
+    name: String,
+    isTemplate: boolean,
+    components: ComponentDocument[]
 };
 
 const schema = new Schema<Form>({
+    flowID: { type: Schema.Types.ObjectId, ref: 'Flow' },
     name: { type: String, required: true, default: 'Form' },
     isTemplate: { type: Boolean, required: true },
     components: { type: [componentSchema], required: false }
@@ -18,6 +18,7 @@ const schema = new Schema<Form>({
 export const FormModel = model<Form>("Form", schema);
 export type FormDocument = HydratedDocument<Form> | null;
 export const FormKeys = [
+    "flowID",
     "name",
     "isTemplate",
     "components"

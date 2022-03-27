@@ -2,11 +2,34 @@ import { SERVICES } from '../../../../common/constants/services';
 import { apiService } from '../../../../common/services/apiService';
 import { FlowModel } from '../models/Flow';
 import { StageType } from '../models/Stage';
+import { deleteForm } from './formService';
+import { deleteTest } from './testService';
 
 export async function deleteFlow(userID: string, flowID: string): Promise<any> {
     try {
         await apiService.useService(SERVICES.user).delete(`/user/${userID}/flow/${flowID}`);
-        await FlowModel.findByIdAndDelete(flowID);
+        const flow = await FlowModel.findById(flowID);
+        if (flow?.stages) {
+            for (let stage of flow?.stages) {
+                var deleteStage;
+                switch (stage.type) {
+                    case StageType.FORM:
+                        deleteStage = deleteForm;
+                        break;
+                    case StageType.TEST:
+                        deleteStage = deleteTest;
+                        break;
+                    case StageType.FORM:
+                        deleteStage = deleteForm;
+                        break;
+                }
+                if (!deleteStage) {
+                    throw new Error("Stage type is not correct!");
+                }
+                await deleteStage(userID, stage.stageID.toString());
+            }
+        }
+        await flow?.remove();
     } catch (error: any) {
         throw new Error(error?.response?.data?.message || error);
     }

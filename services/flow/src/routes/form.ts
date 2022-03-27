@@ -237,6 +237,8 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
   switch (componentProp.name) {
     case "_id" || "id":
       return res.status(400).send({ message: "id cannot be changed." });
+    case "flowID":
+      return res.status(400).send({ message: "Referance `flowID` of a stage cannot be changed." });
     case "type":
       return res.status(400).send({ message: "Type of a stage cannot be changed." });
     case "options":

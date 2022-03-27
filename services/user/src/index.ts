@@ -5,6 +5,7 @@ import { signupRouter } from './routes/signup';
 import { connectToDatabase, mountExpress } from '../../../common/services/utils';
 import { companyRouter } from './routes/company';
 import { userRouter } from './routes/user';
+import { gmailRouter } from './routes/gmail';
 require('dotenv').config();
 
 const app = express();
@@ -18,7 +19,8 @@ connectToDatabase(mongoose.connect,
       json(),
       signupRouter,
       companyRouter,
-      userRouter
+      userRouter,
+      gmailRouter
     ]);
   },
   err => console.error(err)

@@ -7,17 +7,7 @@ const swaggerAutogen = require('swagger-autogen')();
 
 const ComponentSubmission = {
     componentId: "62370430195640b4f300ceaa",
-    address: "",
-    date: "",
-    selection: { key: 0, value: "Ankara" },
-    selections: [{ key: 0, value: "Ankara" }],
-    name: "",
-    surname: "",
-    text: "",
-    number: 56,
-    countryCode: "+90",
-    phoneNumber: "5332956882",
-    fileName: ""
+    value: ""
 };
 
 const doc = {

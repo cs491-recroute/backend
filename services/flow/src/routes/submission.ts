@@ -5,6 +5,7 @@ import { getUserFlowWithApplicants } from "../controllers/flowController";
 import { FlowDocument, FlowModel } from "../models/Flow";
 import { ApplicantModel, FormSubmission, FormSubmissionKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
+import * as MailService from '../../../../common/services/gmail-api'
 
 
 const router = express.Router();
@@ -22,7 +23,6 @@ router.get('/flow/:flowID/applicant/:applicantID', createMiddleware(async (req, 
       type: 'string'
     }
    */
-
   const userID = getUserID(req);
   const { flowID, applicantID } = req.params;
 
@@ -50,7 +50,6 @@ router.get('/flow/:flowID/applicants', createMiddleware(async (req, res) => {
       type: 'string'
     }
    */
-
   const userID = getUserID(req);
   const { flowID } = req.params;
 
@@ -70,7 +69,7 @@ router.get('/flow/:flowID/applicants', createMiddleware(async (req, res) => {
 
 // FORM SUBMISSIONS
 
-router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(async (req, res) => {
+router.post('/form/:formID/submission/:email', createMiddleware(async (req, res) => {
   /*
     #swagger.description = 'Submit a formSubmission and save it to applicant'
     #swagger.parameters['FormSubmission'] = { 
@@ -79,14 +78,20 @@ router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(asy
       schema: { $ref: '#/definitions/FormSubmission'}
     }
    */
-  const { flowID, formID, email } = req.params;
+  const { formID, email } = req.params;
   const formSubmission = getBody<FormSubmission>(req, FormSubmissionKeys);
   formSubmission.formID = new Types.ObjectId(formID);
 
   // send userID to user service and get form
   try {
+    const form = await FormModel.findById(formID);
+
+    if (!form) {
+      return res.status(400).send({ message: "Form not found!" });
+    }
+
     // get flow and check if applicant already exists
-    const flow = await FlowModel.findById(flowID);
+    const flow = await FlowModel.findById(form.flowID);
 
     if (!flow) {
       return res.status(400).send({ message: "Flow not found!" });
@@ -100,12 +105,6 @@ router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(asy
     }
 
     // check all form components in form if they are required and satisfied
-    const form = await FormModel.findById(formID);
-
-    if (!form) {
-      return res.status(400).send({ message: "Form not found!" });
-    }
-
     for (let component of form.components) {
       if (component?.required) {
         if (!formSubmission.componentSubmissions.find(x => x.componentId === component?.id)) {
@@ -127,6 +126,18 @@ router.post('/flow/:flowID/form/:formID/submission/:email', createMiddleware(asy
       await flow.save();
     } catch (error: any) {
       return res.status(400).send({ message: "Flow save error!", errorMessage: error.message });
+    }
+
+    try {
+      const mail = {
+        to: applicant.email.toString(),
+        subject: "(Recroute): Application Submitted Successfully",
+        text: "Congratulations! Your application from Recroute is submitted successfully.\n" +
+          "We will inform you when there are any improvements on your application."
+      };
+      await MailService.sendMessage(mail);
+    } catch (error: any) {
+      console.log({ message: "Mail error!", errorMessage: error });
     }
 
     return res.status(200).send({ formSubmission: formSubmission });

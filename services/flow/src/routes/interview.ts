@@ -76,10 +76,12 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   switch (interviewProp.name) {
     case "_id" || "id":
       return res.status(400).send({ message: "id cannot be changed." });
+    case "flowID":
+      return res.status(400).send({ message: "Referance `flowID` of a stage cannot be changed." });
     case "instances":
       return res.status(400).send({ message: "Instances of an interview cannot be updated from this controller." });
     case "interviewers":
-      // check if interviewer match with the company
+      // TODO: check if interviewer match with the company
       for (let interviewer of interviewProp.value) {
         await getUserIsInterviewer(interviewer as any);
       }

@@ -24,9 +24,9 @@ export const ApplicantModel = model<Applicant>("Applicant", applicantSchema);
 export type ApplicantDocument = HydratedDocument<Applicant> | null;
 export const FormSubmissionKeys = [
     "email",
-    "formSubmissions"
+    "componentSubmissions"
 ];
 export const ApplicantKeys = [
     "formID",
-    "componentSubmissions"
+    "formSubmissions"
 ];
