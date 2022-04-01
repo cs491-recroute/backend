@@ -1,10 +1,10 @@
 import { google } from "googleapis";
 import fs from 'fs-extra';
 import path from 'path';
-import credentials from '../constants/credentials.json';
+import credentials from '../constants/gmail_auth/credentials.json';
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.send'];
-const TOKEN_PATH = path.join(__dirname, '../constants/token.json');
+const TOKEN_PATH = path.join(__dirname, '../constants/gmail_auth/token.json');
 
 export const authorize = async () => {
     // check if the token already exists

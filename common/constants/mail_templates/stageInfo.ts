@@ -1,0 +1,3 @@
+export const TEST = "Next stage is a test that is prepared by the {companyName}. Detailed information for this stage is provided in the test page that you can access by clicking the button below. We wish you success in your test. Good luck.";
+export const INTERVIEW = "Next stage is an interview that is set by the {companyName}. You can schedule your interview from the page that you can access by clicking the button below. Meeting information will be sent as a separate email. We wish you success for the interview. Good luck.";
+export const FORM = "Next stage is a form that is prepared by the {companyName}. Detailed information for this stage is provided in the form page that you can access by clicking the button below.";

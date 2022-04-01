@@ -89,6 +89,12 @@ router.post('/flow', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const flow = getBody<Flow>(req, FlowKeys);
+  try {
+    const { data: { _id: companyID } } = await apiService.useService(SERVICES.user).get(`/company`, { params: { userID: userID } });
+    flow.companyID = companyID;
+  } catch (error: any) {
+    return res.status(400).send({ message: "Error fetching company!", errorMessage: error | error.message })
+  }
 
   const flowModel: FlowDocument = new FlowModel(flow);
 
@@ -136,6 +142,8 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
       return res.status(400).send({ message: "Conditions of flow cannot be updated from this controller." });
     case "applicants":
       return res.status(400).send({ message: "Applicants of flow cannot be updated from this controller." });
+    case "companyID":
+      return res.status(400).send({ message: "Referance `companyID` of a flow cannot be changed." });
   }
 
   try {
@@ -180,6 +188,9 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
   }
   if (flow?.applicants) {
     return res.status(400).send({ message: "Applicants of flow cannot be updated from this controller." });
+  }
+  if (flow?.companyID) {
+    return res.status(400).send({ message: "Referance `companyID` of a flow cannot be changed." });
   }
 
   try {
@@ -501,6 +512,6 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
-}))
+}));
 
 export { router as flowRouter }

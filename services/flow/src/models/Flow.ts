@@ -12,6 +12,7 @@ export interface Flow {
     startDate?: Date;
     endDate?: Date;
     applicants?: Applicant[];
+    companyID: Types.ObjectId;
 };
 
 const schema = new Schema<Flow>({
@@ -21,7 +22,8 @@ const schema = new Schema<Flow>({
     active: { type: Boolean, required: true, default: false },
     startDate: { type: Date },
     endDate: { type: Date },
-    applicants: { type: [applicantSchema] }
+    applicants: { type: [applicantSchema] },
+    companyID: { type: Schema.Types.ObjectId, ref: 'Company', required: true }
 }, { timestamps: true });
 
 export const FlowModel = model<Flow>("Flow", schema);
@@ -33,5 +35,6 @@ export const FlowKeys = [
     "active",
     "startDate",
     "endDate",
-    "applicants"
+    "applicants",
+    "companyID"
 ];

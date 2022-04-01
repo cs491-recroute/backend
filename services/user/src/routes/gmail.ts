@@ -2,7 +2,7 @@ import express from "express";
 import * as auth from "../../../../common/services/gmail-auth";
 
 const router = express.Router();
-// These routes only be used for mail authorization, only if token.js is missing or corrupted.
+// These routes only be used for mail authorization, only if token.json is missing or corrupted.
 
 /**
  * Route for authenticate user, otherwise request a new token 

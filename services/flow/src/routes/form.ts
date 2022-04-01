@@ -131,6 +131,8 @@ router.put('/form/:formID', createMiddleware(async (req, res) => {
   switch (formProp.name) {
     case "_id" || "id":
       return res.status(400).send({ message: "id cannot be changed." });
+    case "flowID":
+      return res.status(400).send({ message: "Referance `flowID` of a stage cannot be changed." });
   }
 
   try {

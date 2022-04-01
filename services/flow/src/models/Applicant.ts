@@ -7,6 +7,7 @@ export interface FormSubmission {
 }
 export interface Applicant {
     email: String,
+    currentStageIndex: Number;
     formSubmissions?: FormSubmission[]
 };
 
@@ -17,16 +18,18 @@ const formSubmissionSchema = new Schema<FormSubmission>({
 
 export const applicantSchema = new Schema<Applicant>({
     email: { type: String, required: true },
+    currentStageIndex: { type: Number, required: true },
     formSubmissions: { type: [formSubmissionSchema] }
 }, { timestamps: true, autoCreate: false });
 
 export const ApplicantModel = model<Applicant>("Applicant", applicantSchema);
 export type ApplicantDocument = HydratedDocument<Applicant> | null;
 export const FormSubmissionKeys = [
-    "email",
+    "formID",
     "componentSubmissions"
 ];
 export const ApplicantKeys = [
-    "formID",
+    "email",
+    "currentStageIndex",
     "formSubmissions"
 ];

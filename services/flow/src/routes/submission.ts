@@ -5,8 +5,14 @@ import { getUserFlowWithApplicants } from "../controllers/flowController";
 import { FlowDocument, FlowModel } from "../models/Flow";
 import { ApplicantModel, FormSubmission, FormSubmissionKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
-import * as MailService from '../../../../common/services/gmail-api'
-
+import fs from 'fs-extra';
+import * as MailService from '../../../../common/services/gmail-api';
+import path from "path";
+import * as nextStage from '../../../../common/constants/mail_templates/nextStage';
+import * as stageInfo from '../../../../common/constants/mail_templates/stageInfo';
+import { apiService } from "../../../../common/services/apiService";
+import { SERVICES } from "../../../../common/constants/services";
+import { StageType } from "../models/Stage";
 
 const router = express.Router();
 
@@ -90,6 +96,15 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
       return res.status(400).send({ message: "Form not found!" });
     }
 
+    // check all form components in form if they are required and satisfied
+    for (let component of form.components) {
+      if (component?.required) {
+        if (!formSubmission.componentSubmissions.find(x => x.componentId === component?.id)) {
+          return res.status(400).send({ message: `Component: ${component?.title} is required!` });
+        }
+      }
+    }
+
     // get flow and check if applicant already exists
     const flow = await FlowModel.findById(form.flowID);
 
@@ -102,23 +117,11 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
       if (applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
-    }
-
-    // check all form components in form if they are required and satisfied
-    for (let component of form.components) {
-      if (component?.required) {
-        if (!formSubmission.componentSubmissions.find(x => x.componentId === component?.id)) {
-          return res.status(400).send({ message: `Component: ${component?.title} is required!` });
-        }
-      }
-    }
-
-    // create if applicant does not exist
-    if (!applicant) {
-      applicant = new ApplicantModel({ email: email, formSubmissions: [formSubmission] });
+      applicant.formSubmissions?.push(formSubmission);
     }
     else {
-      applicant.formSubmissions?.push(formSubmission);
+      applicant = new ApplicantModel({ email: email, currentStageIndex: 0, formSubmissions: [formSubmission] });
+      flow.applicants?.push(applicant);
     }
 
     // save flow with updated/new applicant
@@ -137,12 +140,101 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
       };
       await MailService.sendMessage(mail);
     } catch (error: any) {
-      console.log({ message: "Mail error!", errorMessage: error });
+      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
     }
 
     return res.status(200).send({ formSubmission: formSubmission });
   } catch (error: any) {
     return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+  }
+}));
+
+router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Move the applicant to the next stage in the flow'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const { flowID, applicantID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    const flow = await getUserFlowWithApplicants(userID, flowID);
+    const applicant = (flow.applicants as any).id(applicantID);
+    if (!applicant) {
+      return res.status(400).send({ message: 'Applicant not found!' });
+    }
+
+    if (applicant.currentStageIndex == flow.stages.length) {
+      return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
+    }
+
+    applicant.currentStageIndex++;
+    await flow.save();
+
+    if (applicant.currentStageIndex < flow.stages.length) {
+      try {
+        const { data: { company: { name: companyName } } } = await apiService.useService(SERVICES.user).get(`/company/${flow.companyID}`);
+        if (!companyName) {
+          throw new Error("Company not found!");
+        }
+
+        const infoHtmlPath = path.join(__dirname, '../../../../common/constants/mail_templates/info.html');
+        var html = await fs.readFile(infoHtmlPath, 'utf8');
+        if (!html) {
+          throw new Error("File cannot be read!");
+        }
+
+        // TODO: applicant name -> header
+        const [applicantName, domain] = applicant.email.toString().split('@');
+        let header = nextStage.HEADER.replace("{applicantName}", applicantName);
+        let body = nextStage.BODY.replace("{companyName}", companyName);
+        body = body.replace("{flowName}", flow.name.toString());
+
+        const stage = flow.stages[applicant.currentStageIndex];
+        if (!stage) {
+          throw new Error("Stage not found!");
+        }
+
+        let nextStageText;
+        switch (stage.type) {
+          case StageType.FORM:
+            nextStageText = stageInfo.FORM;
+            break;
+          case StageType.TEST:
+            nextStageText = stageInfo.TEST;
+            break;
+          case StageType.INTERVIEW:
+            nextStageText = stageInfo.INTERVIEW;
+            break;
+        }
+        nextStageText = nextStageText.replace("{companyName}", companyName);
+        body = body.replace("{stageInfo}", nextStageText);
+        html = html.replace("{header}", header);
+        html = html.replace("{body}", body);
+
+        const mail = {
+          to: applicant.email.toString(),
+          subject: `(Recroute): Congrats! Next stage is waiting for you on the Job in ${companyName}.`,
+          html: html
+        };
+
+        await MailService.sendMessage(mail);
+      } catch (error: any) {
+        return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
+      }
+    }
+    else {
+      // TODO: Stages are completed. What to do?
+    }
+
+    return res.status(200).send({ message: 'success' });
+  } catch (error: any) {
+    console.log({ errorMessage: error || error.message });
   }
 }));
 

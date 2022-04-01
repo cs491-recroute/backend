@@ -86,7 +86,7 @@ export const getThread = async ({ messageId }: any) => {
  * @param  {string} text The text content of the message
  * @param  {Array}  attachments An array of attachments
  */
-export const sendMessage = async ({ to, subject = '', text = '', attachments = [] }: { to: string, subject?: string, text?: string, attachments?: any[] }) => {
+export const sendMessage = async ({ to, subject = '', text = '', html = '', attachments = [] }: { to: string, subject?: string, text?: string, html?: string, attachments?: any[] }) => {
     if (!(await authorize())) {
         throw new Error(" Not authorized to send mail!");
     }
@@ -97,6 +97,7 @@ export const sendMessage = async ({ to, subject = '', text = '', attachments = [
             to,
             subject,
             text,
+            html,
             attachments,
             textEncoding: 'base64'
         });

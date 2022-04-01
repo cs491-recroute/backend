@@ -48,6 +48,19 @@ router.get('/company', createMiddleware(async (req, res) => {
   return res.status(200).send(company);
 }));
 
+router.get('/company/:companyID', createMiddleware(async (req, res) => {
+  /*
+   #swagger.description = 'Get company with companyID'
+   */
+
+  const { companyID } = req.params;
+  const company: CompanyDocument = await CompanyModel.findById(companyID);
+  if (!company) {
+    return res.status(400).send({ message: "No company found with companyID!" });
+  }
+  return res.status(200).send({ company: company });
+}));
+
 router.get('/company/interviewer', createMiddleware(async (req, res) => {
   /*
     #swagger.description = 'Get interviewers of a company'
