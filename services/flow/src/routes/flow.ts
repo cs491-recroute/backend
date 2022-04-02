@@ -30,13 +30,19 @@ router.get('/flows', createMiddleware(async (req, res) => {
       required: true,
       type: 'string'
     }
+    #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
   */
 
   const userID = getUserID(req);
+  const applicants = (req.query.applicants === "true") ? "+applicants" : "-applicants";
 
   try {
     const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
-    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs } }).select({ "applicants": 0 });
+    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs } }).select(applicants);
     return res.status(200).send(flows);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
@@ -52,13 +58,18 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
       required: true,
       type: 'string'
     }
+    #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
   */
 
   const userID = getUserID(req);
   const { flowID } = req.params;
 
   try {
-    let flow = await getUserFlow(userID, flowID);
+    let flow = await getUserFlow(userID, flowID, req.query);
     for (const type in StageType) {
       flow = await flow.populate(`stages.${type}`) as NonNullable<FlowDocument>;
     }
@@ -121,6 +132,11 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
     required: true,
     type: 'string'
   }
+  #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
   #swagger.parameters['FlowProp'] = { 
     in: 'body',
     required: true,
@@ -147,7 +163,7 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
   }
 
   try {
-    const flow = await getUserFlow(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, req.query);
     if (flowProp.name !== "active" && flow.active) {
       return res.status(400).send({ message: "An active flow cannot be changed." });
     }
@@ -168,6 +184,11 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
     in: 'query',
     required: true,
     type: 'string'
+  }
+  #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
   }
   #swagger.parameters['Flow'] = { 
     in: 'body',
@@ -198,7 +219,7 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
   }
 
   try {
-    const oldFlow = await getUserFlow(userID, flowID);
+    const oldFlow = await getUserFlow(userID, flowID, req.query);
 
     // AND logical operation on active props of old and new flows decide if user is eligable to update.
     if ((flow?.active !== undefined) ? (flow.active && oldFlow.active) : (oldFlow.active)) {
@@ -238,15 +259,20 @@ router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
 router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   /*
   #swagger.description = 'Create stage and add it to a flow'
-  #swagger.parameters['Stage'] = { 
-    in: 'body',
-    required: true,
-    schema: { $ref: '#/definitions/Stage'}
-  }
   #swagger.parameters['userID'] = { 
     in: 'query',
     required: true,
     type: 'string'
+  }
+  #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+  }
+  #swagger.parameters['Stage'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Stage'}
   }
   */
 
@@ -256,7 +282,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   let stageModel: StageDocument = new StageModel(stage);
 
   try {
-    const flow = await getUserFlow(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, req.query);
 
     // check if flow active
     if (flow.active) {
@@ -337,6 +363,11 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
     required: true,
     type: 'string'
   }
+  #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+  }
   #swagger.parameters['StageProp'] = { 
     in: 'body',
     required: true,
@@ -360,7 +391,7 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
   }
 
   try {
-    const flow = await getUserFlow(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, req.query);
 
     // check if flow active
     if (flow.active) {
@@ -403,6 +434,11 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
     required: true,
     type: 'string'
   }
+  #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+  }
   #swagger.parameters['Stage'] = { 
     in: 'body',
     required: true,
@@ -416,7 +452,7 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
 
 
   try {
-    const flow = await getUserFlow(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, req.query);
 
     // check if flow active
     if (flow.active) {
@@ -467,13 +503,18 @@ router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) 
     required: true,
     type: 'string'
   }
+  #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+  }
   */
 
   const { flowID, stageID } = req.params;
   const userID = getUserID(req);
 
   try {
-    const flow = await getUserFlow(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, req.query);
 
     // find stage in flow
     var stage = (flow.stages as any).id(stageID) as StageDocument;
@@ -506,15 +547,20 @@ router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) 
 router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   /*
     #swagger.description = 'Create new condition to flow with specified information'
-    #swagger.parameters['Condition'] = { 
-      in: 'body',
-      required: true,
-      schema: { $ref: '#/definitions/Condition'}
-    }
     #swagger.parameters['userID'] = { 
       in: 'query',
       required: true,
       type: 'string'
+    }
+    #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
+    #swagger.parameters['Condition'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/Condition'}
     }
    */
 
@@ -523,7 +569,7 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   const condition = getBody<Condition>(req.body, ConditionKeys);
 
   try {
-    const flow = await getUserFlow(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, req.query);
 
     // check if flow active
     if (flow.active) {

@@ -1,7 +1,6 @@
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
-import { getUserFlowWithApplicants } from "../controllers/flowController";
 import { FlowDocument, FlowModel } from "../models/Flow";
 import { ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, FormSubmissionKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
@@ -14,6 +13,7 @@ import { apiService } from "../../../../common/services/apiService";
 import { SERVICES } from "../../../../common/constants/services";
 import { StageType } from "../models/Stage";
 import { formSubmissionMapper } from "../mappers/Applicant";
+import { getUserFlow } from "../controllers/flowController";
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.get('/flow/:flowID/applicant/:applicantID', createMiddleware(async (req, 
 
   // send userID to user service and get form
   try {
-    const flow: any = await getUserFlowWithApplicants(userID, flowID);
+    const flow: any = await getUserFlow(userID, flowID, { applicants: "true" });
     const applicant = flow.applicants?.id(applicantID);
 
     if (!applicant) {
@@ -62,9 +62,9 @@ router.get('/flow/:flowID/applicants', createMiddleware(async (req, res) => {
 
   // send userID to user service and get form
   try {
-    const flow: FlowDocument = await getUserFlowWithApplicants(userID, flowID);
+    const flow: FlowDocument = await getUserFlow(userID, flowID, { applicants: "true" });
 
-    if (flow.applicants) {
+    if (!flow.applicants) {
       return res.status(400).send({ message: "There is no applicants in this flow." });
     }
 
@@ -238,7 +238,7 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
   const userID = getUserID(req);
 
   try {
-    const flow = await getUserFlowWithApplicants(userID, flowID);
+    const flow = await getUserFlow(userID, flowID, { applicants: "true" });
     const applicant = (flow.applicants as any).id(applicantID);
     if (!applicant) {
       return res.status(400).send({ message: 'Applicant not found!' });
