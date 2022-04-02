@@ -148,6 +148,10 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
 
   try {
     const flow = await getUserFlow(userID, flowID);
+    if (flowProp.name !== "active" && flow.active) {
+      return res.status(400).send({ message: "An active flow cannot be changed." });
+    }
+
     (flow as any)[flowProp.name] = flowProp.value;
     await flow.save();
 
@@ -195,6 +199,12 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
 
   try {
     const oldFlow = await getUserFlow(userID, flowID);
+
+    // AND logical operation on active props of old and new flows decide if user is eligable to update.
+    if ((flow?.active !== undefined) ? (flow.active && oldFlow.active) : (oldFlow.active)) {
+      return res.status(400).send({ message: "An active flow cannot be changed." });
+    }
+
     oldFlow.set(flow);
     await oldFlow.save();
 
@@ -247,6 +257,11 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
 
   try {
     const flow = await getUserFlow(userID, flowID);
+
+    // check if flow active
+    if (flow.active) {
+      return res.status(400).send({ message: "Cannot add a stage to an active flow." });
+    }
 
     switch (stage.type) {
       case StageType.FORM: {
@@ -347,6 +362,11 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
   try {
     const flow = await getUserFlow(userID, flowID);
 
+    // check if flow active
+    if (flow.active) {
+      return res.status(400).send({ message: "Stage of an active flow cannot be changed." });
+    }
+
     // find stage in flow
     var stage = (flow.stages as any).id(stageID) as StageDocument;
     if (!stage) {
@@ -397,6 +417,11 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
 
   try {
     const flow = await getUserFlow(userID, flowID);
+
+    // check if flow active
+    if (flow.active) {
+      return res.status(400).send({ message: "Stage of an active flow cannot be changed." });
+    }
 
     // find stage in flow
     var stage = (flow.stages as any).id(stageID) as StageDocument;
@@ -499,6 +524,12 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
 
   try {
     const flow = await getUserFlow(userID, flowID);
+
+    // check if flow active
+    if (flow.active) {
+      return res.status(400).send({ message: "Cannot add a condition to an active flow." });
+    }
+
     const fromIndex = flow.stages.findIndex(stage => stage.id === condition.from);
     const toIndex = flow.stages.findIndex(stage => stage.id === condition.to);
 

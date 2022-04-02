@@ -1,10 +1,10 @@
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
-import { getUserFlow } from "../controllers/flowController";
 import { getUserInterview, getUserIsInterviewer } from "../controllers/interviewController";
 import { Interview, InterviewKeys } from "../models/Interview";
 import { InterviewInstance, InterviewInstanceKeys } from "../models/InterviewInstance";
 import { Prop, PropKeys } from "../models/Prop";
+import { checkFlow } from "../services/flowService";
 
 const router = express.Router();
 
@@ -44,6 +44,8 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
   try {
     // edit instance
     const oldInterview = await getUserInterview(userID, interviewID);
+    await checkFlow(oldInterview, userID);
+
     oldInterview.set(interview);
     await oldInterview.save();
 
@@ -90,6 +92,8 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   try {
     // edit instance
     const interview = await getUserInterview(userID, interviewID);
+    await checkFlow(interview, userID);
+
     (interview as any)[interviewProp.name] = interviewProp.value;
     await interview.save();
 
@@ -99,7 +103,7 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   }
 }));
 
-router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', createMiddleware(async (req, res) => {
+router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(async (req, res) => {
   /*
     #swagger.description = 'Update properties of an interview instance'
     #swagger.parameters['userID'] = { 
@@ -114,7 +118,7 @@ router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', crea
     }
   */
   const userID = getUserID(req);
-  const { flowID, interviewID, instanceID } = req.params;
+  const { interviewID, instanceID } = req.params;
   const instance = getBody<InterviewInstance>(req, InterviewInstanceKeys);
 
 
@@ -122,9 +126,10 @@ router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', crea
     // check if interviewer match with the company
     await getUserIsInterviewer(instance.interviewer as any);
 
-    // check if interviewee match with the flow
-    const flow = await getUserFlow(userID, flowID);
+    const interview = await getUserInterview(userID, interviewID);
+    const flow = await checkFlow(interview, userID);
 
+    // check if interviewee match with the flow
     const applicant = (flow.applicants as any)?.id(instance.interviewee);
 
     if (!applicant) {
@@ -137,9 +142,7 @@ router.put('/flow/:flowID/interview/:interviewID/instance/:instanceID/all', crea
     }
 
     // edit instance
-    const interview = await getUserInterview(userID, interviewID);
     const oldInstance = (interview.instances as any)?.id(instanceID);
-
     if (!oldInstance) {
       return res.status(400).send({ message: "Instance with instanceID not found!" });
     }
@@ -220,8 +223,9 @@ router.put('/interview/:interviewID/instance/:instanceID/', createMiddleware(asy
   try {
     // edit instance
     const interview = await getUserInterview(userID, interviewID);
-    const instance = (interview.instances as any)?.id(instanceID);
+    await checkFlow(interview, userID);
 
+    const instance = (interview.instances as any)?.id(instanceID);
     if (!instance) {
       return res.status(400).send({ message: "Instance with instanceID not found!" });
     }

@@ -1,5 +1,6 @@
 import { SERVICES } from '../../../../common/constants/services';
 import { apiService } from '../../../../common/services/apiService';
+import { getUserFlow } from '../controllers/flowController';
 import { FlowModel } from '../models/Flow';
 import { StageType } from '../models/Stage';
 import { deleteForm } from './formService';
@@ -59,4 +60,16 @@ export function parseStageProps(response: any, stage: any) {
         }
         return { ...acc, [key]: response[key] };
     }, { type: stage.type, stageID: stage.stageID });
+}
+
+export async function checkFlow(stage: any, userID: any): Promise<any> {
+    // check if flow active
+    var flow;
+    if (stage.flowID) {
+        flow = await getUserFlow(userID, stage.flowID.toString());
+        if (flow.active) {
+            throw new Error("Stage of an active flow cannot be changed.");
+        }
+    }
+    return flow;
 }

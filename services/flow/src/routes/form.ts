@@ -7,6 +7,7 @@ import { FormDocument, FormModel } from "../models/Form";
 import { getUserForm } from "../controllers/formController";
 import { deleteForm, valuesToOptions } from "../services/formService";
 import { Prop, PropKeys } from "../models/Prop";
+import { checkFlow } from "../services/flowService";
 
 
 const router = express.Router();
@@ -137,6 +138,7 @@ router.put('/form/:formID', createMiddleware(async (req, res) => {
 
   try {
     const form = await getUserForm(userID, formID);
+    await checkFlow(form, userID);
 
     // update form
     (form as any)[formProp.name] = formProp.value;
@@ -200,6 +202,8 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
   // send userID to user service and get form
   try {
     const form = await getUserForm(userID, formID);
+    await checkFlow(form, userID);
+
     form.components.push(new ComponentModel(component));
 
     // save form with new component
@@ -251,6 +255,7 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
   // send userID to user service and get form
   try {
     const form = await getUserForm(userID, formID);
+    await checkFlow(form, userID);
 
     const component = (form.components as any).id(componentID);
 

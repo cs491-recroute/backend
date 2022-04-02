@@ -7,6 +7,7 @@ import { createMiddleware, getBody, getUserID } from "../../../../common/service
 import { Prop, PropKeys } from '../models/Prop';
 import { getUserTest } from '../controllers/testController';
 import { deleteTest } from '../services/testService';
+import { checkFlow } from '../services/flowService';
 
 const router = express.Router();
 
@@ -127,6 +128,7 @@ router.put('/test/:testID', createMiddleware(async (req, res) => {
 
   try {
     const test = await getUserTest(userID, testID);
+    await checkFlow(test, userID);
 
     // update test
     (test as any)[testProp.name] = testProp.value;
@@ -159,6 +161,8 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
 
   try {
     const test: TestDocument = await getUserTest(userID, testID);
+    await checkFlow(test, userID);
+
     const questionModel: QuestionDocument = new QuestionModel(question);
     test.questions.push(questionModel);
     await test.save();
@@ -187,9 +191,11 @@ router.put('/test/:testID/question/:questionID', createMiddleware(async (req, re
   const { testID, questionID } = req.params;
   const userID = getUserID(req);
   const question = getBody<Question>(req, QuestionKeys);
-  
+
   try {
     const test: TestDocument = await getUserTest(userID, testID);
+    await checkFlow(test, userID);
+
     (test.questions as any).id(questionID).set(question);
     await test.save();
     return res.status(200).send((test.questions as any).id(questionID));
