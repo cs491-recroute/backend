@@ -11,13 +11,15 @@ export interface Stage {
     stageID: Types.ObjectId;
     startDate?: Date;
     endDate?: Date;
+    testDuration?: number; // for test, in minutes
 };
 
 export const StageSchema = new Schema<Stage>({
     type: { type: String, enum: StageType, required: true },
     stageID: { type: Schema.Types.ObjectId, required: true },
     startDate: { type: Date },
-    endDate: { type: Date }
+    endDate: { type: Date },
+    testDuration: { type: Number }
 }, { timestamps: true, toJSON: { virtuals: true }, autoCreate: false });
 
 StageSchema.virtual(StageType.FORM, {
@@ -45,5 +47,6 @@ export const StageKeys = [
     "type",
     "stageID",
     "startDate",
-    "endDate"
+    "endDate",
+    "testDuration"
 ];
