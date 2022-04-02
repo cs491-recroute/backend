@@ -3,7 +3,7 @@ import { createMiddleware, getBody, getUserID } from "../../../../common/service
 import { FormModel } from "../models/Form";
 import { getUserFlowWithApplicants } from "../controllers/flowController";
 import { FlowDocument, FlowModel } from "../models/Flow";
-import { ApplicantModel, FormSubmission, FormSubmissionKeys } from "../models/Applicant";
+import { ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, FormSubmissionKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
 import fs from 'fs-extra';
 import * as MailService from '../../../../common/services/gmail-api';
@@ -13,6 +13,7 @@ import * as stageInfo from '../../../../common/constants/mail_templates/stageInf
 import { apiService } from "../../../../common/services/apiService";
 import { SERVICES } from "../../../../common/constants/services";
 import { StageType } from "../models/Stage";
+import { formSubmissionMapper } from "../mappers/Applicant";
 
 const router = express.Router();
 
@@ -85,12 +86,13 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
     }
    */
   const { formID, email } = req.params;
-  const formSubmission = getBody<FormSubmission>(req, FormSubmissionKeys);
-  formSubmission.formID = new Types.ObjectId(formID);
+  const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body, FormSubmissionDTOKeys);
+  formSubmissionDTO.formID = new Types.ObjectId(formID);
 
   // send userID to user service and get form
   try {
     const form = await FormModel.findById(formID);
+    const formSubmission = formSubmissionMapper(form, formSubmissionDTO);
 
     if (!form) {
       return res.status(400).send({ message: "Form not found!" });
@@ -99,7 +101,7 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
     // check all form components in form if they are required and satisfied
     for (let component of form.components) {
       if (component?.required) {
-        if (!formSubmission.componentSubmissions.find(x => x.componentId === component?.id)) {
+        if (!formSubmission.componentSubmissions.find(x => x.componentID === component?.id)) {
           return res.status(400).send({ message: `Component: ${component?.title} is required!` });
         }
       }
@@ -143,7 +145,80 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
       return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
     }
 
-    return res.status(200).send({ formSubmission: formSubmission });
+    return res.status(200).send({ formSubmission: formSubmissionDTO });
+  } catch (error: any) {
+    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+  }
+}));
+
+router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Submit a formSubmission and save it to applicant'
+    #swagger.parameters['FormSubmission'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/FormSubmission'}
+    }
+   */
+  const { formID, applicantID } = req.params;
+  const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body, FormSubmissionDTOKeys);
+  formSubmissionDTO.formID = new Types.ObjectId(formID);
+
+  // send userID to user service and get form
+  try {
+    const form = await FormModel.findById(formID);
+    const formSubmission = formSubmissionMapper(form, formSubmissionDTO);
+
+    if (!form) {
+      return res.status(400).send({ message: "Form not found!" });
+    }
+
+    // check all form components in form if they are required and satisfied
+    for (let component of form.components) {
+      if (component?.required) {
+        if (!formSubmission.componentSubmissions.find(x => x.componentID === component?.id)) {
+          return res.status(400).send({ message: `Component: ${component?.title} is required!` });
+        }
+      }
+    }
+
+    // get flow and check if applicant already exists
+    const flow = await FlowModel.findById(form.flowID);
+
+    if (!flow) {
+      return res.status(400).send({ message: "Flow not found!" });
+    }
+
+    const applicant: ApplicantDocument = (flow.applicants as any).id(applicantID);
+    if (!applicant) {
+      return res.status(400).send({ message: "Applicant not found!" });
+    }
+
+    if (applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
+      return res.status(400).send({ message: "Only single submission is allowed." });
+    }
+    applicant.formSubmissions?.push(formSubmission);
+
+    // save flow with updated applicant
+    try {
+      await flow.save();
+    } catch (error: any) {
+      return res.status(400).send({ message: "Flow save error!", errorMessage: error.message });
+    }
+
+    try {
+      const mail = {
+        to: applicant.email.toString(),
+        subject: "(Recroute): Application Submitted Successfully",
+        text: "Congratulations! Your application from Recroute is submitted successfully.\n" +
+          "We will inform you when there are any improvements on your application."
+      };
+      await MailService.sendMessage(mail);
+    } catch (error: any) {
+      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
+    }
+
+    return res.status(200).send({ formSubmission: formSubmissionDTO });
   } catch (error: any) {
     return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
   }

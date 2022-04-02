@@ -51,13 +51,13 @@ export function getUserID(req: Request): string {
   return req.query?.userID?.toString() || '';
 }
 
-export function getBody<Type>(req: Request, keys: string[]): Type {
+export function getBody<Type>(reqbody: any, keys: string[]): Type {
   const body = {} as any;
 
-  for (let prop of Object.getOwnPropertyNames(req.body)) {
+  for (let prop of Object.getOwnPropertyNames(reqbody)) {
     if (keys.includes(prop)) {
-      if (req.body[prop] !== null) {
-        body[prop] = req.body[prop];
+      if (reqbody[prop] !== null) {
+        body[prop] = reqbody[prop];
       } else {
         body[prop] = undefined;
       }

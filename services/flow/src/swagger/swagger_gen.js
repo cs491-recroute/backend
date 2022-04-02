@@ -6,7 +6,7 @@ const host = HOST + ":" + PORT;
 const swaggerAutogen = require('swagger-autogen')();
 
 const ComponentSubmission = {
-    componentId: "62370430195640b4f300ceaa",
+    componentID: "62370430195640b4f300ceaa",
     value: ""
 };
 

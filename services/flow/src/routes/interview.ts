@@ -26,7 +26,7 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
   */
   const userID = getUserID(req);
   const { interviewID } = req.params;
-  const interview = getBody<Interview>(req, InterviewKeys);
+  const interview = getBody<Interview>(req.body, InterviewKeys);
 
 
   if (interview.instances) {
@@ -71,7 +71,7 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   */
   const userID = getUserID(req);
   const { interviewID } = req.params;
-  const interviewProp = getBody<Prop>(req, PropKeys);
+  const interviewProp = getBody<Prop>(req.body, PropKeys);
 
 
   // check prop for inconvenient change requests
@@ -119,7 +119,7 @@ router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(
   */
   const userID = getUserID(req);
   const { interviewID, instanceID } = req.params;
-  const instance = getBody<InterviewInstance>(req, InterviewInstanceKeys);
+  const instance = getBody<InterviewInstance>(req.body, InterviewInstanceKeys);
 
 
   try {
@@ -199,7 +199,7 @@ router.put('/interview/:interviewID/instance/:instanceID/', createMiddleware(asy
 
   const userID = getUserID(req);
   const { interviewID, instanceID } = req.params;
-  const instanceProp = getBody<Prop>(req, PropKeys);
+  const instanceProp = getBody<Prop>(req.body, PropKeys);
 
   // check prop for inconvenient change requests
   switch (instanceProp.name) {

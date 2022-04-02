@@ -88,7 +88,7 @@ router.post('/flow', createMiddleware(async (req, res) => {
   */
 
   const userID = getUserID(req);
-  const flow = getBody<Flow>(req, FlowKeys);
+  const flow = getBody<Flow>(req.body, FlowKeys);
   try {
     const { data: { _id: companyID } } = await apiService.useService(SERVICES.user).get(`/company`, { params: { userID: userID } });
     flow.companyID = companyID;
@@ -130,7 +130,7 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const flowProp = getBody<Prop>(req, PropKeys);
+  const flowProp = getBody<Prop>(req.body, PropKeys);
 
   // check prop for inconvenient change requests
   switch (flowProp.name) {
@@ -178,7 +178,7 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const flow = getBody<Flow>(req, FlowKeys);
+  const flow = getBody<Flow>(req.body, FlowKeys);
 
   // check prop for inconvenient change requests
   if ((flow as any).id || (flow as any)._id) {
@@ -252,7 +252,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
 
   const { flowID } = req.params;
   const userID = getUserID(req);
-  const stage = getBody<Stage>(req, StageKeys);
+  const stage = getBody<Stage>(req.body, StageKeys);
   let stageModel: StageDocument = new StageModel(stage);
 
   try {
@@ -346,7 +346,7 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
 
   const { flowID, stageID } = req.params;
   const userID = getUserID(req);
-  const stageProp = getBody<Prop>(req, PropKeys);
+  const stageProp = getBody<Prop>(req.body, PropKeys);
 
 
   // check prop for inconvenient change requests
@@ -412,7 +412,7 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
 
   const { flowID, stageID } = req.params;
   const userID = getUserID(req);
-  const newStage = getBody<Stage>(req, StageKeys);
+  const newStage = getBody<Stage>(req.body, StageKeys);
 
 
   try {
@@ -520,7 +520,7 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
 
   const { flowID } = req.params;
   const userID = getUserID(req);
-  const condition = getBody<Condition>(req, ConditionKeys);
+  const condition = getBody<Condition>(req.body, ConditionKeys);
 
   try {
     const flow = await getUserFlow(userID, flowID);

@@ -14,7 +14,7 @@ router.post('/company', createMiddleware(async (req, res) => {
      schema: { $ref: '#/definitions/Company'}
     }
    */
-  const company = getBody<Company>(req, CompanyKeys);
+  const company = getBody<Company>(req.body, CompanyKeys);
   const companyModel: CompanyDocument = new CompanyModel(company);
 
   if (!companyModel) {

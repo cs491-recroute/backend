@@ -116,7 +116,7 @@ router.put('/test/:testID', createMiddleware(async (req, res) => {
 
   const { testID } = req.params;
   const userID = getUserID(req);
-  const testProp = getBody<Prop>(req, PropKeys);
+  const testProp = getBody<Prop>(req.body, PropKeys);
 
   // check prop for inconvenient change requests
   switch (testProp.name) {
@@ -157,7 +157,7 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
 
   const { testID } = req.params;
   const userID = getUserID(req);
-  const question = getBody<Question>(req, QuestionKeys);
+  const question = getBody<Question>(req.body, QuestionKeys);
 
   try {
     const test: TestDocument = await getUserTest(userID, testID);
@@ -190,7 +190,7 @@ router.put('/test/:testID/question/:questionID', createMiddleware(async (req, re
 
   const { testID, questionID } = req.params;
   const userID = getUserID(req);
-  const question = getBody<Question>(req, QuestionKeys);
+  const question = getBody<Question>(req.body, QuestionKeys);
 
   try {
     const test: TestDocument = await getUserTest(userID, testID);

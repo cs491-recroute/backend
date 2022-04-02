@@ -125,7 +125,7 @@ router.put('/form/:formID', createMiddleware(async (req, res) => {
 
   const { formID } = req.params;
   const userID = getUserID(req);
-  const formProp = getBody<Prop>(req, PropKeys);
+  const formProp = getBody<Prop>(req.body, PropKeys);
 
 
   // check prop for inconvenient change requests
@@ -197,7 +197,7 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
     req.body.options = valuesToOptions(req.body.options);
   }
 
-  const component = getBody<Component>(req, ComponentKeys);
+  const component = getBody<Component>(req.body, ComponentKeys);
 
   // send userID to user service and get form
   try {
@@ -236,7 +236,7 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
 
   const userID = getUserID(req);
   const { formID, componentID } = req.params;
-  const componentProp = getBody<Prop>(req, PropKeys);
+  const componentProp = getBody<Prop>(req.body, PropKeys);
 
 
   // check prop for inconvenient change requests
