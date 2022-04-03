@@ -1,0 +1,2 @@
+export const HEADER = "Hello {applicantName}!";
+export const BODY = "Congratulations! Your application from Recroute is submitted successfully. We will inform you when there are any improvements on your application.";

@@ -1,2 +1,0 @@
-export const HEADER = "Hello {applicantName}!";
-export const BODY = "We would like to inform you that there is an improvement on the application on {companyName} for the {flowName} position. We are happy to say that the next stage is waiting for you. {stageInfo}";

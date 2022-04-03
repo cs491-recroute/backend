@@ -7,13 +7,14 @@ import { Types } from 'mongoose';
 import fs from 'fs-extra';
 import * as MailService from '../../../../common/services/gmail-api';
 import path from "path";
-import * as nextStage from '../../../../common/constants/mail_templates/nextStage';
-import * as stageInfo from '../../../../common/constants/mail_templates/stageInfo';
+import * as nextStageInfo from '../../../../common/constants/mail_templates/nextStageInfo';
+import * as submitInfo from '../../../../common/constants/mail_templates/submitInfo';
 import { apiService } from "../../../../common/services/apiService";
 import { SERVICES } from "../../../../common/constants/services";
 import { StageType } from "../models/Stage";
 import { formSubmissionMapper } from "../mappers/Applicant";
 import { getUserFlow } from "../controllers/flowController";
+import { readHtml } from "../../../../common/services/html_reader"
 
 const router = express.Router();
 
@@ -134,11 +135,20 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
     }
 
     try {
+      let html = await readHtml("info");
+
+      // TODO: applicant name -> header
+      const [applicantName, domain] = applicant.email.toString().split('@');
+      let header = submitInfo.HEADER.replace("{applicantName}", applicantName);
+      let body = submitInfo.BODY;
+
+      html = html.replace("{header}", header);
+      html = html.replace("{body}", body);
+
       const mail = {
         to: applicant.email.toString(),
-        subject: "(Recroute): Application Submitted Successfully",
-        text: "Congratulations! Your application from Recroute is submitted successfully.\n" +
-          "We will inform you when there are any improvements on your application."
+        subject: `(Recroute): Application submitted successfully`,
+        html: html
       };
       await MailService.sendMessage(mail);
     } catch (error: any) {
@@ -207,11 +217,20 @@ router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req
     }
 
     try {
+      let html = await readHtml("info");
+
+      // TODO: applicant name -> header
+      const [applicantName, domain] = applicant.email.toString().split('@');
+      let header = submitInfo.HEADER.replace("{applicantName}", applicantName);
+      let body = submitInfo.BODY;
+
+      html = html.replace("{header}", header);
+      html = html.replace("{body}", body);
+
       const mail = {
         to: applicant.email.toString(),
-        subject: "(Recroute): Application Submitted Successfully",
-        text: "Congratulations! Your application from Recroute is submitted successfully.\n" +
-          "We will inform you when there are any improvements on your application."
+        subject: `(Recroute): Application submitted successfully`,
+        html: html
       };
       await MailService.sendMessage(mail);
     } catch (error: any) {
@@ -258,16 +277,12 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
           throw new Error("Company not found!");
         }
 
-        const infoHtmlPath = path.join(__dirname, '../../../../common/constants/mail_templates/info.html');
-        var html = await fs.readFile(infoHtmlPath, 'utf8');
-        if (!html) {
-          throw new Error("File cannot be read!");
-        }
+        let html = await readHtml("info_w_link");
 
         // TODO: applicant name -> header
         const [applicantName, domain] = applicant.email.toString().split('@');
-        let header = nextStage.HEADER.replace("{applicantName}", applicantName);
-        let body = nextStage.BODY.replace("{companyName}", companyName);
+        let header = nextStageInfo.HEADER.replace("{applicantName}", applicantName);
+        let body = nextStageInfo.BODY.replace("{companyName}", companyName);
         body = body.replace("{flowName}", flow.name.toString());
 
         const stage = flow.stages[applicant.currentStageIndex];
@@ -278,13 +293,13 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
         let nextStageText;
         switch (stage.type) {
           case StageType.FORM:
-            nextStageText = stageInfo.FORM;
+            nextStageText = nextStageInfo.FORM;
             break;
           case StageType.TEST:
-            nextStageText = stageInfo.TEST;
+            nextStageText = nextStageInfo.TEST;
             break;
           case StageType.INTERVIEW:
-            nextStageText = stageInfo.INTERVIEW;
+            nextStageText = nextStageInfo.INTERVIEW;
             break;
         }
         nextStageText = nextStageText.replace("{companyName}", companyName);

@@ -1,3 +1,5 @@
+export const HEADER = "Hello {applicantName}!";
+export const BODY = "We would like to inform you that there is an improvement on the application on {companyName} for the {flowName} position. We are happy to say that the next stage is waiting for you. {stageInfo}";
 export const TEST = "Next stage is a test that is prepared by the {companyName}. Detailed information for this stage is provided in the test page that you can access by clicking the button below. We wish you success in your test. Good luck.";
 export const INTERVIEW = "Next stage is an interview that is set by the {companyName}. You can schedule your interview from the page that you can access by clicking the button below. Meeting information will be sent as a separate email. We wish you success for the interview. Good luck.";
 export const FORM = "Next stage is a form that is prepared by the {companyName}. Detailed information for this stage is provided in the form page that you can access by clicking the button below.";
