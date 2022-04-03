@@ -1,3 +1,5 @@
+import { Test } from './../models/Test';
+import { Stage, StageDocument } from './../models/Stage';
 import { SERVICES } from '../../../../common/constants/services';
 import { apiService } from '../../../../common/services/apiService';
 import { getUserFlow } from '../controllers/flowController';
@@ -36,17 +38,32 @@ export async function deleteFlow(userID: string, flowID: string): Promise<any> {
     }
 }
 
+export function parseStage(stage: any, removeAnswers = false) {
+    return Object.keys(stage).reduce((acc, key) => {
+        if (Object.values(StageType).includes(key as StageType)) {
+            if (stage[key as keyof Stage]) {
+                const stageProps: Test = { ...stage[key as keyof Stage] }; 
+                if (removeAnswers && stage.type === StageType.TEST) {
+                    stageProps.questions = stageProps.questions.map(question => {
+                        question.options = question.options?.map(option => {
+                            const { isCorrect, ...rest } = option;
+                            return rest;
+                        });
+                        question.testCases = undefined;
+                        return question;
+                    });
+                }
+                return { ...acc, stageProps };
+            }
+            return acc;
+        }
+        return { ...acc, [key]: stage[key as keyof Stage] };
+    }, { type: stage.type, stageID: stage.stageID, _id: stage.id });
+}
+
 export function parseStages(response: any) {
     response?.stages.forEach((stage: any, index: any) => {
-        response.stages[index] = Object.keys(stage).reduce((acc, key) => {
-            if (Object.values(StageType).includes(key as StageType)) {
-                if (stage[key]) {
-                    return { ...acc, stageProps: stage[key] };
-                }
-                return acc;
-            }
-            return { ...acc, [key]: stage[key] };
-        }, { type: stage.type, stageID: stage.stageID, _id: stage.id });
+        response.stages[index] = parseStage(stage);
     });
 }
 

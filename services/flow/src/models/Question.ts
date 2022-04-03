@@ -10,7 +10,7 @@ export enum QUESTION_TYPES {
 // Multiple choice option
 export interface QuestionOption {
     description: String;
-    isCorrect: boolean;
+    isCorrect?: boolean;
 };
 export const questionOptionSchema = new Schema<QuestionOption>({
     description: { type: String, required: true },
