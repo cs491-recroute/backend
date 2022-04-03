@@ -15,7 +15,8 @@ export interface QuestionOption {
 export const questionOptionSchema = new Schema<QuestionOption>({
     description: { type: String, required: true },
     isCorrect: { type: Boolean, default: false }
-});
+}, { autoCreate: false });
+
 export const QuestionOptionKeys = [
     "description",
     "isCorrect"
@@ -29,7 +30,7 @@ export interface TestCase {
 export const testCaseSchema = new Schema<TestCase>({
     input: { type: String, required: true },
     output: { type: String, required: true }
-});
+}, { autoCreate: false });
 export const TestCaseKeys = [
     "input",
     "output"
@@ -48,7 +49,7 @@ export const questionSchema = new Schema<Question>({
     options: { type: [questionOptionSchema] },
     testCases: { type: [testCaseSchema] }
 
-}, { timestamps: true });
+}, { timestamps: true, autoCreate: false });
 
 export const QuestionModel = model<Question>("Question", questionSchema);
 export type QuestionDocument = HydratedDocument<Question> | null;
