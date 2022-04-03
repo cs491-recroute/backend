@@ -1,5 +1,5 @@
 import { FlowModel, FlowDocument } from './../models/Flow';
-import { TestDocument } from './../models/Test';
+import { TestDocument, TestModel } from './../models/Test';
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { SERVICES } from "../../../../common/constants/services";
@@ -343,4 +343,20 @@ router.get('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
 
 }));
 
+router.get('/question/:questionID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.description = 'Get question information for filling'
+  */
+  const { questionID } = req.params;
+
+  try {
+    const test: TestDocument = await TestModel.findOne( { 'questions._id': questionID } );
+    if (!test) return res.status(400).send({ message: "Test cannot be found!" });
+    const question = (test.questions as any).id(questionID);
+
+    return res.status(200).send(question);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
 export { router as stageRouter };
