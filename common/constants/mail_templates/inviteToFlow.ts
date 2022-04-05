@@ -1,0 +1,2 @@
+export const HEADER = "Hello {applicantName}!";
+export const BODY = "You have been invited to apply for the '{flowName}' position open in '{companyName}' company. Recruitment flow is starting with an application form that {companyName} arranged. You can apply to the job by using the link below.";

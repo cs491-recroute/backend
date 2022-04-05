@@ -1,6 +1,6 @@
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
-import { SERVICES } from "../../../../common/constants/services";
+import { SERVERS, SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
 import { Flow, FlowDocument, FlowKeys, FlowModel } from "../models/Flow";
 import { StageType } from "../models/Stage";
@@ -8,6 +8,9 @@ import { Condition, ConditionDocument, ConditionKeys, ConditionModel } from "../
 import { getUserFlow } from "../controllers/flowController";
 import { Prop, PropKeys } from "../models/Prop";
 import { deleteFlow, parseStages } from '../services/flowService';
+import { readHtml } from "../../../../common/services/html_reader";
+import * as inviteToFlow from '../../../../common/constants/mail_templates/inviteToFlow';
+import * as MailService from '../../../../common/services/gmail-api';
 
 const router = express.Router();
 
@@ -289,6 +292,63 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
       return res.status(200).send({ condition: conditionModel });
     }
     return res.status(400).send({ message: 'Invalid condition' });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+router.post('/flow/:flowID/invite/:email', createMiddleware(async (req, res) => {
+  /*
+    #swagger.description = 'Invite email to apply for the flow'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const { flowID, email } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    const flow = await getUserFlow(userID, flowID, req.query);
+
+    // check if flow active
+    if (!flow.active) {
+      return res.status(400).send({ message: "Cannot invite applicants to an inactive flow." });
+    }
+    if (!flow.stages[0]) {
+      return res.status(400).send({ message: "Cannot invite applicants to a flow with no stage." });
+    }
+
+    try {
+      const { data: { company: { name: companyName } } } = await apiService.useService(SERVICES.user).get(`/company/${flow.companyID}`);
+      if (!companyName) {
+        throw new Error("Company not found!");
+      }
+
+      let html = await readHtml("info_w_link");
+
+      // TODO: applicant name -> header
+      const applicantName = email.split('@')[0];
+      let header = inviteToFlow.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
+      let body = inviteToFlow.BODY.replace(new RegExp("{flowName}", 'g'), flow.name.toString());
+      body = body.replace(new RegExp("{companyName}", 'g'), companyName);
+
+      html = html.replace("{header}", header);
+      html = html.replace("{body}", body);
+      html = html.replace("{link}", `${SERVERS.prod}/fill/${flow.id}/${flow.stages[0]?.id}`);
+
+      const mail = {
+        to: email,
+        subject: `(Recroute): You have been invited to apply for the position ${flow.name.toString()} in ${companyName}`,
+        html: html
+      };
+      await MailService.sendMessage(mail);
+      return res.status(200).send({ message: 'success' });
+    } catch (error: any) {
+      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error || error.message }); // TODO: inform developers
+    }
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }

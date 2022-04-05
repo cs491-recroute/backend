@@ -139,7 +139,7 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
 
       // TODO: applicant name -> header
       const [applicantName, domain] = applicant.email.toString().split('@');
-      let header = submitInfo.HEADER.replace("{applicantName}", applicantName);
+      let header = submitInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
       let body = submitInfo.BODY;
 
       html = html.replace("{header}", header);
@@ -221,7 +221,7 @@ router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req
 
       // TODO: applicant name -> header
       const [applicantName, domain] = applicant.email.toString().split('@');
-      let header = submitInfo.HEADER.replace("{applicantName}", applicantName);
+      let header = submitInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
       let body = submitInfo.BODY;
 
       html = html.replace("{header}", header);
@@ -281,9 +281,9 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
 
         // TODO: applicant name -> header
         const [applicantName, domain] = applicant.email.toString().split('@');
-        let header = nextStageInfo.HEADER.replace("{applicantName}", applicantName);
-        let body = nextStageInfo.BODY.replace("{companyName}", companyName);
-        body = body.replace("{flowName}", flow.name.toString());
+        let header = nextStageInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
+        let body = nextStageInfo.BODY.replace(new RegExp("{companyName}", 'g'), companyName);
+        body = body.replace(new RegExp("{flowName}", 'g'), flow.name.toString());
 
         const stage = flow.stages[applicant.currentStageIndex];
         if (!stage) {
@@ -302,8 +302,8 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
             nextStageText = nextStageInfo.INTERVIEW;
             break;
         }
-        nextStageText = nextStageText.replace("{companyName}", companyName);
-        body = body.replace("{stageInfo}", nextStageText);
+        nextStageText = nextStageText.replace(new RegExp("{companyName}", 'g'), companyName);
+        body = body.replace(new RegExp("{stageInfo}", 'g'), nextStageText);
         html = html.replace("{header}", header);
         html = html.replace("{body}", body);
 
