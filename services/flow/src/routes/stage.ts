@@ -318,24 +318,24 @@ router.get('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
     try {
         let flow: FlowDocument = await FlowModel.findById(flowID);
         if (!flow) return res.status(400).send({ message: "Job advert cannot be found!" });
-        if (!flow.active) return res.status(400).send({ message: "Job advert is not active for now!" });
+        if (!flow.active) return res.status(400).send({ message: "Job advert is not active for now!", flowName: flow.name });
 
         const stage: StageDocument = (flow.stages as any).id(stageID);
-        if (!stage) return res.status(400).send({ message: "Stage cannot be found!" });
+        if (!stage) return res.status(400).send({ message: "Stage cannot be found!", flowName: flow.name });
         
         if (stage.startDate && moment(new Date()).isBefore(new Date(stage.startDate))) {
             const prettyDate = moment(new Date(stage.startDate)).locale('en').format('DD MMMM YYYY');
-            return res.status(400).send({ message: `This stage is not started yet! It will start on ${prettyDate}` });
+            return res.status(400).send({ message: `This stage is not started yet! It will start on ${prettyDate}`, flowName: flow.name });
         }
         if (stage.endDate && moment(new Date()).isAfter(new Date(stage.endDate))) {
             const prettyDate = moment(new Date(stage.endDate)).locale('en').format('DD MMMM YYYY');
-            return res.status(400).send({ message: `This stage is ended on ${prettyDate}` });
+            return res.status(400).send({ message: `This stage is ended on ${prettyDate}`, flowName: flow.name });
         }
 
         for (const type in StageType) {
             flow = await flow.populate(`stages.${type}`) as NonNullable<FlowDocument>;
         }
-        return res.status(200).send(parseStage(stage.toJSON(), true));
+        return res.status(200).send({ stage: parseStage(stage.toJSON(), true), flowName: flow.name });
     } catch (error: any) {
         return res.status(400).send({ message: error.message || error });
     }
