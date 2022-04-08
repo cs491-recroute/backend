@@ -1,47 +1,49 @@
 import { Component, COMPONENT_TYPES } from "../models/Component";
 import { ComponentSubmission, ComponentSubmissionDTO } from "../models/ComponentSubmission";
 
-export function componentSubmissionMapper(component: Component, compoenentSubmissionDTO: ComponentSubmissionDTO): ComponentSubmission {
-    let value: any = {};
+export function componentSubmissionMapper(component: Component, componentSubmissionDTO: ComponentSubmissionDTO): ComponentSubmission {
+    let value: ComponentSubmission = {
+        componentID: componentSubmissionDTO.componentID
+    } as any;
 
     switch (component.type) {
         case COMPONENT_TYPES.ADRESS:
-            value["address"] = compoenentSubmissionDTO.value;
+            value.address = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.DATE_PICKER:
-            value["date"] = compoenentSubmissionDTO.value;
+            value.date = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.DROPDOWN:
-            value["selection"] = compoenentSubmissionDTO.value;
+            value.selection = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.FULL_NAME:
-            value["fullName"] = compoenentSubmissionDTO.value.split(',');
+            value.fullName = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.HEADER:
-            value["text"] = compoenentSubmissionDTO.value;
+            value.text = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.LONG_TEXT:
-            value["text"] = compoenentSubmissionDTO.value;
+            value.text = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.MULTIPLE_CHOICE:
-            value["selections"] = compoenentSubmissionDTO.value.split(',');
+            value.selections = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.PHONE:
-            value["text"] = compoenentSubmissionDTO.value;
+            value.phoneNumber = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.SHORT_TEXT:
-            value["text"] = compoenentSubmissionDTO.value;
+            value.text = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.SINGLE_CHOICE:
-            value["selection"] = compoenentSubmissionDTO.value;
+            value.selection = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.UPLOAD:
-            value["fileName"] = compoenentSubmissionDTO.value;
+            value.fileName = componentSubmissionDTO.value;
+            break;
+        case COMPONENT_TYPES.EMAIL:
+            value.email = componentSubmissionDTO.value;
             break;
     }
 
-    return {
-        componentID: compoenentSubmissionDTO.componentID,
-        ...value
-    } as any as ComponentSubmission;
+    return value;
 }

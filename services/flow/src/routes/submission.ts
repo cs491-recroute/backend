@@ -2,9 +2,8 @@ import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
 import { FlowDocument, FlowModel } from "../models/Flow";
-import { ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, FormSubmissionKeys } from "../models/Applicant";
+import { ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, FormSubmissionKeys, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
-import fs from 'fs-extra';
 import * as MailService from '../../../../common/services/gmail-api';
 import path from "path";
 import * as nextStageInfo from '../../../../common/constants/mail_templates/nextStageInfo';
@@ -12,10 +11,11 @@ import * as submitInfo from '../../../../common/constants/mail_templates/submitI
 import { apiService } from "../../../../common/services/apiService";
 import { SERVICES } from "../../../../common/constants/services";
 import { StageType } from "../models/Stage";
-import { formSubmissionMapper } from "../mappers/Applicant";
+import { formSubmissionMapper, testSubmissionMapper } from "../mappers/Applicant";
 import { getUserFlow } from "../controllers/flowController";
 import { readHtml } from "../../../../common/services/html_reader"
-import { TestStartModel } from "../models/TestStart";
+import { TestStartDocument, TestStartModel } from "../models/TestStart";
+import { TestModel } from "../models/Test";
 
 const router = express.Router();
 
@@ -94,11 +94,14 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
 
   try {
     const flow = await getUserFlow(userID, flowID, { applicants: "true" });
+    if (!flow.active) {
+      throw new Error("Flow is not active!");
+    }
+
     const applicant = (flow.applicants as any).id(applicantID);
     if (!applicant) {
       return res.status(400).send({ message: 'Applicant not found!' });
     }
-
     if (applicant.currentStageIndex == flow.stages.length) {
       return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
     }
@@ -200,9 +203,11 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
 
     // get flow and check if applicant already exists
     const flow = await FlowModel.findById(form.flowID);
-
     if (!flow) {
       return res.status(400).send({ message: "Flow not found!" });
+    }
+    if (!flow.active) {
+      throw new Error("Flow is not active!");
     }
 
     var applicant = flow.applicants?.find(x => x.email === email);
@@ -230,7 +235,7 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
       // TODO: applicant name -> header
       const [applicantName, domain] = applicant.email.toString().split('@');
       let header = submitInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
-      let body = submitInfo.BODY;
+      let body = submitInfo.BODY_FORM;
 
       html = html.replace("{header}", header);
       html = html.replace("{body}", body);
@@ -247,7 +252,7 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
 
     return res.status(200).send({ formSubmission: formSubmissionDTO });
   } catch (error: any) {
-    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+    return res.status(400).send({ message: error.message });
   }
 }));
 
@@ -285,9 +290,11 @@ router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req
 
     // get flow and check if applicant already exists
     const flow = await FlowModel.findById(form.flowID);
-
     if (!flow) {
       return res.status(400).send({ message: "Flow not found!" });
+    }
+    if (!flow.active) {
+      throw new Error("Flow is not active!");
     }
 
     const applicant: ApplicantDocument = (flow.applicants as any).id(applicantID);
@@ -313,7 +320,7 @@ router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req
       // TODO: applicant name -> header
       const [applicantName, domain] = applicant.email.toString().split('@');
       let header = submitInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
-      let body = submitInfo.BODY;
+      let body = submitInfo.BODY_FORM;
 
       html = html.replace("{header}", header);
       html = html.replace("{body}", body);
@@ -330,7 +337,7 @@ router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req
 
     return res.status(200).send({ formSubmission: formSubmissionDTO });
   } catch (error: any) {
-    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+    return res.status(400).send({ message: error.message });
   }
 }));
 
@@ -344,11 +351,32 @@ router.post('/test/:testID/applicant/:applicantID/start', createMiddleware(async
   const { testID, applicantID } = req.params;
 
   try {
-    if (await TestStartModel.find({ applicantID: applicantID, testID: testID })) {
+    const test = await TestModel.findById(testID);
+    if (!test) {
+      throw new Error("Test not found!");
+    }
+
+    const flow = await FlowModel.findById(test.flowID);
+    if (!flow) {
+      throw new Error("Flow not found!");
+    }
+    if (!flow.active) {
+      throw new Error("Flow is not active!");
+    }
+
+    const applicant = (flow.applicants as any).id(applicantID);
+    if (!applicant) {
+      throw new Error("Applicant not found!");
+    }
+    if (flow.stages.findIndex(x => x.stageID.toString() === testID) !== applicant.currentStageIndex) {
+      throw new Error("Applicant is not in this stage!");
+    }
+
+    if (await TestStartModel.findOne({ applicantID: applicantID, testID: testID })) {
       throw new Error("Applicant cannot reenter the same test!");
     }
 
-    const testStart = new TestStartModel({ testID: testID, applicantID: applicantID, startDate: Date.now() });
+    const testStart = new TestStartModel({ testID: testID, applicantID: applicantID, startDate: new Date });
     await testStart.save();
     return res.status(200).send({ message: "success" });
   } catch (error: any) {
@@ -356,5 +384,98 @@ router.post('/test/:testID/applicant/:applicantID/start', createMiddleware(async
   }
 }));
 
+router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Test Submission']
+    #swagger.description = 'Submit a testSubmission and save it to applicant'
+    #swagger.parameters['TestSubmission'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/TestSubmission'}
+    }
+   */
+  const { testID, applicantID } = req.params;
+  const testSubmissionDTO = getBody<TestSubmissionDTO>(req.body, TestSubmissionDTOKeys);
+  testSubmissionDTO.testID = new Types.ObjectId(testID);
+
+  // send userID to user service and get form
+  try {
+    const test = await TestModel.findById(testID);
+    if (!test) {
+      throw new Error("Test not found!");
+    }
+
+    const testSubmission = testSubmissionMapper(test, testSubmissionDTO);
+
+    // get flow and check if applicant already exists
+    const flow = await FlowModel.findById(test.flowID);
+    if (!flow) {
+      throw new Error("Flow not found!");
+    }
+    if (!flow.active) {
+      throw new Error("Flow is not active!");
+    }
+
+    // check end time matches with TestStart
+    const testStart = await TestStartModel.findOne({ testID: testID, applicantID: applicantID });
+    if (!testStart) {
+      throw new Error("Start of the test is not logged!");
+    }
+
+    const stage = flow.stages.find(x => x.stageID.toString() === testID);
+    if (!stage) {
+      throw new Error("Stage not found!");
+    }
+    if (!stage.testDuration) {
+      throw new Error("Test duration not specified!");
+    }
+    if ((new Date) > (new Date(testStart.startDate.getTime() + (stage.testDuration + 5) * 60000))) {
+      throw new Error("Late submission is not allowed!")
+    }
+
+    const applicant: ApplicantDocument = (flow.applicants as any).id(applicantID);
+    if (!applicant) {
+      throw new Error("Applicant not found!");
+    }
+    if (applicant?.testSubmissions?.find(x => x.testID.toString() === testID)) {
+      throw new Error("Only single submission is allowed.");
+    }
+
+    // calculate total grade
+    let totalGrade = 0;
+    for (const questionSubmission of testSubmission.questionSubmissions) {
+      totalGrade += Number(questionSubmission.grade);
+    }
+    testSubmission.grade = totalGrade;
+
+    // save flow with updated applicant
+    applicant.testSubmissions?.push(testSubmission);
+    await flow.save();
+
+    try {
+      let html = await readHtml("info");
+
+      // TODO: applicant name -> header
+      const [applicantName, domain] = applicant.email.toString().split('@');
+      let header = submitInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
+      let body = submitInfo.BODY_TEST;
+
+      html = html.replace("{header}", header);
+      html = html.replace("{body}", body);
+
+      const mail = {
+        to: applicant.email.toString(),
+        subject: `(Recroute): Test submitted successfully`,
+        html: html
+      };
+      await MailService.sendMessage(mail);
+    } catch (error: any) {
+      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
+    }
+    return res.status(200).send({ testSubmission: testSubmissionDTO });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message });
+  }
+}));
 
 export { router as submissionRouter }

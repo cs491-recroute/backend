@@ -17,7 +17,7 @@ const schema = new Schema<Test>({
 
 export const TestModel = model<Test>("Test", schema);
 export type TestDocument = HydratedDocument<Test> | null;
-export const StageKeys = [
+export const TestKeys = [
     "flowID",
     "name",
     "isTemplate",

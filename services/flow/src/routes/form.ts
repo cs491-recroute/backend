@@ -249,9 +249,6 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
       return res.status(400).send({ message: "Referance `flowID` of a stage cannot be changed." });
     case "type":
       return res.status(400).send({ message: "Type of a stage cannot be changed." });
-    case "options":
-      componentProp.value = valuesToOptions(componentProp.value);
-      break;
   }
 
   // send userID to user service and get form
@@ -284,7 +281,7 @@ router.put('/form/:formID/component/:componentID/all', createMiddleware(async (r
     #swagger.parameters['Component'] = { 
       in: 'body',
       required: true,
-      schema: { $ref: '#/definitions/Component'}
+      schema: { $ref: '#/definitions/ComponentWithOptions'}
     }
    */
 
@@ -303,13 +300,13 @@ router.put('/form/:formID/component/:componentID/all', createMiddleware(async (r
     }
 
     // check prop for inconvenient change requests
-    if (oldComponent.type !== component.type) {
+    if (component.type && (component.type !== oldComponent.type)) {
       throw new Error("Type of a form component cannot be changed.");
     }
 
     oldComponent.set(component);
     await form.save();
-    return res.status(200).send(form);
+    return res.status(200).send(oldComponent);
   } catch (error: any) {
     return res.status(400).send({ errorMessage: error.message });
   }

@@ -10,6 +10,11 @@ const ComponentSubmission = {
     value: ""
 };
 
+const QuestionSubmission = {
+    questionID: "62370430195640b4f300ceaa",
+    value: ""
+};
+
 const doc = {
     info: {
         title: "Flow Management Service",
@@ -65,8 +70,23 @@ const doc = {
             titles: [""],
             placeholders: [""],
         },
+        ComponentWithOptions: {
+            type: "dropDown",
+            required: true,
+            title: "Select your city",
+            placeholder: "Select.",
+            options: [{
+                description: "Ankara",
+                _id: "6223aad1ff1298ffb1e1ecc8"
+            }],
+            titles: [""],
+            placeholders: [""],
+        },
         FormSubmission: {
             componentSubmissions: [ComponentSubmission]
+        },
+        TestSubmission: {
+            questionSubmission: [QuestionSubmission]
         },
         Question: {
             type: "coding",

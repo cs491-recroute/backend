@@ -14,7 +14,7 @@ const schema = new Schema<TestStart>({
 
 export const TestStartModel = model<TestStart>("TestStart", schema);
 export type TestStartDocument = HydratedDocument<TestStart> | null;
-export const StageKeys = [
+export const TestStartKeys = [
     "testID",
     "applicantID",
     "startDate"

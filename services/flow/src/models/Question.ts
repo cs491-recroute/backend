@@ -40,14 +40,15 @@ export interface Question {
     description: String;
     type: QUESTION_TYPES;
     options?: QuestionOption[];
-    testCases?: TestCase[]
+    testCases?: TestCase[];
+    points: Number
 };
 export const questionSchema = new Schema<Question>({
     description: { type: String, required: true },
     type: { type: String, enum: QUESTION_TYPES, required: true },
     options: { type: [questionOptionSchema] },
-    testCases: { type: [testCaseSchema] }
-
+    testCases: { type: [testCaseSchema] },
+    points: { type: Number, default: 0 }
 }, { timestamps: true, autoCreate: false });
 
 export const QuestionModel = model<Question>("Question", questionSchema);
@@ -56,5 +57,6 @@ export const QuestionKeys = [
     "description",
     "type",
     "options",
-    "testCases"
+    "testCases",
+    "points"
 ];

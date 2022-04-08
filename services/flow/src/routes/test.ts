@@ -218,7 +218,7 @@ router.put('/test/:testID/question/:questionID/all', createMiddleware(async (req
 
     oldQuestion.set(question);
     await test.save();
-    return res.status(200).send((test.questions as any).id(questionID));
+    return res.status(200).send(oldQuestion);
   } catch (error: any) {
     return res.status(400).send({ message: error.message })
   }

@@ -9,7 +9,7 @@ export function valuesToOptions(values: String[]) {
     var options: Option[] = [];
     for (let value of values) {
         options.push({
-            value: value
+            description: value
         });
         keyIndex++;
     }

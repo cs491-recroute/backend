@@ -11,19 +11,20 @@ export enum COMPONENT_TYPES {
     PHONE = 'phone',
     SINGLE_CHOICE = 'singleChoice',
     MULTIPLE_CHOICE = 'multipleChoice',
-    UPLOAD = 'upload'
+    UPLOAD = 'upload',
+    EMAIL = 'email'
 };
 
 export interface Option {
-    value: String
+    description: String
 };
 
 export const optionSchema = new Schema<Option>({
-    value: { type: String }
+    description: { type: String }
 }, { autoCreate: false });
 
 export const OptionKeys = [
-    "value"
+    "description"
 ];
 
 export interface Component {

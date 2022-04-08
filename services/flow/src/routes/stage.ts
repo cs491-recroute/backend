@@ -233,10 +233,10 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
     }
 
     // check prop for inconvenient change requests
-    if (stage.type !== newStage.type) {
+    if (newStage.type && (stage.type !== newStage.type)) {
       return res.status(400).send({ message: "Type of a stage cannot be changed." });
     }
-    if (stage.stageID.toString() !== newStage.stageID as any) {
+    if (newStage.stageID && (stage.stageID.toString() !== newStage.stageID as any)) {
       return res.status(400).send({ message: "Referance `stageID` of a stage cannot be changed." });
     }
 
