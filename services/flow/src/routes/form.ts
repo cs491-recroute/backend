@@ -5,7 +5,7 @@ import { createMiddleware, getBody, getUserID } from "../../../../common/service
 import { Component, ComponentKeys, ComponentModel } from "../models/Component";
 import { FormDocument, FormModel } from "../models/Form";
 import { getUserForm } from "../controllers/formController";
-import { deleteForm, valuesToOptions } from "../services/formService";
+import { deleteForm } from "../services/formService";
 import { Prop, PropKeys } from "../models/Prop";
 import { checkFlow } from "../services/flowService";
 
@@ -18,6 +18,7 @@ const router = express.Router();
 
 router.get('/templates/form', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form', 'Template']
     #swagger.description = 'Return all form templates that user can access'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -42,6 +43,7 @@ router.get('/templates/form', createMiddleware(async (req, res) => {
 
 router.post('/templates/form', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form', 'Template']
     #swagger.description = 'Create a new form template to company of the specified user'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -64,6 +66,7 @@ router.post('/templates/form', createMiddleware(async (req, res) => {
 
 router.delete('/templates/form/:formID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form', 'Template']
     #swagger.description = 'delete form template with formID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -87,6 +90,7 @@ router.delete('/templates/form/:formID', createMiddleware(async (req, res) => {
 
 router.get('/form/:formID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form']
     #swagger.description = 'Return form according to formID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -110,6 +114,7 @@ router.get('/form/:formID', createMiddleware(async (req, res) => {
 
 router.put('/form/:formID', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Form']
   #swagger.description = 'Update form prop with formID'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -154,6 +159,7 @@ router.put('/form/:formID', createMiddleware(async (req, res) => {
 
 router.get('/form/:formID/component', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form', 'Component']
     #swagger.description = 'Get components of form with formID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -176,6 +182,7 @@ router.get('/form/:formID/component', createMiddleware(async (req, res) => {
 
 router.post('/form/:formID/component', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form', 'Component']
     #swagger.description = 'Add component to form with formID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -191,12 +198,6 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { formID } = req.params;
-
-  // convert string array to options array
-  if (req.body.options) {
-    req.body.options = valuesToOptions(req.body.options);
-  }
-
   const component = getBody<Component>(req.body, ComponentKeys);
 
   // send userID to user service and get form
@@ -205,22 +206,17 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
     await checkFlow(form, userID);
 
     form.components.push(new ComponentModel(component));
-
-    // save form with new component
-    try {
-      await form.save();
-    } catch (error: any) {
-      return res.status(400).send({ message: "Form save error!", errorMessage: error.message });
-    }
+    await form.save();
 
     return res.status(200).send(form);
   } catch (error: any) {
-    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+    return res.status(400).send({ message: error.message });
   }
 }));
 
 router.put('/form/:formID/component/:componentID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form', 'Component']
     #swagger.description = 'Update component prop in form with formID and componentID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -247,9 +243,6 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
       return res.status(400).send({ message: "Referance `flowID` of a stage cannot be changed." });
     case "type":
       return res.status(400).send({ message: "Type of a stage cannot be changed." });
-    case "options":
-      componentProp.value = valuesToOptions(componentProp.value);
-      break;
   }
 
   // send userID to user service and get form
@@ -258,28 +251,65 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
     await checkFlow(form, userID);
 
     const component = (form.components as any).id(componentID);
-
     if (!component) {
       return res.status(400).send({ message: 'No component found with the given ID' });
     }
 
     (component as any)[componentProp.name] = componentProp.value;
-
-    try {
-      await form.save();
-    } catch (error: any) {
-      return res.status(400).send({ message: "Component save error!", errorMessage: error.message });
-    }
-
+    await form.save();
     return res.status(200).send(form);
   } catch (error: any) {
-    return res.status(400).send({ message: "user fetch error!", errorMessage: error.message });
+    return res.status(400).send({ errorMessage: error.message });
+  }
+}));
+
+router.put('/form/:formID/component/:componentID/all', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Form', 'Component']
+    #swagger.description = 'Update component in form with formID and componentID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+    #swagger.parameters['Component'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/Component'}
+    }
+   */
+
+  const userID = getUserID(req);
+  const { formID, componentID } = req.params;
+  const component = getBody<Component>(req.body, ComponentKeys);
+
+  // send userID to user service and get form
+  try {
+    const form = await getUserForm(userID, formID);
+    await checkFlow(form, userID);
+
+    const oldComponent = (form.components as any).id(componentID);
+    if (!oldComponent) {
+      return res.status(400).send({ message: 'No component found with the given ID' });
+    }
+
+    // check prop for inconvenient change requests
+    if (oldComponent.type !== component.type) {
+      throw new Error("Type of a form component cannot be changed.");
+    }
+
+    oldComponent.set(component);
+    await form.save();
+    return res.status(200).send(form);
+  } catch (error: any) {
+    return res.status(400).send({ errorMessage: error.message });
   }
 }));
 
 router.delete('/form/:formID/component/:componentID', createMiddleware(async (req, res) => {
   /*
-    #swagger.description = 'Change component in form with formID'
+    #swagger.tags = ['Form', 'Component']
+    #swagger.description = 'Delete component from form'
     #swagger.parameters['userID'] = { 
       in: 'query',
       required: true,

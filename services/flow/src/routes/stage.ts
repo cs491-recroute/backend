@@ -22,6 +22,7 @@ const router = express.Router();
 
 router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Stage']
   #swagger.description = 'Create stage and add it to a flow'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -121,6 +122,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
 
 router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Stage']
   #swagger.description = 'Update stage prop with stageID'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -192,6 +194,7 @@ router.put('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
 
 router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Stage']
   #swagger.description = 'Update stage prop with stageID'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -261,6 +264,7 @@ router.put('/flow/:flowID/stage/:stageID/all', createMiddleware(async (req, res)
 
 router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Stage']
   #swagger.description = 'Delete stage with stageID'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -308,49 +312,50 @@ router.delete('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) 
   }
 }));
 
+// TODO: Remove or update these endpoints.
 
 router.get('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => {
-    /*
-        #swagger.description = 'Get stage information for filling'
-    */
-    const { flowID, stageID } = req.params;
+  /*
+    #swagger.tags = ['Stage']
+    #swagger.description = 'Get stage information for filling'
+  */
+  const { flowID, stageID } = req.params;
 
-    try {
-        let flow: FlowDocument = await FlowModel.findById(flowID);
-        if (!flow) return res.status(400).send({ message: "Job advert cannot be found!" });
-        if (!flow.active) return res.status(400).send({ message: "Job advert is not active for now!", flowName: flow.name });
+  try {
+    let flow: FlowDocument = await FlowModel.findById(flowID);
+    if (!flow) return res.status(400).send({ message: "Job advert cannot be found!" });
+    if (!flow.active) return res.status(400).send({ message: "Job advert is not active for now!", flowName: flow.name });
 
-        const stage: StageDocument = (flow.stages as any).id(stageID);
-        if (!stage) return res.status(400).send({ message: "Stage cannot be found!", flowName: flow.name });
-        
-        if (stage.startDate && moment(new Date()).isBefore(new Date(stage.startDate))) {
-            const prettyDate = moment(new Date(stage.startDate)).locale('en').format('DD MMMM YYYY');
-            return res.status(400).send({ message: `This stage is not started yet! It will start on ${prettyDate}`, flowName: flow.name });
-        }
-        if (stage.endDate && moment(new Date()).isAfter(new Date(stage.endDate))) {
-            const prettyDate = moment(new Date(stage.endDate)).locale('en').format('DD MMMM YYYY');
-            return res.status(400).send({ message: `This stage is ended on ${prettyDate}`, flowName: flow.name });
-        }
+    const stage: StageDocument = (flow.stages as any).id(stageID);
+    if (!stage) return res.status(400).send({ message: "Stage cannot be found!", flowName: flow.name });
 
-        for (const type in StageType) {
-            flow = await flow.populate(`stages.${type}`) as NonNullable<FlowDocument>;
-        }
-        return res.status(200).send({ stage: parseStage(stage.toJSON(), true), flowName: flow.name });
-    } catch (error: any) {
-        return res.status(400).send({ message: error.message || error });
+    if (stage.startDate && moment(new Date()).isBefore(new Date(stage.startDate))) {
+      const prettyDate = moment(new Date(stage.startDate)).locale('en').format('DD MMMM YYYY');
+      return res.status(400).send({ message: `This stage is not started yet! It will start on ${prettyDate}`, flowName: flow.name });
+    }
+    if (stage.endDate && moment(new Date()).isAfter(new Date(stage.endDate))) {
+      const prettyDate = moment(new Date(stage.endDate)).locale('en').format('DD MMMM YYYY');
+      return res.status(400).send({ message: `This stage is ended on ${prettyDate}`, flowName: flow.name });
     }
 
-
+    for (const type in StageType) {
+      flow = await flow.populate(`stages.${type}`) as NonNullable<FlowDocument>;
+    }
+    return res.status(200).send({ stage: parseStage(stage.toJSON(), true), flowName: flow.name });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
 }));
 
 router.get('/question/:questionID', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Stage']
   #swagger.description = 'Get question information for filling'
   */
   const { questionID } = req.params;
 
   try {
-    const test: TestDocument = await TestModel.findOne( { 'questions._id': questionID } );
+    const test: TestDocument = await TestModel.findOne({ 'questions._id': questionID });
     if (!test) return res.status(400).send({ message: "Test cannot be found!" });
     const question = (test.questions as any).id(questionID);
 
@@ -359,4 +364,5 @@ router.get('/question/:questionID', createMiddleware(async (req, res) => {
     return res.status(400).send({ message: error.message || error });
   }
 }));
+
 export { router as stageRouter };

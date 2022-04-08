@@ -10,8 +10,11 @@ const router = express.Router();
 
 // Controllers
 
+// Interview
+
 router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Interview']
     #swagger.description = 'Update properties of an interview'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -57,6 +60,7 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
 
 router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Interview']
     #swagger.description = 'Update a single property of an interview'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -103,8 +107,34 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
   }
 }));
 
+router.get('/interview/:interviewID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Interview']
+    #swagger.description = 'Get interview with interviewID'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+  */
+
+  const userID = getUserID(req);
+  const { interviewID } = req.params;
+
+  try {
+    // edit instance
+    const interview = await getUserInterview(userID, interviewID);
+    return res.status(200).send({ interview: interview });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+// InterviewInstance
+
 router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Interview', 'InterviewInstance']
     #swagger.description = 'Update properties of an interview instance'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -160,30 +190,9 @@ router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(
 
 }));
 
-router.get('/interview/:interviewID', createMiddleware(async (req, res) => {
-  /*
-    #swagger.description = 'Get interview with interviewID'
-    #swagger.parameters['userID'] = { 
-      in: 'query',
-      required: true,
-      type: 'string'
-    }
-  */
-
-  const userID = getUserID(req);
-  const { interviewID } = req.params;
-
-  try {
-    // edit instance
-    const interview = await getUserInterview(userID, interviewID);
-    return res.status(200).send({ interview: interview });
-  } catch (error: any) {
-    return res.status(400).send({ message: error.message || error });
-  }
-}));
-
 router.put('/interview/:interviewID/instance/:instanceID/', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Interview', 'InterviewInstance']
     #swagger.description = 'Update grade property of '
     #swagger.parameters['userID'] = { 
       in: 'query',

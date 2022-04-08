@@ -18,6 +18,7 @@ const router = express.Router();
 
 router.get('/flows', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Flow']
     #swagger.description = 'Return all flows of a user's company'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -46,6 +47,7 @@ router.get('/flows', createMiddleware(async (req, res) => {
 
 router.get('/flow/:flowID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Flow']
     #swagger.description = 'Return the flow according to flowID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -79,6 +81,7 @@ router.get('/flow/:flowID', createMiddleware(async (req, res) => {
 
 router.post('/flow', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Flow']
   #swagger.description = 'Create a new flow'
   #swagger.parameters['Flow'] = { 
     in: 'body',
@@ -120,6 +123,7 @@ router.post('/flow', createMiddleware(async (req, res) => {
 
 router.put('/flow/:flowID', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Flow']
   #swagger.description = 'Update a single flow property'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -173,6 +177,7 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
 
 router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
   /*
+  #swagger.tags = ['Flow']
   #swagger.description = 'Update flow properties'
   #swagger.parameters['userID'] = { 
     in: 'query',
@@ -196,9 +201,6 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
   const flow = getBody<Flow>(req.body, FlowKeys);
 
   // check prop for inconvenient change requests
-  if ((flow as any).id || (flow as any)._id) {
-    return res.status(400).send({ message: "id cannot be changed." });
-  }
   if (flow?.stages) {
     return res.status(400).send({ message: "Stages of flow cannot be updated from this controller." });
   }
@@ -231,6 +233,7 @@ router.put('/flow/:flowID/all', createMiddleware(async (req, res) => {
 
 router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Flow']
     #swagger.description = 'Delete the flow according to flowID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -252,6 +255,7 @@ router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
 
 router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Flow']
     #swagger.description = 'Create new condition to flow with specified information'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -299,6 +303,7 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
 
 router.post('/flow/:flowID/invite/:email', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Flow']
     #swagger.description = 'Invite email to apply for the flow'
     #swagger.parameters['userID'] = { 
       in: 'query',

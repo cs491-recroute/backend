@@ -15,6 +15,7 @@ import { StageType } from "../models/Stage";
 import { formSubmissionMapper } from "../mappers/Applicant";
 import { getUserFlow } from "../controllers/flowController";
 import { readHtml } from "../../../../common/services/html_reader"
+import { TestStartModel } from "../models/TestStart";
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ const router = express.Router();
 
 router.get('/flow/:flowID/applicant/:applicantID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Applicant']
     #swagger.description = 'Get applicant with applicantID'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -51,6 +53,7 @@ router.get('/flow/:flowID/applicant/:applicantID', createMiddleware(async (req, 
 
 router.get('/flow/:flowID/applicants', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Applicant']
     #swagger.description = 'Get all applicants of a flow'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -75,10 +78,97 @@ router.get('/flow/:flowID/applicants', createMiddleware(async (req, res) => {
   }
 }));
 
+router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Applicant']
+    #swagger.description = 'Move the applicant to the next stage in the flow'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const { flowID, applicantID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    const flow = await getUserFlow(userID, flowID, { applicants: "true" });
+    const applicant = (flow.applicants as any).id(applicantID);
+    if (!applicant) {
+      return res.status(400).send({ message: 'Applicant not found!' });
+    }
+
+    if (applicant.currentStageIndex == flow.stages.length) {
+      return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
+    }
+
+    applicant.currentStageIndex++;
+    await flow.save();
+
+    if (applicant.currentStageIndex < flow.stages.length) {
+      try {
+        const { data: { company: { name: companyName } } } = await apiService.useService(SERVICES.user).get(`/company/${flow.companyID}`);
+        if (!companyName) {
+          throw new Error("Company not found!");
+        }
+
+        let html = await readHtml("info_w_link");
+
+        // TODO: applicant name -> header
+        const [applicantName, domain] = applicant.email.toString().split('@');
+        let header = nextStageInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
+        let body = nextStageInfo.BODY.replace(new RegExp("{companyName}", 'g'), companyName);
+        body = body.replace(new RegExp("{flowName}", 'g'), flow.name.toString());
+
+        const stage = flow.stages[applicant.currentStageIndex];
+        if (!stage) {
+          throw new Error("Stage not found!");
+        }
+
+        let nextStageText;
+        switch (stage.type) {
+          case StageType.FORM:
+            nextStageText = nextStageInfo.FORM;
+            break;
+          case StageType.TEST:
+            nextStageText = nextStageInfo.TEST;
+            break;
+          case StageType.INTERVIEW:
+            nextStageText = nextStageInfo.INTERVIEW;
+            break;
+        }
+        nextStageText = nextStageText.replace(new RegExp("{companyName}", 'g'), companyName);
+        body = body.replace(new RegExp("{stageInfo}", 'g'), nextStageText);
+        html = html.replace("{header}", header);
+        html = html.replace("{body}", body);
+
+        const mail = {
+          to: applicant.email.toString(),
+          subject: `(Recroute): Congrats! Next stage is waiting for you on the Job in ${companyName}.`,
+          html: html
+        };
+
+        await MailService.sendMessage(mail);
+      } catch (error: any) {
+        return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
+      }
+    }
+    else {
+      // TODO: Stages are completed. What to do?
+    }
+
+    return res.status(200).send({ message: 'success' });
+  } catch (error: any) {
+    console.log({ errorMessage: error || error.message });
+  }
+}));
+
 // FORM SUBMISSIONS
 
 router.post('/form/:formID/submission/:email', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form Submission']
     #swagger.description = 'Submit a formSubmission and save it to applicant'
     #swagger.parameters['FormSubmission'] = { 
       in: 'body',
@@ -163,6 +253,7 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
 
 router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req, res) => {
   /*
+    #swagger.tags = ['Form Submission']
     #swagger.description = 'Submit a formSubmission and save it to applicant'
     #swagger.parameters['FormSubmission'] = { 
       in: 'body',
@@ -243,89 +334,27 @@ router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req
   }
 }));
 
-router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async (req, res) => {
-  /*
-    #swagger.description = 'Move the applicant to the next stage in the flow'
-    #swagger.parameters['userID'] = { 
-      in: 'query',
-      required: true,
-      type: 'string'
-    }
-   */
+// TEST SUBMISSION
 
-  const { flowID, applicantID } = req.params;
-  const userID = getUserID(req);
+router.post('/test/:testID/applicant/:applicantID/start', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Test Submission']
+  #swagger.description = 'Start the timer of the applicant for the test'
+  */
+  const { testID, applicantID } = req.params;
 
   try {
-    const flow = await getUserFlow(userID, flowID, { applicants: "true" });
-    const applicant = (flow.applicants as any).id(applicantID);
-    if (!applicant) {
-      return res.status(400).send({ message: 'Applicant not found!' });
+    if (await TestStartModel.find({ applicantID: applicantID, testID: testID })) {
+      throw new Error("Applicant cannot reenter the same test!");
     }
 
-    if (applicant.currentStageIndex == flow.stages.length) {
-      return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
-    }
-
-    applicant.currentStageIndex++;
-    await flow.save();
-
-    if (applicant.currentStageIndex < flow.stages.length) {
-      try {
-        const { data: { company: { name: companyName } } } = await apiService.useService(SERVICES.user).get(`/company/${flow.companyID}`);
-        if (!companyName) {
-          throw new Error("Company not found!");
-        }
-
-        let html = await readHtml("info_w_link");
-
-        // TODO: applicant name -> header
-        const [applicantName, domain] = applicant.email.toString().split('@');
-        let header = nextStageInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
-        let body = nextStageInfo.BODY.replace(new RegExp("{companyName}", 'g'), companyName);
-        body = body.replace(new RegExp("{flowName}", 'g'), flow.name.toString());
-
-        const stage = flow.stages[applicant.currentStageIndex];
-        if (!stage) {
-          throw new Error("Stage not found!");
-        }
-
-        let nextStageText;
-        switch (stage.type) {
-          case StageType.FORM:
-            nextStageText = nextStageInfo.FORM;
-            break;
-          case StageType.TEST:
-            nextStageText = nextStageInfo.TEST;
-            break;
-          case StageType.INTERVIEW:
-            nextStageText = nextStageInfo.INTERVIEW;
-            break;
-        }
-        nextStageText = nextStageText.replace(new RegExp("{companyName}", 'g'), companyName);
-        body = body.replace(new RegExp("{stageInfo}", 'g'), nextStageText);
-        html = html.replace("{header}", header);
-        html = html.replace("{body}", body);
-
-        const mail = {
-          to: applicant.email.toString(),
-          subject: `(Recroute): Congrats! Next stage is waiting for you on the Job in ${companyName}.`,
-          html: html
-        };
-
-        await MailService.sendMessage(mail);
-      } catch (error: any) {
-        return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
-      }
-    }
-    else {
-      // TODO: Stages are completed. What to do?
-    }
-
-    return res.status(200).send({ message: 'success' });
+    const testStart = new TestStartModel({ testID: testID, applicantID: applicantID, startDate: Date.now() });
+    await testStart.save();
+    return res.status(200).send({ message: "success" });
   } catch (error: any) {
-    console.log({ errorMessage: error || error.message });
+    return res.status(400).send({ message: error.message });
   }
 }));
+
 
 export { router as submissionRouter }

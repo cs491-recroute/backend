@@ -1,21 +1,33 @@
 import { Schema, model, HydratedDocument } from 'mongoose';
 
-export type ComponentTypes = "address" | "datePicker" | "dropDown" | "fullName" |
-    "header" | "longText" | "multipleChoice" | "phone" |
-    "shortText" | "singleChoice" | "upload";
+export enum COMPONENT_TYPES {
+    ADRESS = 'address',
+    DATE_PICKER = 'datePicker',
+    DROPDOWN = 'dropDown',
+    FULL_NAME = 'fullName',
+    HEADER = 'header',
+    LONG_TEXT = 'longText',
+    SHORT_TEXT = 'shortText',
+    PHONE = 'phone',
+    SINGLE_CHOICE = 'singleChoice',
+    MULTIPLE_CHOICE = 'multipleChoice',
+    UPLOAD = 'upload'
+};
 
 export interface Option {
-    key: Number,
     value: String
 };
 
 export const optionSchema = new Schema<Option>({
-    key: { type: Number },
     value: { type: String }
-}, { _id: false });
+}, { autoCreate: false });
+
+export const OptionKeys = [
+    "value"
+];
 
 export interface Component {
-    type: ComponentTypes;
+    type: COMPONENT_TYPES;
     required: Boolean;
     title: String;
     titles: String[];
@@ -25,7 +37,7 @@ export interface Component {
 }
 
 export const componentSchema = new Schema<Component>({
-    type: { type: String, required: true },
+    type: { type: String, enum: COMPONENT_TYPES, required: true },
     required: { type: Boolean, required: true },
     title: { type: String, default: undefined },
     titles: { type: [String], default: undefined },

@@ -1,41 +1,41 @@
-import { Component } from "../models/Component";
+import { Component, COMPONENT_TYPES } from "../models/Component";
 import { ComponentSubmission, ComponentSubmissionDTO } from "../models/ComponentSubmission";
 
 export function componentSubmissionMapper(component: Component, compoenentSubmissionDTO: ComponentSubmissionDTO): ComponentSubmission {
     let value: any = {};
 
     switch (component.type) {
-        case "address":
+        case COMPONENT_TYPES.ADRESS:
             value["address"] = compoenentSubmissionDTO.value;
             break;
-        case "datePicker":
+        case COMPONENT_TYPES.DATE_PICKER:
             value["date"] = compoenentSubmissionDTO.value;
             break;
-        case "dropDown":
+        case COMPONENT_TYPES.DROPDOWN:
             value["selection"] = compoenentSubmissionDTO.value;
             break;
-        case "fullName":
+        case COMPONENT_TYPES.FULL_NAME:
             value["fullName"] = compoenentSubmissionDTO.value.split(',');
             break;
-        case "header":
+        case COMPONENT_TYPES.HEADER:
             value["text"] = compoenentSubmissionDTO.value;
             break;
-        case "longText":
+        case COMPONENT_TYPES.LONG_TEXT:
             value["text"] = compoenentSubmissionDTO.value;
             break;
-        case "multipleChoice":
+        case COMPONENT_TYPES.MULTIPLE_CHOICE:
             value["selections"] = compoenentSubmissionDTO.value.split(',');
             break;
-        case "phone":
+        case COMPONENT_TYPES.PHONE:
             value["text"] = compoenentSubmissionDTO.value;
             break;
-        case "shortText":
+        case COMPONENT_TYPES.SHORT_TEXT:
             value["text"] = compoenentSubmissionDTO.value;
             break;
-        case "singleChoice":
+        case COMPONENT_TYPES.SINGLE_CHOICE:
             value["selection"] = compoenentSubmissionDTO.value;
             break;
-        case "upload":
+        case COMPONENT_TYPES.UPLOAD:
             value["fileName"] = compoenentSubmissionDTO.value;
             break;
     }

@@ -1,5 +1,4 @@
 import { Schema, model, HydratedDocument, Types } from 'mongoose';
-import { ComponentDocument, componentSchema } from './Component';
 
 export enum QUESTION_TYPES {
     OPEN_ENDED = 'openEnded',
