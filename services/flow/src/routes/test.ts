@@ -185,7 +185,7 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
 
 }));
 
-router.put('/test/:testID/question/:questionID', createMiddleware(async (req, res) => {
+router.put('/test/:testID/question/:questionID/all', createMiddleware(async (req, res) => {
   /*
   #swagger.tags = ['Test', 'Question']
   #swagger.description = 'Edit question of the test'
@@ -212,7 +212,7 @@ router.put('/test/:testID/question/:questionID', createMiddleware(async (req, re
     const oldQuestion = (test.questions as any).id(questionID);
 
     // check prop for inconvenient change requests
-    if (question.type !== oldQuestion.type) {
+    if (question.type && (question.type !== oldQuestion.type)) {
       throw new Error("Type of a question cannot be changed.");
     }
 
