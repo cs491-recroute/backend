@@ -5,7 +5,7 @@ import { createMiddleware, getBody, getUserID } from "../../../../common/service
 import { Component, ComponentKeys, ComponentModel } from "../models/Component";
 import { FormDocument, FormModel } from "../models/Form";
 import { getUserForm } from "../controllers/formController";
-import { deleteForm } from "../services/formService";
+import { deleteForm, valuesToOptions } from "../services/formService";
 import { Prop, PropKeys } from "../models/Prop";
 import { checkFlow } from "../services/flowService";
 
@@ -198,6 +198,12 @@ router.post('/form/:formID/component', createMiddleware(async (req, res) => {
 
   const userID = getUserID(req);
   const { formID } = req.params;
+
+  // convert string array to options array
+  if (req.body.options) {
+    req.body.options = valuesToOptions(req.body.options);
+  }
+
   const component = getBody<Component>(req.body, ComponentKeys);
 
   // send userID to user service and get form
@@ -243,6 +249,9 @@ router.put('/form/:formID/component/:componentID', createMiddleware(async (req, 
       return res.status(400).send({ message: "Referance `flowID` of a stage cannot be changed." });
     case "type":
       return res.status(400).send({ message: "Type of a stage cannot be changed." });
+    case "options":
+      componentProp.value = valuesToOptions(componentProp.value);
+      break;
   }
 
   // send userID to user service and get form
