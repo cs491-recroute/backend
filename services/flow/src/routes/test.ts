@@ -149,6 +149,66 @@ router.put('/test/:testID', createMiddleware(async (req, res) => {
   }
 }));
 
+// QUESTION TEMPLATE
+
+router.post('/templates/question', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Question', 'Template']
+  #swagger.description = 'Create new question template'
+  #swagger.parameters['userID'] = {
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['Question'] = {
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Question'}
+  }
+  */
+  const userID = getUserID(req);
+  const question = getBody<Question>(req.body, QuestionKeys);
+
+  try {
+    const questionModel: QuestionDocument = new QuestionModel(question);
+    questionModel.isTemplate = true;
+    await apiService.useService(SERVICES.user).post(`/user/${userID}/question/${questionModel.id}`);
+    await questionModel.save();
+    return res.status(200).send(question);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message })
+  }
+}));
+
+// router.put('/templates/question/:questionID', createMiddleware(async (req, res) => {
+//   /*
+//   #swagger.tags = ['Question', 'Template']
+//   #swagger.description = 'Create new question template'
+//   #swagger.parameters['userID'] = {
+//     in: 'query',
+//     required: true,
+//     type: 'string'
+//   }
+//   #swagger.parameters['Question'] = {
+//     in: 'body',
+//     required: true,
+//     schema: { $ref: '#/definitions/Question'}
+//   }
+//   */
+//   const userID = getUserID(req);
+//   const question = getBody<Question>(req.body, QuestionKeys);
+
+//   try {
+//     const questionModel: QuestionDocument = new QuestionModel(question);
+//     questionModel.accessModifier = ACCESS_MODIFIERS.PRIVATE;
+//     await questionModel.save();
+//     await apiService.useService(SERVICES.user).post(`/user/${userID}/question/${questionModel.id}`);
+//     return res.status(200).send(question);
+//   } catch (error: any) {
+//     return res.status(400).send({ message: error.message })
+//   }
+// }));
+
 // QUESTION
 
 router.post('/test/:testID/question', createMiddleware(async (req, res) => {

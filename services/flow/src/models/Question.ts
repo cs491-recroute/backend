@@ -37,23 +37,27 @@ export const TestCaseKeys = [
 
 // Question
 export interface Question {
+    isTemplate: Boolean;
     description: String;
     type: QUESTION_TYPES;
     options?: QuestionOption[];
     testCases?: TestCase[];
     points: Number
 };
+
 export const questionSchema = new Schema<Question>({
+    isTemplate: { type: Boolean, default: false },
     description: { type: String, required: true },
     type: { type: String, enum: QUESTION_TYPES, required: true },
-    options: { type: [questionOptionSchema] },
-    testCases: { type: [testCaseSchema] },
+    options: { type: [questionOptionSchema], default: undefined },
+    testCases: { type: [testCaseSchema], default: undefined },
     points: { type: Number, default: 0 }
-}, { timestamps: true, autoCreate: false });
+}, { timestamps: true });
 
 export const QuestionModel = model<Question>("Question", questionSchema);
 export type QuestionDocument = HydratedDocument<Question> | null;
 export const QuestionKeys = [
+    "isTemplate",
     "description",
     "type",
     "options",

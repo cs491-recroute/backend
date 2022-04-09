@@ -426,11 +426,8 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     if (!stage) {
       throw new Error("Stage not found!");
     }
-    if (!stage.testDuration) {
-      throw new Error("Test duration not specified!");
-    }
-    if ((new Date) > (new Date(testStart.startDate.getTime() + (stage.testDuration + 5) * 60000))) {
-      throw new Error("Late submission is not allowed!")
+    if (stage.testDuration && ((new Date) > (new Date(testStart.startDate.getTime() + (stage.testDuration + 5) * 60000)))) {
+      throw new Error("Late submission is not allowed!");
     }
 
     const applicant: ApplicantDocument = (flow.applicants as any).id(applicantID);

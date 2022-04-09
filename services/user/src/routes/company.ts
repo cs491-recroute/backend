@@ -7,12 +7,13 @@ const router = express.Router();
 
 router.post('/company', createMiddleware(async (req, res) => {
   /*
-   #swagger.description = 'Create a new company and add it to a database'
-   #swagger.parameters['Company'] = { 
-     in: 'body',
-     required: true,
-     schema: { $ref: '#/definitions/Company'}
-    }
+  #swagger.tags = ['Company']
+  #swagger.description = 'Create a new company and add it to a database'
+  #swagger.parameters['Company'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Company'}
+  }
    */
   const company = getBody<Company>(req.body, CompanyKeys);
   const companyModel: CompanyDocument = new CompanyModel(company);
@@ -27,12 +28,13 @@ router.post('/company', createMiddleware(async (req, res) => {
 
 router.get('/company', createMiddleware(async (req, res) => {
   /*
-   #swagger.description = 'Get company of a user'
-   #swagger.parameters['userID'] = { 
-      in: 'query',
-      required: true,
-      type: 'string'
-    }
+  #swagger.tags = ['Company']
+  #swagger.description = 'Get company of a user'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
    */
 
   const userID = getUserID(req);
@@ -50,7 +52,8 @@ router.get('/company', createMiddleware(async (req, res) => {
 
 router.get('/company/:companyID', createMiddleware(async (req, res) => {
   /*
-   #swagger.description = 'Get company with companyID'
+  #swagger.tags = ['Company']
+  #swagger.description = 'Get company with companyID'
    */
 
   const { companyID } = req.params;
@@ -63,12 +66,13 @@ router.get('/company/:companyID', createMiddleware(async (req, res) => {
 
 router.get('/company/interviewer', createMiddleware(async (req, res) => {
   /*
-    #swagger.description = 'Get interviewers of a company'
-    #swagger.parameters['userID'] = { 
-      in: 'query',
-      required: true,
-      type: 'string'
-    }
+  #swagger.tags = ['Company']
+  #swagger.description = 'Get interviewers of a company'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
   */
 
   const userID = getUserID(req);
