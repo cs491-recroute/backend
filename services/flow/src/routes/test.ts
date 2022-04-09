@@ -1,12 +1,12 @@
-import { QuestionModel, QuestionDocument, Question, QuestionKeys } from './../models/Question';
+import { QuestionModel, QuestionDocument, Question, QuestionKeys, QuestionCategory, QuestionCategoryKeys, QuestionCategoryModel } from './../models/Question';
 import { TestModel, TestDocument } from './../models/Test';
 import express from "express";
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { Prop, PropKeys } from '../models/Prop';
-import { getUserTest } from '../controllers/testController';
-import { deleteTest } from '../services/testService';
+import { getPoolQuestions, getUserIsAdmin, getUserQuestion, getUserQuestions, getUserTest } from '../controllers/testController';
+import { deleteQuestion, deleteTest } from '../services/testService';
 import { checkFlow } from '../services/flowService';
 
 const router = express.Router();
@@ -149,6 +149,61 @@ router.put('/test/:testID', createMiddleware(async (req, res) => {
   }
 }));
 
+// QUESTION CATEGORY
+
+router.post('/question/category', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Question', 'Category']
+    #swagger.description = 'Create a new question category'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+    #swagger.parameters['QuestionCategory'] = {
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/QuestionCategory'}
+    }
+   */
+
+  const userID = getUserID(req);
+  const category = getBody<QuestionCategory>(req.body, QuestionCategoryKeys);
+
+  try {
+    // check if user is admin
+    if (!(await getUserIsAdmin(userID))) {
+      throw new Error("Only system admins can create category!");
+    }
+    const categoryModel = new QuestionCategoryModel(category);
+    await categoryModel.save();
+    return res.status(200).send(categoryModel);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message });
+  }
+}));
+
+router.get('/question/category', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Question', 'Category']
+    #swagger.description = 'Return all test templates that user can access'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+
+  const userID = getUserID(req);
+
+  try {
+    const categories = await QuestionCategoryModel.find();
+    return res.status(200).send(categories);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message });
+  }
+}));
+
 // QUESTION TEMPLATE
 
 router.post('/templates/question', createMiddleware(async (req, res) => {
@@ -163,13 +218,17 @@ router.post('/templates/question', createMiddleware(async (req, res) => {
   #swagger.parameters['Question'] = {
     in: 'body',
     required: true,
-    schema: { $ref: '#/definitions/Question'}
+    schema: { $ref: '#/definitions/QuestionTemplate'}
   }
   */
   const userID = getUserID(req);
   const question = getBody<Question>(req.body, QuestionKeys);
 
   try {
+    if (!question.categoryID) {
+      throw new Error("Category is required for question templates!");
+    }
+
     const questionModel: QuestionDocument = new QuestionModel(question);
     questionModel.isTemplate = true;
     await apiService.useService(SERVICES.user).post(`/user/${userID}/question/${questionModel.id}`);
@@ -180,34 +239,104 @@ router.post('/templates/question', createMiddleware(async (req, res) => {
   }
 }));
 
-// router.put('/templates/question/:questionID', createMiddleware(async (req, res) => {
-//   /*
-//   #swagger.tags = ['Question', 'Template']
-//   #swagger.description = 'Create new question template'
-//   #swagger.parameters['userID'] = {
-//     in: 'query',
-//     required: true,
-//     type: 'string'
-//   }
-//   #swagger.parameters['Question'] = {
-//     in: 'body',
-//     required: true,
-//     schema: { $ref: '#/definitions/Question'}
-//   }
-//   */
-//   const userID = getUserID(req);
-//   const question = getBody<Question>(req.body, QuestionKeys);
+router.put('/templates/question/:questionID/all', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Question', 'Template']
+  #swagger.description = 'Update question template'
+  #swagger.parameters['userID'] = {
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['Question'] = {
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Question'}
+  }
+  */
+  const userID = getUserID(req);
+  const { questionID } = req.params;
+  const question = getBody<Question>(req.body, QuestionKeys);
 
-//   try {
-//     const questionModel: QuestionDocument = new QuestionModel(question);
-//     questionModel.accessModifier = ACCESS_MODIFIERS.PRIVATE;
-//     await questionModel.save();
-//     await apiService.useService(SERVICES.user).post(`/user/${userID}/question/${questionModel.id}`);
-//     return res.status(200).send(question);
-//   } catch (error: any) {
-//     return res.status(400).send({ message: error.message })
-//   }
-// }));
+  try {
+    const oldQuestion = await getUserQuestion(userID, questionID);
+
+    // check prop for inconvenient change requests
+    if (question.type && (question.type !== oldQuestion.type)) {
+      throw new Error("Type of a question cannot be changed.");
+    }
+
+    oldQuestion.set(question);
+    await oldQuestion.save();
+    return res.status(200).send(oldQuestion);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message })
+  }
+}));
+
+router.delete('/templates/question/:questionID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Question', 'Template']
+  #swagger.description = 'Delete question template'
+  #swagger.parameters['userID'] = {
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
+  const userID = getUserID(req);
+  const { questionID } = req.params;
+
+  try {
+    await deleteQuestion(userID, questionID);
+    return res.status(200).send({ message: 'success' });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message })
+  }
+}));
+
+router.get('/question/my', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Question', 'Template']
+  #swagger.description = 'Get my questions'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
+
+  const userID = getUserID(req);
+
+  try {
+    const questions = await getUserQuestions(userID);
+    return res.status(200).send(questions);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error })
+  }
+}));
+
+router.get('/question/category/:categoryID', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Question', 'Template']
+  #swagger.description = 'Get questions in the category'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  */
+
+  const userID = getUserID(req);
+  const { categoryID } = req.params;
+
+  try {
+    const questions = (await getPoolQuestions(userID)).filter(x => x?.categoryID?.toString() === categoryID);
+    return res.status(200).send(questions);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error })
+  }
+}));
 
 // QUESTION
 

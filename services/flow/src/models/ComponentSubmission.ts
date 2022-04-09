@@ -1,5 +1,4 @@
 import { Schema, Types } from 'mongoose';
-import { Option, optionSchema } from './Component';
 
 export interface ComponentSubmission {
     componentID: Types.ObjectId,
@@ -7,7 +6,8 @@ export interface ComponentSubmission {
     date: Date,
     selection: Types.ObjectId,
     selections: Types.ObjectId[],
-    fullName: String[],
+    name: String,
+    surname: String,
     text: String,
     number: Number,
     countryCode: String,
@@ -22,7 +22,8 @@ export const componentSubmissionSchema = new Schema<ComponentSubmission>({
     date: { type: Date, default: undefined },
     selection: { type: Schema.Types.ObjectId, default: undefined },
     selections: { type: [Schema.Types.ObjectId], default: undefined },
-    fullName: { type: [String], default: undefined },
+    name: { type: String, default: undefined },
+    surname: { type: String, default: undefined },
     text: { type: String, default: undefined },
     number: { type: Number, default: undefined },
     countryCode: { type: String, default: undefined },
@@ -36,7 +37,8 @@ export const ComponentSubmissionKeys = [
     "date",
     "selection",
     "selections",
-    "fullName",
+    "name",
+    "surname",
     "text",
     "number",
     "countryCode",

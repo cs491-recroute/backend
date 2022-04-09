@@ -17,6 +17,7 @@ export interface User {
   isInterviewer: Boolean,
   availableTimes: Duration[],
   interviewInstances: Types.ObjectId[],
+  isAdmin: Boolean,
 };
 
 const schema = new Schema<User>({
@@ -25,7 +26,8 @@ const schema = new Schema<User>({
   company: { type: Schema.Types.ObjectId, ref: 'Company' },
   isInterviewer: { type: Boolean, required: true, default: false },
   availableTimes: { type: [durationSchema], required: false },
-  interviewInstances: { type: [Schema.Types.ObjectId], ref: 'InterviewInstances', required: false }
+  interviewInstances: { type: [Schema.Types.ObjectId], ref: 'InterviewInstances', required: false },
+  isAdmin: { type: Boolean, required: true, default: false }
 }, { timestamps: true });
 
 export const UserModel = model<User>("User", schema);
@@ -36,5 +38,6 @@ export const UserKeys = [
   "company",
   "isInterviewer",
   "availableTimes",
-  "interviewInstances"
+  "interviewInstances",
+  "isAdmin"
 ];

@@ -6,6 +6,28 @@ import { Types } from "mongoose";
 
 const router = express.Router();
 
+// User
+
+router.get('/user/:userID/isAdmin', createMiddleware(async (req, res) => {
+    /**
+     * #swagger.tags = ['User']
+     * #swagger.description = 'return true if admin - ( used by FlowService )'
+     */
+    const { userID } = req.params;
+    try {
+        const user: UserDocument = await UserModel.findById(userID);
+        if (!user) {
+            return res.status(400).send({ message: "No user found with UserID!" });
+        }
+        if (user.isAdmin) {
+            return res.status(200).send(true);
+        }
+        return res.status(200).send(false);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
 // Flow
 
 router.get('/user/:userID/flows', createMiddleware(async (req, res) => {

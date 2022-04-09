@@ -17,7 +17,8 @@ export function componentSubmissionMapper(component: Component, componentSubmiss
             value.selection = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.FULL_NAME:
-            value.fullName = componentSubmissionDTO.value;
+            value.name = componentSubmissionDTO.value.name;
+            value.surname = componentSubmissionDTO.value.surname;
             break;
         case COMPONENT_TYPES.HEADER:
             value.text = componentSubmissionDTO.value;

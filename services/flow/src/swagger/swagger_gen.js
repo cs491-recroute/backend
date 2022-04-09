@@ -92,6 +92,15 @@ const doc = {
             type: "coding",
             description: "Please answer",
             testCases: [{ input: 1, output: 2 }, { input: 'test', output: 'tset' }]
+        },
+        QuestionTemplate: {
+            type: "coding",
+            description: "Please answer",
+            testCases: [{ input: 1, output: 2 }, { input: 'test', output: 'tset' }],
+            categoryId: "625182833db70cfc30aaf2b7"
+        },
+        QuestionCategory: {
+            name: "Algorithm"
         }
     }
 };

@@ -15,7 +15,6 @@ export const questionOptionSchema = new Schema<QuestionOption>({
     description: { type: String, required: true },
     isCorrect: { type: Boolean, default: false }
 }, { autoCreate: false });
-
 export const QuestionOptionKeys = [
     "description",
     "isCorrect"
@@ -35,9 +34,25 @@ export const TestCaseKeys = [
     "output"
 ];
 
+// Question Category
+export interface QuestionCategory {
+    name: String
+};
+
+export const questionCategorySchema = new Schema<QuestionCategory>({
+    name: { type: String, required: true }
+});
+
+export const QuestionCategoryModel = model<QuestionCategory>("QuestionCategory", questionCategorySchema);
+export type QuestionCategoryDocument = HydratedDocument<QuestionCategory> | null;
+export const QuestionCategoryKeys = [
+    "name"
+];
+
 // Question
 export interface Question {
     isTemplate: Boolean;
+    categoryID?: Types.ObjectId;
     description: String;
     type: QUESTION_TYPES;
     options?: QuestionOption[];
@@ -47,6 +62,7 @@ export interface Question {
 
 export const questionSchema = new Schema<Question>({
     isTemplate: { type: Boolean, default: false },
+    categoryID: { type: Schema.Types.ObjectId, ref: 'QuestionCategory', default: undefined },
     description: { type: String, required: true },
     type: { type: String, enum: QUESTION_TYPES, required: true },
     options: { type: [questionOptionSchema], default: undefined },
@@ -58,6 +74,7 @@ export const QuestionModel = model<Question>("Question", questionSchema);
 export type QuestionDocument = HydratedDocument<Question> | null;
 export const QuestionKeys = [
     "isTemplate",
+    "categoryID",
     "description",
     "type",
     "options",
