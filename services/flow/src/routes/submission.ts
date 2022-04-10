@@ -475,4 +475,11 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
   }
 }));
 
+router.get('/:flowID/:stageID/:applicantID/access', createMiddleware(async (req, res) => {
+  const { flowID, stageID, applicantID } = req.params;
+  const { withEmail } = req.query;
+  console.log({ flowID, stageID, applicantID, withEmail });
+  return res.status(200).send({ message: 'test' });
+}));
+
 export { router as submissionRouter }
