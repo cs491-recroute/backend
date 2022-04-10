@@ -10,6 +10,7 @@ export function questionSubmissionMapper(question: Question, questionSubmissionD
     switch (question.type) {
         case QUESTION_TYPES.CODING:
             value.code = questionSubmissionDTO.value;
+            value.testCaseResults = questionSubmissionDTO.testCaseResults;
             break;
         case QUESTION_TYPES.MULTIPLE_CHOICE:
             value.options = questionSubmissionDTO.value;
