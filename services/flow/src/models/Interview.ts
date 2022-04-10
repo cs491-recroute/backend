@@ -4,7 +4,7 @@ import { InterviewInstance, InterviewInstanceSchema } from './InterviewInstance'
 export interface Interview {
     flowID: Types.ObjectId,
     name: String;
-    interviewLenghtInMins: Number;
+    interviewLengthInMins: Number;
     breakLengthInMins: Number;
     instances?: InterviewInstance[];
     startTime: Date;
@@ -14,7 +14,7 @@ export interface Interview {
 const schema = new Schema<Interview>({
     flowID: { type: Schema.Types.ObjectId, ref: 'Flow' },
     name: { type: String, required: true, default: 'Interview' },
-    interviewLenghtInMins: { type: Number, required: true, default: 60 },
+    interviewLengthInMins: { type: Number, required: true, default: 60 },
     breakLengthInMins: { type: Number, required: true, default: 15 },
     instances: { type: [InterviewInstanceSchema], required: false },
     startTime: { type: Date, required: true, default: new Date() },
@@ -26,7 +26,7 @@ export type InterviewDocument = HydratedDocument<Interview> | null;
 export const InterviewKeys = [
     "flowID",
     "name",
-    "interviewLenghtInMins",
+    "interviewLengthInMins",
     "breakLengthInMins",
     "instances",
     "startTime",

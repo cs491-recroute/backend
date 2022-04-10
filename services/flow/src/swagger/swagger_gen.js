@@ -36,7 +36,7 @@ const doc = {
         },
         Interview: {
             name: 'Developer Interview - 1',
-            interviewLenghtInMins: 60,
+            interviewLengthInMins: 60,
             breakLengthInMins: 15,
             startTime: new Date().toISOString(),
             interviewers: ["6223d54f9c27487fa395cc89"]

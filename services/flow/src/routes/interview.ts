@@ -31,17 +31,17 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
   const { interviewID } = req.params;
   const interview = getBody<Interview>(req.body, InterviewKeys);
 
-
   if (interview.instances) {
     return res.status(400).send({ message: "Instances of an interview cannot be updated from this controller." });
   }
   if ((interview as any).id || (interview as any)._id) {
     return res.status(400).send({ message: "(id, _id) of an interview cannot be updated." });
   }
-
-  // check if interviewer match with the company
-  for (let interviewer of interview?.interviewers) {
-    await getUserIsInterviewer(interviewer as any);
+  if (interview?.interviewers) {
+    // check if interviewer match with the company
+    for (let interviewer of interview?.interviewers) {
+      await getUserIsInterviewer(interviewer as any);
+    }
   }
 
   try {
@@ -52,7 +52,7 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
     oldInterview.set(interview);
     await oldInterview.save();
 
-    return res.status(200).send({ interview: oldInterview });
+    return res.status(200).send(oldInterview);
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
