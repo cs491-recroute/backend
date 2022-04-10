@@ -1,4 +1,4 @@
-import { QuestionModel, QuestionDocument, Question, QuestionKeys, QuestionCategory, QuestionCategoryKeys, QuestionCategoryModel } from './../models/Question';
+import { QuestionModel, QuestionDocument, Question, QuestionKeys, QuestionCategory, QuestionCategoryKeys, QuestionCategoryModel, QUESTION_TYPES } from './../models/Question';
 import { TestModel, TestDocument } from './../models/Test';
 import express from "express";
 import { SERVICES } from "../../../../common/constants/services";
@@ -364,6 +364,10 @@ router.post('/test/:testID/question', createMiddleware(async (req, res) => {
     const test: TestDocument = await getUserTest(userID, testID);
     await checkFlow(test, userID);
 
+    if (question.type === QUESTION_TYPES.CODING) {
+      question.points = question.testCases?.reduce((acc, cur) => acc + cur.points, 0) || 0;
+    }
+
     const questionModel: QuestionDocument = new QuestionModel(question);
     test.questions.push(questionModel);
     await test.save();
@@ -403,6 +407,10 @@ router.put('/test/:testID/question/:questionID/all', createMiddleware(async (req
     // check prop for inconvenient change requests
     if (question.type && (question.type !== oldQuestion.type)) {
       throw new Error("Type of a question cannot be changed.");
+    }
+
+    if (oldQuestion.type === QUESTION_TYPES.CODING) {
+      question.points = question.testCases?.reduce((acc, cur) => acc + cur.points, 0) || 0;
     }
 
     oldQuestion.set(question);

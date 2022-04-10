@@ -24,10 +24,12 @@ export const QuestionOptionKeys = [
 export interface TestCase {
     input: String;
     output: String;
+    points: number;
 };
 export const testCaseSchema = new Schema<TestCase>({
     input: { type: String, required: true },
-    output: { type: String, required: true }
+    output: { type: String, required: true },
+    points: { type: Number }
 }, { autoCreate: false });
 export const TestCaseKeys = [
     "input",
