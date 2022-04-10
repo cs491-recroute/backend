@@ -102,14 +102,15 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
     if (!applicant) {
       return res.status(400).send({ message: 'Applicant not found!' });
     }
-    if (applicant.currentStageIndex == flow.stages.length) {
+    if (applicant.stageIndex == flow.stages.length) {
       return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
     }
 
-    applicant.currentStageIndex++;
+    applicant.stageIndex++;
+    applicant.stageCompleted = false;
     await flow.save();
 
-    if (applicant.currentStageIndex < flow.stages.length) {
+    if (applicant.stageIndex < flow.stages.length) {
       try {
         const { data: { company: { name: companyName } } } = await apiService.useService(SERVICES.user).get(`/company/${flow.companyID}`);
         if (!companyName) {
@@ -124,7 +125,7 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
         let body = nextStageInfo.BODY.replace(new RegExp("{companyName}", 'g'), companyName);
         body = body.replace(new RegExp("{flowName}", 'g'), flow.name.toString());
 
-        const stage = flow.stages[applicant.currentStageIndex];
+        const stage = flow.stages[applicant.stageIndex];
         if (!stage) {
           throw new Error("Stage not found!");
         }
@@ -169,33 +170,43 @@ router.post('/flow/:flowID/applicant/:applicantID/next', createMiddleware(async 
 
 // FORM SUBMISSIONS
 
-router.post('/form/:formID/submission/:email', createMiddleware(async (req, res) => {
+router.post('/form/:formID/submission/:identifier', createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Form Submission']
     #swagger.description = 'Submit a formSubmission and save it to applicant'
+    #swagger.parameters['withEmail'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
     #swagger.parameters['FormSubmission'] = { 
       in: 'body',
       required: true,
       schema: { $ref: '#/definitions/FormSubmission'}
     }
    */
-  const { formID, email } = req.params;
+  const { formID, identifier } = req.params;
+  var { withEmail }: any = req.query;
+  withEmail = (withEmail === "true") ? true : false;
+
   const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body, FormSubmissionDTOKeys);
   formSubmissionDTO.formID = new Types.ObjectId(formID);
+
+
 
   // send userID to user service and get form
   try {
     const form = await FormModel.findById(formID);
-    const formSubmission = formSubmissionMapper(form, formSubmissionDTO);
-
     if (!form) {
       return res.status(400).send({ message: "Form not found!" });
     }
+    const formSubmission = formSubmissionMapper(form, formSubmissionDTO);
 
     // check all form components in form if they are required and satisfied
     for (let component of form.components) {
       if (component?.required) {
-        if (!formSubmission.componentSubmissions.find(x => x.componentID === component?.id)) {
+        const submission = formSubmissionDTO.componentSubmissions.find(x => x.componentID === component?.id)
+        if (!submission?.value) {
           return res.status(400).send({ message: `Component: ${component?.title} is required!` });
         }
       }
@@ -210,109 +221,49 @@ router.post('/form/:formID/submission/:email', createMiddleware(async (req, res)
       throw new Error("Flow is not active!");
     }
 
-    var applicant = flow.applicants?.find(x => x.email === email);
-    if (applicant) {
-      if (applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
+    const stageIndex = flow.stages.findIndex(x => x.stageID.toString() === formID);
+    if (stageIndex === -1) {
+      throw new Error("Corrupted URL! Please contact Recroute.");
+    }
+    var applicant: ApplicantDocument;
+
+    // identifier is email
+    if (withEmail) {
+      // check if the form is the initial form
+      if (stageIndex !== 0) {
+        throw new Error("Only initial form of a flow can be submitted using email!");
+      }
+
+      applicant = flow.applicants?.find(x => x.email === identifier) as ApplicantDocument;
+      if (applicant) {
+        if (applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
+          return res.status(400).send({ message: "Only single submission is allowed." });
+        }
+        applicant.formSubmissions?.push(formSubmission);
+      }
+      else {
+        applicant = new ApplicantModel({ email: identifier, stageIndex: 0, stageCompleted: true, formSubmissions: [formSubmission] });
+        flow.applicants?.push(applicant);
+      }
+    }
+    // identifier is applicantID
+    else {
+      applicant = (flow.applicants as any).id(identifier);
+      if (!applicant) {
+        return res.status(400).send({ message: "Applicant not found!" });
+      }
+      if (applicant.stageIndex !== stageIndex) {
+        return res.status(400).send({ message: "Applicant is not allowed to submit this stage." });
+      }
+      if (applicant.stageCompleted || applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
       applicant.formSubmissions?.push(formSubmission);
+      applicant.stageCompleted = true;
     }
-    else {
-      applicant = new ApplicantModel({ email: email, currentStageIndex: 0, formSubmissions: [formSubmission] });
-      flow.applicants?.push(applicant);
-    }
-
-    // save flow with updated/new applicant
-    try {
-      await flow.save();
-    } catch (error: any) {
-      return res.status(400).send({ message: "Flow save error!", errorMessage: error.message });
-    }
-
-    try {
-      let html = await readHtml("info");
-
-      // TODO: applicant name -> header
-      const [applicantName, domain] = applicant.email.toString().split('@');
-      let header = submitInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
-      let body = submitInfo.BODY_FORM;
-
-      html = html.replace("{header}", header);
-      html = html.replace("{body}", body);
-
-      const mail = {
-        to: applicant.email.toString(),
-        subject: `(Recroute): Application submitted successfully`,
-        html: html
-      };
-      await MailService.sendMessage(mail);
-    } catch (error: any) {
-      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error | error.message }); // TODO: inform developers
-    }
-
-    return res.status(200).send({ formSubmission: formSubmissionDTO });
-  } catch (error: any) {
-    return res.status(400).send({ message: error.message });
-  }
-}));
-
-router.post('/form/:formID/submission/:applicantID', createMiddleware(async (req, res) => {
-  /*
-    #swagger.tags = ['Form Submission']
-    #swagger.description = 'Submit a formSubmission and save it to applicant'
-    #swagger.parameters['FormSubmission'] = { 
-      in: 'body',
-      required: true,
-      schema: { $ref: '#/definitions/FormSubmission'}
-    }
-   */
-  const { formID, applicantID } = req.params;
-  const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body, FormSubmissionDTOKeys);
-  formSubmissionDTO.formID = new Types.ObjectId(formID);
-
-  // send userID to user service and get form
-  try {
-    const form = await FormModel.findById(formID);
-    const formSubmission = formSubmissionMapper(form, formSubmissionDTO);
-
-    if (!form) {
-      return res.status(400).send({ message: "Form not found!" });
-    }
-
-    // check all form components in form if they are required and satisfied
-    for (let component of form.components) {
-      if (component?.required) {
-        if (!formSubmission.componentSubmissions.find(x => x.componentID === component?.id)) {
-          return res.status(400).send({ message: `Component: ${component?.title} is required!` });
-        }
-      }
-    }
-
-    // get flow and check if applicant already exists
-    const flow = await FlowModel.findById(form.flowID);
-    if (!flow) {
-      return res.status(400).send({ message: "Flow not found!" });
-    }
-    if (!flow.active) {
-      throw new Error("Flow is not active!");
-    }
-
-    const applicant: ApplicantDocument = (flow.applicants as any).id(applicantID);
-    if (!applicant) {
-      return res.status(400).send({ message: "Applicant not found!" });
-    }
-
-    if (applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
-      return res.status(400).send({ message: "Only single submission is allowed." });
-    }
-    applicant.formSubmissions?.push(formSubmission);
 
     // save flow with updated applicant
-    try {
-      await flow.save();
-    } catch (error: any) {
-      return res.status(400).send({ message: "Flow save error!", errorMessage: error.message });
-    }
+    await flow.save();
 
     try {
       let html = await readHtml("info");
@@ -368,7 +319,7 @@ router.post('/test/:testID/applicant/:applicantID/start', createMiddleware(async
     if (!applicant) {
       throw new Error("Applicant not found!");
     }
-    if (flow.stages.findIndex(x => x.stageID.toString() === testID) !== applicant.currentStageIndex) {
+    if (flow.stages.findIndex(x => x.stageID.toString() === testID) !== applicant.stageIndex) {
       throw new Error("Applicant is not in this stage!");
     }
 
@@ -376,7 +327,7 @@ router.post('/test/:testID/applicant/:applicantID/start', createMiddleware(async
       throw new Error("Applicant cannot reenter the same test!");
     }
 
-    const testStart = new TestStartModel({ testID: testID, applicantID: applicantID, startDate: new Date });
+    const testStart = new TestStartModel({ testID: testID, applicantID: applicantID, startDate: new Date() });
     await testStart.save();
     return res.status(200).send({ message: "success" });
   } catch (error: any) {
@@ -422,7 +373,8 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
       throw new Error("Start of the test is not logged!");
     }
 
-    const stage = flow.stages.find(x => x.stageID.toString() === testID);
+    const stageIndex = flow.stages.findIndex(x => x.stageID.toString() === testID);
+    const stage = flow.stages[stageIndex];
     if (!stage) {
       throw new Error("Stage not found!");
     }
@@ -434,7 +386,10 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     if (!applicant) {
       throw new Error("Applicant not found!");
     }
-    if (applicant?.testSubmissions?.find(x => x.testID.toString() === testID)) {
+    if (applicant.stageIndex !== stageIndex) {
+      throw new Error("Applicant is not allowed to submit this stage.");
+    }
+    if (applicant.stageCompleted || applicant?.testSubmissions?.find(x => x.testID.toString() === testID)) {
       throw new Error("Only single submission is allowed.");
     }
 
@@ -447,6 +402,7 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
 
     // save flow with updated applicant
     applicant.testSubmissions?.push(testSubmission);
+    applicant.stageCompleted = true;
     await flow.save();
 
     try {
@@ -475,11 +431,71 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
   }
 }));
 
-router.get('/:flowID/:stageID/:applicantID/access', createMiddleware(async (req, res) => {
-  const { flowID, stageID, applicantID } = req.params;
-  const { withEmail } = req.query;
-  console.log({ flowID, stageID, applicantID, withEmail });
-  return res.status(200).send({ message: 'test' });
+// STAGE ACCESSIBILITY
+
+router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Submission']
+    #swagger.description = 'Return ok if applicant can access to the stage'
+    #swagger.parameters['withEmail'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
+  */
+  const { flowID, stageID, identifier } = req.params;
+  var { withEmail }: any = req.query;
+  withEmail = (withEmail === "true") ? true : false;
+
+  // return error if email exist and not first form
+  try {
+    // get flow and check if applicant already exists
+    const flow = await FlowModel.findById(flowID);
+    if (!flow) {
+      return res.status(400).send({ message: "Flow not found!" });
+    }
+    if (!flow.active) {
+      throw new Error("Flow is not active!");
+    }
+
+    const stageIndex = flow.stages.findIndex(x => x.id === stageID);
+    if (stageIndex === -1) {
+      throw new Error("Corrupted URL! Please contact Recroute.");
+    }
+    const stage = flow.stages[stageIndex];
+    var applicant: ApplicantDocument;
+
+    // identifier is email
+    if (withEmail) {
+      // check if the form is the initial form
+      if (stageIndex !== 0) {
+        throw new Error("Only initial form of a flow can be submitted using email!");
+      }
+
+      applicant = flow.applicants?.find(x => x.email === identifier) as ApplicantDocument;
+      if (applicant && applicant?.formSubmissions?.find(x => x.formID.toString() === stage.stageID.toString())) {
+        return res.status(400).send({ message: "Only single submission is allowed." });
+      }
+    }
+    // identifier is applicantID
+    else {
+      applicant = (flow.applicants as any).id(identifier);
+      if (!applicant) {
+        return res.status(400).send({ message: "Applicant not found!" });
+      }
+      if (applicant.stageIndex !== stageIndex) {
+        return res.status(400).send({ message: "Applicant cannot access this stage." });
+      }
+      if (applicant.stageCompleted || applicant?.formSubmissions?.find(x => x.formID.toString() === stage.stageID.toString())) {
+        return res.status(400).send({ message: "Only single submission is allowed." });
+      }
+    }
+
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message });
+  }
+
+  return res.status(200).send({ message: 'success' });
 }));
 
 export { router as submissionRouter }

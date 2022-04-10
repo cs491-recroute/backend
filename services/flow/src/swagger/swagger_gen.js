@@ -25,26 +25,26 @@ const doc = {
         Flow: {
             name: "Senior Java Developer - 1",
             active: false,
-            startDate: new Date(Date.now()).toISOString(),
-            endDate: new Date(Date.now()).toISOString()
+            startDate: new Date().toISOString(),
+            endDate: new Date().toISOString()
         },
         Stage: {
             type: 'FORM',
             stageID: "Example: FormID",
-            startDate: new Date(Date.now()).toISOString(),
-            endDate: new Date(Date.now()).toISOString()
+            startDate: new Date().toISOString(),
+            endDate: new Date().toISOString()
         },
         Interview: {
             name: 'Developer Interview - 1',
             interviewLenghtInMins: 60,
             breakLengthInMins: 15,
-            startTime: new Date(Date.now()).toISOString(),
+            startTime: new Date().toISOString(),
             interviewers: ["6223d54f9c27487fa395cc89"]
         },
         InterviewInstance: {
             interviewee: "6223aad1ff1298ffb1e1ecc8",
             interviewer: "6223d54f9c27487fa395cc89",
-            startTime: new Date(Date.now()).toISOString(),
+            startTime: new Date().toISOString(),
             lengthInMins: 60
         },
         Grade: {
@@ -97,7 +97,7 @@ const doc = {
             type: "coding",
             description: "Please answer",
             testCases: [{ input: 1, output: 2 }, { input: 'test', output: 'tset' }],
-            categoryId: "625182833db70cfc30aaf2b7"
+            categoryID: "625182833db70cfc30aaf2b7"
         },
         QuestionCategory: {
             name: "Algorithm"

@@ -17,7 +17,7 @@ const schema = new Schema<Interview>({
     interviewLenghtInMins: { type: Number, required: true, default: 60 },
     breakLengthInMins: { type: Number, required: true, default: 15 },
     instances: { type: [InterviewInstanceSchema], required: false },
-    startTime: { type: Date, required: true, default: new Date(Date.now()) },
+    startTime: { type: Date, required: true, default: new Date() },
     interviewers: { type: [Schema.Types.ObjectId], ref: 'User', required: true }
 }, { timestamps: true });
 

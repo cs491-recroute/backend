@@ -7,11 +7,13 @@ import { FlowModel } from '../models/Flow';
 import { StageType } from '../models/Stage';
 import { deleteForm } from './formService';
 import { deleteTest } from './testService';
+import { TestStartModel } from '../models/TestStart';
 
 export async function deleteFlow(userID: string, flowID: string): Promise<any> {
     try {
         await apiService.useService(SERVICES.user).delete(`/user/${userID}/flow/${flowID}`);
         const flow = await FlowModel.findById(flowID);
+        // delete stages
         if (flow?.stages) {
             for (let stage of flow?.stages) {
                 var deleteStage;
@@ -21,6 +23,10 @@ export async function deleteFlow(userID: string, flowID: string): Promise<any> {
                         break;
                     case StageType.TEST:
                         deleteStage = deleteTest;
+                        const testStarts = await TestStartModel.find({ testID: stage.stageID });
+                        for (const testStart of testStarts) {
+                            await testStart.remove();
+                        }
                         break;
                     case StageType.FORM:
                         deleteStage = deleteForm;
@@ -42,7 +48,7 @@ export function parseStage(stage: any, removeAnswers = false) {
     return Object.keys(stage).reduce((acc, key) => {
         if (Object.values(StageType).includes(key as StageType)) {
             if (stage[key as keyof Stage]) {
-                const stageProps: Test = { ...stage[key as keyof Stage] }; 
+                const stageProps: Test = { ...stage[key as keyof Stage] };
                 if (removeAnswers && stage.type === StageType.TEST) {
                     stageProps.questions = stageProps.questions.map(question => {
                         question.options = question.options?.map(option => {

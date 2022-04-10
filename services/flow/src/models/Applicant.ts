@@ -67,14 +67,16 @@ export const TestSubmissionDTOKeys = [
 
 export interface Applicant {
     email: String,
-    currentStageIndex: Number,
+    stageIndex: Number,
+    stageCompleted: Boolean,
     formSubmissions?: FormSubmission[],
     testSubmissions?: TestSubmission[]
 };
 
 export const applicantSchema = new Schema<Applicant>({
     email: { type: String, required: true },
-    currentStageIndex: { type: Number, required: true },
+    stageIndex: { type: Number, default: 0 },
+    stageCompleted: { type: Boolean, default: false },
     formSubmissions: { type: [formSubmissionSchema] },
     testSubmissions: { type: [testSubmissionSchema] },
 }, { timestamps: true, autoCreate: false });
@@ -84,6 +86,8 @@ export type ApplicantDocument = HydratedDocument<Applicant> | null;
 
 export const ApplicantKeys = [
     "email",
-    "currentStageIndex",
-    "formSubmissions"
+    "stageIndex",
+    "stageCompleted",
+    "formSubmissions",
+    "testSubmissions"
 ];
