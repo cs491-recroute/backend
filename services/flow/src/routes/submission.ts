@@ -2,7 +2,7 @@ import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
 import { FlowDocument, FlowModel } from "../models/Flow";
-import { ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, FormSubmissionKeys, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
+import { ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, StageSubmission, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
 import { Types } from 'mongoose';
 import * as MailService from '../../../../common/services/gmail-api';
 import path from "path";
@@ -223,9 +223,11 @@ router.post('/form/:formID/submission/:identifier', createMiddleware(async (req,
 
     const stageIndex = flow.stages.findIndex(x => x.stageID.toString() === formID);
     if (stageIndex === -1) {
-      throw new Error("Corrupted URL! Please contact Recroute.");
+      throw new Error("Corrupted URL! Please contact Recroute."); // TODO: inform developers
     }
+    const stageID = flow.stages[stageIndex].id;
     var applicant: ApplicantDocument;
+    var stageSubmission: StageSubmission = { stageID: stageID, formSubmission: formSubmission };
 
     // identifier is email
     if (withEmail) {
@@ -236,13 +238,13 @@ router.post('/form/:formID/submission/:identifier', createMiddleware(async (req,
 
       applicant = flow.applicants?.find(x => x.email === identifier) as ApplicantDocument;
       if (applicant) {
-        if (applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
+        if (applicant?.stageSubmissions?.find(x => x.stageID.toString() === stageID)) {
           return res.status(400).send({ message: "Only single submission is allowed." });
         }
-        applicant.formSubmissions?.push(formSubmission);
+        applicant.stageSubmissions?.push(stageSubmission);
       }
       else {
-        applicant = new ApplicantModel({ email: identifier, stageIndex: 0, stageCompleted: true, formSubmissions: [formSubmission] });
+        applicant = new ApplicantModel({ email: identifier, stageIndex: 0, stageCompleted: true, stageSubmissions: [stageSubmission] });
         flow.applicants?.push(applicant);
       }
     }
@@ -255,10 +257,10 @@ router.post('/form/:formID/submission/:identifier', createMiddleware(async (req,
       if (applicant.stageIndex !== stageIndex) {
         return res.status(400).send({ message: "Applicant is not allowed to submit this stage." });
       }
-      if (applicant.stageCompleted || applicant?.formSubmissions?.find(x => x.formID.toString() === formID)) {
+      if (applicant.stageCompleted || applicant?.stageSubmissions?.find(x => x.stageID.toString() === stageID)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
-      applicant.formSubmissions?.push(formSubmission);
+      applicant.stageSubmissions?.push(stageSubmission);
       applicant.stageCompleted = true;
     }
 
@@ -382,6 +384,8 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
       throw new Error("Late submission is not allowed!");
     }
 
+    const stageSubmission: StageSubmission = { stageID: stage.id, testSubmission: testSubmission };
+
     const applicant: ApplicantDocument = (flow.applicants as any).id(applicantID);
     if (!applicant) {
       throw new Error("Applicant not found!");
@@ -389,7 +393,7 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     if (applicant.stageIndex !== stageIndex) {
       throw new Error("Applicant is not allowed to submit this stage.");
     }
-    if (applicant.stageCompleted || applicant?.testSubmissions?.find(x => x.testID.toString() === testID)) {
+    if (applicant.stageCompleted || applicant?.stageSubmissions?.find(x => x.stageID.toString() === stage.id)) {
       throw new Error("Only single submission is allowed.");
     }
 
@@ -401,7 +405,7 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     testSubmission.grade = totalGrade;
 
     // save flow with updated applicant
-    applicant.testSubmissions?.push(testSubmission);
+    applicant.stageSubmissions?.push(stageSubmission);
     applicant.stageCompleted = true;
     await flow.save();
 
@@ -473,7 +477,7 @@ router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, 
       }
 
       applicant = flow.applicants?.find(x => x.email === identifier) as ApplicantDocument;
-      if (applicant && applicant?.formSubmissions?.find(x => x.formID.toString() === stage.stageID.toString())) {
+      if (applicant && applicant?.stageSubmissions?.find(x => x.stageID.toString() === stage.id)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
     }
@@ -486,7 +490,7 @@ router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, 
       if (applicant.stageIndex !== stageIndex) {
         return res.status(400).send({ message: "Applicant cannot access this stage." });
       }
-      if (applicant.stageCompleted || applicant?.formSubmissions?.find(x => x.formID.toString() === stage.stageID.toString())) {
+      if (applicant.stageCompleted || applicant?.stageSubmissions?.find(x => x.stageID.toString() === stage.id)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
     }

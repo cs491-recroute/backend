@@ -2,7 +2,7 @@ import { Schema, model, HydratedDocument, Types } from 'mongoose';
 import { ComponentDocument, componentSchema } from './Component';
 
 export interface Form {
-    flowID: Types.ObjectId,
+    flowID?: Types.ObjectId,
     name: String,
     isTemplate: boolean,
     components: ComponentDocument[]

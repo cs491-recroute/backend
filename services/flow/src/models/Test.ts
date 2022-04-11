@@ -2,7 +2,7 @@ import { Question, questionSchema } from './Question';
 import { Schema, model, HydratedDocument, Types } from 'mongoose';
 
 export interface Test {
-    flowID: Types.ObjectId,
+    flowID?: Types.ObjectId,
     name: String,
     isTemplate: boolean,
     questions: Question[],

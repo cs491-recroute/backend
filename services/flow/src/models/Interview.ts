@@ -12,7 +12,7 @@ export interface Interview {
 };
 
 const schema = new Schema<Interview>({
-    flowID: { type: Schema.Types.ObjectId, ref: 'Flow' },
+    flowID: { type: Schema.Types.ObjectId, ref: 'Flow', required: true },
     name: { type: String, required: true, default: 'Interview' },
     interviewLengthInMins: { type: Number, required: true, default: 60 },
     breakLengthInMins: { type: Number, required: true, default: 15 },

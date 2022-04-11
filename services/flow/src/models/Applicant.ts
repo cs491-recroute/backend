@@ -63,22 +63,63 @@ export const TestSubmissionDTOKeys = [
     "questionSubmissions"
 ];
 
+// INTERVIEW SUBMISSION
+
+export interface InterviewSubmission {
+    instanceID: Types.ObjectId,
+    notes: String,
+    grade: Number
+}
+
+const interviewSubmissionSchema = new Schema<InterviewSubmission>({
+    instanceID: { type: Schema.Types.ObjectId, required: true },
+    notes: { type: String, default: '' },
+    grade: { type: Number, default: 0 }
+}, { timestamps: true, autoCreate: false });
+
+export const InterviewSubmissionKeys = [
+    "instanceID",
+    "notes",
+    "grade"
+];
+
+// STAGE SUBMISSION
+
+export interface StageSubmission {
+    stageID: Types.ObjectId,
+    formSubmission?: FormSubmission,
+    testSubmission?: TestSubmission,
+    interviewSubmission?: InterviewSubmission,
+}
+
+const stageSubmissionSchema = new Schema<StageSubmission>({
+    stageID: { type: Schema.Types.ObjectId, required: true },
+    formSubmission: { type: formSubmissionSchema, default: undefined },
+    testSubmission: { type: testSubmissionSchema, default: undefined },
+    interviewSubmission: { type: interviewSubmissionSchema, default: undefined }
+}, { timestamps: true, autoCreate: false });
+
+export const StageSubmissionKeys = [
+    "stageID",
+    "formSubmission",
+    "testSubmission",
+    "interviewSubmission"
+];
+
 // APPLICANT
 
 export interface Applicant {
     email: String,
     stageIndex: Number,
     stageCompleted: Boolean,
-    formSubmissions?: FormSubmission[],
-    testSubmissions?: TestSubmission[]
+    stageSubmissions?: StageSubmission[],
 };
 
 export const applicantSchema = new Schema<Applicant>({
     email: { type: String, required: true },
     stageIndex: { type: Number, default: 0 },
     stageCompleted: { type: Boolean, default: false },
-    formSubmissions: { type: [formSubmissionSchema] },
-    testSubmissions: { type: [testSubmissionSchema] },
+    stageSubmissions: { type: [stageSubmissionSchema], default: undefined }
 }, { timestamps: true, autoCreate: false });
 
 export const ApplicantModel = model<Applicant>("Applicant", applicantSchema);
