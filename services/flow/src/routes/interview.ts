@@ -1,6 +1,6 @@
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
-import { getUserInterview, getUserIsInterviewer } from "../controllers/interviewController";
+import { getUserAccess, getUserInterview } from "../controllers/interviewController";
 import { Interview, InterviewKeys } from "../models/Interview";
 import { InterviewInstance, InterviewInstanceKeys } from "../models/InterviewInstance";
 import { Prop, PropKeys } from "../models/Prop";
@@ -38,9 +38,8 @@ router.put('/interview/:interviewID/all', createMiddleware(async (req, res) => {
     return res.status(400).send({ message: "(id, _id) of an interview cannot be updated." });
   }
   if (interview?.interviewers) {
-    // check if interviewer match with the company
-    for (let interviewer of interview?.interviewers) {
-      await getUserIsInterviewer(interviewer as any);
+    for (const interviewer of interview.interviewers) {
+      await getUserAccess(interviewer.toString(), interviewID);
     }
   }
 
@@ -87,9 +86,8 @@ router.put('/interview/:interviewID', createMiddleware(async (req, res) => {
     case "instances":
       return res.status(400).send({ message: "Instances of an interview cannot be updated from this controller." });
     case "interviewers":
-      // TODO: check if interviewer match with the company
-      for (let interviewer of interviewProp.value) {
-        await getUserIsInterviewer(interviewer as any);
+      for (const interviewer of interviewProp.value) {
+        await getUserAccess(interviewer.toString(), interviewID);
       }
   }
 
@@ -153,8 +151,7 @@ router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(
 
 
   try {
-    // check if interviewer match with the company
-    await getUserIsInterviewer(instance.interviewer as any);
+    await getUserAccess(instance.interviewer as any, interviewID);
 
     const interview = await getUserInterview(userID, interviewID);
     const flow = await checkFlow(interview, userID);
