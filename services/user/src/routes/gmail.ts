@@ -39,6 +39,15 @@ router.get('/oauth2Callback', async (req: express.Request, res: express.Response
 
         await auth.saveToken(tokens);
 
+        oAuth2Client.on('tokens', async (tokens) => {
+            if (tokens.refresh_token) {
+                // store the refresh_token in my database!
+                await auth.saveToken(tokens);
+                console.log("TOKENS!" + tokens.refresh_token);
+            }
+            console.log("TOKENS!" + tokens.access_token);
+        });
+
         console.log('Successfully authorized');
         return res.send("<script>window.close();</script>");
     } catch (e) {

@@ -323,11 +323,11 @@ router.get('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
 
   try {
     let flow: FlowDocument = await FlowModel.findById(flowID);
-    if (!flow) return res.status(400).send({ message: "Job advert cannot be found!" });
+    if (!flow) return res.status(400).send({ message: "Job advert not found!" });
     if (!flow.active) return res.status(400).send({ message: "Job advert is not active for now!", flowName: flow.name });
 
     const stage: StageDocument = (flow.stages as any).id(stageID);
-    if (!stage) return res.status(400).send({ message: "Stage cannot be found!", flowName: flow.name });
+    if (!stage) return res.status(400).send({ message: "Stage not found!", flowName: flow.name });
 
     if (stage.startDate && moment(new Date()).isBefore(new Date(stage.startDate))) {
       const prettyDate = moment(new Date(stage.startDate)).locale('en').format('DD MMMM YYYY');
@@ -356,7 +356,7 @@ router.get('/question/:questionID', createMiddleware(async (req, res) => {
 
   try {
     const test: TestDocument = await TestModel.findOne({ 'questions._id': questionID });
-    if (!test) return res.status(400).send({ message: "Test cannot be found!" });
+    if (!test) return res.status(400).send({ message: "Test not found!" });
     const question = (test.questions as any).id(questionID);
 
     return res.status(200).send(question);

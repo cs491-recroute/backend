@@ -342,7 +342,7 @@ router.post('/flow/:flowID/invite/:email', createMiddleware(async (req, res) => 
 
       html = html.replace("{header}", header);
       html = html.replace("{body}", body);
-      html = html.replace("{link}", `${SERVERS.prod}/fill/${flow.id}/${flow.stages[0]?.id}`);
+      html = html.replace("{link}", `http://${SERVERS.prod}/fill/${flow.id}/${flow.stages[0]?.id}`);
 
       const mail = {
         to: email,
@@ -352,7 +352,7 @@ router.post('/flow/:flowID/invite/:email', createMiddleware(async (req, res) => 
       await MailService.sendMessage(mail);
       return res.status(200).send({ message: 'success' });
     } catch (error: any) {
-      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error || error.message }); // TODO: inform developers
+      return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error.message }); // TODO: inform developers
     }
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });

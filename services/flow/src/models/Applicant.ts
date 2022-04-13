@@ -1,6 +1,8 @@
-import { Schema, model, HydratedDocument, Types } from 'mongoose';
+import { Schema, model, HydratedDocument, Types, PaginateModel } from 'mongoose';
 import { ComponentSubmission, ComponentSubmissionDTO, componentSubmissionSchema } from './ComponentSubmission';
 import { QuestionSubmission, QuestionSubmissionDTO, questionSubmissionSchema } from './QuestionSubmission';
+import { StageType } from './Stage';
+import paginate from 'mongoose-paginate-v2';
 
 // FORM SUBMISSION
 
@@ -86,6 +88,7 @@ export const InterviewSubmissionKeys = [
 // STAGE SUBMISSION
 
 export interface StageSubmission {
+    type: StageType,
     stageID: Types.ObjectId,
     formSubmission?: FormSubmission,
     testSubmission?: TestSubmission,
@@ -93,6 +96,7 @@ export interface StageSubmission {
 }
 
 const stageSubmissionSchema = new Schema<StageSubmission>({
+    type: { type: String, enum: StageType, required: true },
     stageID: { type: Schema.Types.ObjectId, required: true },
     formSubmission: { type: formSubmissionSchema, default: undefined },
     testSubmission: { type: testSubmissionSchema, default: undefined },
@@ -100,6 +104,7 @@ const stageSubmissionSchema = new Schema<StageSubmission>({
 }, { timestamps: true, autoCreate: false });
 
 export const StageSubmissionKeys = [
+    "type",
     "stageID",
     "formSubmission",
     "testSubmission",
@@ -109,6 +114,7 @@ export const StageSubmissionKeys = [
 // APPLICANT
 
 export interface Applicant {
+    flowID: Types.ObjectId,
     email: String,
     stageIndex: Number,
     stageCompleted: Boolean,
@@ -116,16 +122,20 @@ export interface Applicant {
 };
 
 export const applicantSchema = new Schema<Applicant>({
+    flowID: { type: Schema.Types.ObjectId, ref: 'Flow', required: true },
     email: { type: String, required: true },
     stageIndex: { type: Number, default: 0 },
     stageCompleted: { type: Boolean, default: false },
     stageSubmissions: { type: [stageSubmissionSchema], default: undefined }
-}, { timestamps: true, autoCreate: false });
+}, { timestamps: true });
 
-export const ApplicantModel = model<Applicant>("Applicant", applicantSchema);
+applicantSchema.plugin(paginate);
+
+export const ApplicantModel = model<Applicant, PaginateModel<Applicant>>("Applicant", applicantSchema);
 export type ApplicantDocument = HydratedDocument<Applicant> | null;
 
 export const ApplicantKeys = [
+    "flowID",
     "email",
     "stageIndex",
     "stageCompleted",

@@ -48,6 +48,25 @@ router.get('/user/:userID/flows', createMiddleware(async (req, res) => {
     }
 }));
 
+router.get('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
+    /**
+     * #swagger.tags = ['User', 'Flow']
+     * #swagger.description = 'return true if user can access flowID - ( used by FlowService )'
+     */
+    const { userID, flowID } = req.params;
+    try {
+        const user: UserDocument = await UserModel.findById(userID);
+        if (!user) {
+            return res.status(400).send({ message: "No user found with UserID!" });
+        }
+        const { company: { flows } } = await user.populate<{ company: Company }>('company');
+        const flowIndex = flows.findIndex(x => x.toString() === flowID);
+        return res.status(200).send((flowIndex !== -1) ? flowID : false);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.messsage });
+    }
+}));
+
 router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
     /**
      * #swagger.tags = ['User', 'Flow']

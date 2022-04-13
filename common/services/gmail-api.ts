@@ -119,14 +119,10 @@ export const sendMessage = async ({ to, subject = '', text = '', html = '', atta
 
     const encodedMessage = await buildMessage();
 
-    try {
-        await gmail.users.messages.send({
-            userId: 'me',
-            requestBody: {
-                raw: encodedMessage
-            }
-        });
-    } catch (error: any) {
-        throw new Error(error || "Not authorized to send mail!");
-    }
+    await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: {
+            raw: encodedMessage
+        }
+    });
 }

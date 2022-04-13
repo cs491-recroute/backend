@@ -24,7 +24,6 @@ export const getNewToken = async () => {
 
     return oAuth2Client.generateAuthUrl({
         access_type: 'offline',
-        prompt: 'consent',
         scope: SCOPES,
     });
 }
@@ -45,8 +44,8 @@ export const getOAuth2Client = () => {
 
 const authenticate = (token: any) => {
     const oAuth2Client = getOAuth2Client();
-
     oAuth2Client.setCredentials(token);
+
     google.options({
         auth: oAuth2Client
     });
