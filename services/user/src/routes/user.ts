@@ -479,6 +479,27 @@ router.delete('/user/:userID/interview/:interviewID', createMiddleware(async (re
     }
 }));
 
+router.get('/users/interview/interviewers', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['Interview']
+     #swagger.description = 'Get all user names in the company'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     */
+    const userID = getUserID(req);
+
+    try {
+        const user = await getUser(userID);
+        const users = await UserModel.find({ company: user.company }).select("name");
+        return res.status(200).send(users);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
 // Test
 
 router.get('/user/:userID/tests', createMiddleware(async (req, res) => {
