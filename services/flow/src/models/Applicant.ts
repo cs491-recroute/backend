@@ -8,12 +8,12 @@ import paginate from 'mongoose-paginate-v2';
 
 export interface FormSubmission {
     formID: Types.ObjectId,
-    componentSubmissions: ComponentSubmission[];
+    componentSubmissions: { [key: string]: ComponentSubmission };
 }
 
 const formSubmissionSchema = new Schema<FormSubmission>({
     formID: { type: Schema.Types.ObjectId, ref: 'Form', required: true },
-    componentSubmissions: { type: [componentSubmissionSchema], default: [] }
+    componentSubmissions: { type: Map, of: componentSubmissionSchema, default: {} }
 }, { timestamps: true, autoCreate: false });
 
 export const FormSubmissionKeys = [
@@ -25,7 +25,7 @@ export const FormSubmissionKeys = [
 
 export interface FormSubmissionDTO {
     formID: Types.ObjectId,
-    componentSubmissions: ComponentSubmissionDTO[];
+    componentSubmissions: { [key: string]: ComponentSubmissionDTO };
 }
 
 export const FormSubmissionDTOKeys = [
@@ -37,13 +37,13 @@ export const FormSubmissionDTOKeys = [
 
 export interface TestSubmission {
     testID: Types.ObjectId,
-    questionSubmissions: QuestionSubmission[],
+    questionSubmissions: { [key: string]: QuestionSubmission },
     grade: Number
 }
 
 const testSubmissionSchema = new Schema<TestSubmission>({
     testID: { type: Schema.Types.ObjectId, ref: 'Test', required: true },
-    questionSubmissions: { type: [questionSubmissionSchema], default: [] },
+    questionSubmissions: { type: Map, of: questionSubmissionSchema, default: {} },
     grade: { type: Number, default: 0 }
 }, { timestamps: true, autoCreate: false });
 
@@ -57,7 +57,7 @@ export const TestSubmissionKeys = [
 
 export interface TestSubmissionDTO {
     testID: Types.ObjectId,
-    questionSubmissions: QuestionSubmissionDTO[];
+    questionSubmissions: { [key: string]: QuestionSubmissionDTO };
 }
 
 export const TestSubmissionDTOKeys = [
@@ -118,7 +118,7 @@ export interface Applicant {
     email: String,
     stageIndex: Number,
     stageCompleted: Boolean,
-    stageSubmissions?: StageSubmission[],
+    stageSubmissions?: { [key: string]: StageSubmission },
 };
 
 export const applicantSchema = new Schema<Applicant>({
@@ -126,7 +126,7 @@ export const applicantSchema = new Schema<Applicant>({
     email: { type: String, required: true },
     stageIndex: { type: Number, default: 0 },
     stageCompleted: { type: Boolean, default: false },
-    stageSubmissions: { type: [stageSubmissionSchema], default: undefined }
+    stageSubmissions: { type: Map, of: stageSubmissionSchema, default: {} }
 }, { timestamps: true });
 
 applicantSchema.plugin(paginate);

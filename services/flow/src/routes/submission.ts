@@ -179,8 +179,8 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
     }
    */
   const { formID, identifier } = req.params;
-  var { withEmail }: any = req.query;
-  withEmail = (withEmail === "true") ? true : false;
+  let { withEmail }: any = req.query;
+  withEmail = withEmail === "true";
 
   req.body.formData = JSON.parse(req.body.formData);
   const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body.formData, FormSubmissionDTOKeys);
@@ -207,7 +207,7 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
         type: file.mimetype,
         path: file.path
       };
-      const submission = formSubmissionDTO.componentSubmissions.find(x => x?.componentID === file.fieldname);
+      const submission = Object.values(formSubmissionDTO.componentSubmissions).find(x => x?.componentID === file.fieldname);
       if (submission) {
         submission.value = fileUpload;
       }
@@ -225,7 +225,7 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
     // check all form components in form if they are required and satisfied
     for (let component of form.components) {
       if (component?.required) {
-        const submission = formSubmissionDTO.componentSubmissions.find(x => x.componentID === component?.id)
+        const submission = Object.values(formSubmissionDTO.componentSubmissions).find(x => x.componentID === component?.id)
         if (!submission?.value) {
           return res.status(400).send({ message: `Component: ${component?.title} is required!` });
         }
@@ -264,13 +264,14 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
         if (flow.applicants.findIndex(x => x.equals(applicant?.id)) === -1) {
           throw new Error("Applicant does not exist on flow!");
         }
-        if (applicant?.stageSubmissions?.find(x => x.stageID.toString() === stageID)) {
+        if (applicant.get(`stageSubmissions.${stageID}`)) {
           return res.status(400).send({ message: "Only single submission is allowed." });
         }
-        applicant.stageSubmissions?.push(stageSubmission);
+        applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
       }
       else {
-        applicant = new ApplicantModel({ flowID: form.flowID, email: identifier, stageIndex: 0, stageCompleted: true, stageSubmissions: [stageSubmission] });
+        applicant = new ApplicantModel({ flowID: form.flowID, email: identifier, stageIndex: 0, stageCompleted: true });
+        applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
         flow.applicants.push(applicant._id);
       }
     }
@@ -280,11 +281,11 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
       if (applicant.stageIndex !== stageIndex) {
         return res.status(400).send({ message: "Applicant is not allowed to submit this stage." });
       }
-      if (applicant.stageCompleted || applicant?.stageSubmissions?.find(x => x.stageID.toString() === stageID)) {
+      if (applicant.stageCompleted || applicant.get(`stageSubmissions.${stageID}`)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
 
-      applicant.stageSubmissions?.push(stageSubmission);
+      applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
       applicant.stageCompleted = true;
     }
 
@@ -414,19 +415,19 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     if (applicant.stageIndex !== stageIndex) {
       throw new Error("Applicant is not allowed to submit this stage.");
     }
-    if (applicant.stageCompleted || applicant?.stageSubmissions?.find(x => x.stageID.toString() === stage.id)) {
+    if (applicant.stageCompleted || applicant.get(`stageSubmissions.${stage.id}`)) {
       throw new Error("Only single submission is allowed.");
     }
 
     // calculate total grade
     let totalGrade = 0;
-    for (const questionSubmission of testSubmission.questionSubmissions) {
+    for (const questionSubmission of Object.values(testSubmission.questionSubmissions)) {
       totalGrade += Number(questionSubmission.grade);
     }
     testSubmission.grade = totalGrade;
 
     // save flow with updated applicant
-    applicant.stageSubmissions?.push(stageSubmission);
+    applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
     applicant.stageCompleted = true;
     await applicant.save();
 
@@ -501,7 +502,7 @@ router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, 
         if (flow.applicants.findIndex(x => x.equals(applicant?.id)) === -1) {
           throw new Error("Applicant does not exist on flow!");
         }
-        if (applicant?.stageSubmissions?.find(x => x.stageID.toString() === stageID)) {
+        if (applicant.get(`stageSubmissions.${stageID}`)) {
           return res.status(400).send({ message: "Only single submission is allowed." });
         }
       }
@@ -512,7 +513,7 @@ router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, 
       if (applicant.stageIndex !== stageIndex) {
         return res.status(400).send({ message: "Applicant is not allowed to submit this stage." });
       }
-      if (applicant.stageCompleted || applicant?.stageSubmissions?.find(x => x.stageID.toString() === stageID)) {
+      if (applicant.stageCompleted || applicant.get(`stageSubmissions.${stageID}`)) {
         return res.status(400).send({ message: "Only single submission is allowed." });
       }
     }
@@ -547,8 +548,8 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
     #swagger.parameters['select'] = { 
       in: 'query',
       required: false,
-      description: 'Example: email stageIndex',
-      type: 'string'
+      description: 'Example: [email stageIndex]',
+      type: 'array'
     }
     #swagger.parameters['sort_by'] = { 
       in: 'query',
@@ -577,12 +578,16 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
    */
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const { stageIndex, stageCompleted } = req.query;
+  const { stageIndex, stageCompleted, select, sort_by, order_by, page, limit } = req.query;
   const paginateOptions = {
-    select: req.query.select,
-    sort: { [req.query.sort_by as string]: req.query.order_by },
-    page: Number(req.query.page),
-    limit: Number(req.query.limit)
+    ...(select && { select }),
+    ...(sort_by && { sort: { [sort_by as string]: order_by || 'desc' } }),
+    ...(page && { page: Number(page) }),
+    ...(limit && { limit: Number(limit) }),
+    populate: [
+      'stageSubmissions.$*.formSubmission.formID',
+      'stageSubmissions.$*.testSubmission.testID',
+    ]
   }
 
   // send userID to user service and get form

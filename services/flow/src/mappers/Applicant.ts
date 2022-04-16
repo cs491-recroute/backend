@@ -1,27 +1,31 @@
+import { QuestionSubmission } from './../models/QuestionSubmission';
+import { ComponentSubmission } from './../models/ComponentSubmission';
 import { FormSubmission, FormSubmissionDTO, TestSubmission, TestSubmissionDTO } from "../models/Applicant";
 import { componentSubmissionMapper } from "./ComponentSubmission";
 import { questionSubmissionMapper } from "./QuestionSubmission";
 
 export function formSubmissionMapper(form: any, formSubmissionDTO: FormSubmissionDTO): FormSubmission {
-    let componentSubmissions = [];
+    let componentSubmissions = {};
     if (formSubmissionDTO.componentSubmissions) {
-        for (let componentSubmissionDTO of formSubmissionDTO.componentSubmissions) {
-            const component = form.components.id(componentSubmissionDTO.componentID);
-            componentSubmissions.push(componentSubmissionMapper(component, componentSubmissionDTO));
-        }
+        componentSubmissions = Object.entries(formSubmissionDTO.componentSubmissions).reduce((acc, [key, value]) => {
+            const component = form.components.id(key);
+            acc[key] = componentSubmissionMapper(component, value);
+            return acc;
+        }, {} as { [key: string]: ComponentSubmission });
     }
 
-    return { formID: formSubmissionDTO.formID, componentSubmissions: componentSubmissions } as FormSubmission;
+    return { formID: formSubmissionDTO.formID, componentSubmissions } as FormSubmission;
 }
 
 export function testSubmissionMapper(test: any, testSubmissionDTO: TestSubmissionDTO): TestSubmission {
-    let questionSubmissions = [];
+    let questionSubmissions = {};
     if (testSubmissionDTO.questionSubmissions) {
-        for (let questionSubmissionDTO of testSubmissionDTO.questionSubmissions) {
-            const question = test.questions.id(questionSubmissionDTO.questionID);
-            questionSubmissions.push(questionSubmissionMapper(question, questionSubmissionDTO));
-        }
+        questionSubmissions = Object.entries(testSubmissionDTO.questionSubmissions).reduce((acc, [key, value]) => {
+            const question = test.questions.id(key);
+            acc[key] = questionSubmissionMapper(question, value);
+            return acc;
+        }, {} as { [key: string]: QuestionSubmission });
     }
 
-    return { testID: testSubmissionDTO.testID, questionSubmissions: questionSubmissions } as TestSubmission;
+    return { testID: testSubmissionDTO.testID, questionSubmissions } as TestSubmission;
 }

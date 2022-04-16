@@ -83,10 +83,10 @@ const doc = {
             placeholders: [""],
         },
         FormSubmission: {
-            componentSubmissions: [ComponentSubmission]
+            componentSubmissions: { "62370430195640b4f300ceaa": ComponentSubmission }
         },
         TestSubmission: {
-            questionSubmission: [QuestionSubmission]
+            questionSubmissions: { "62370430195640b4f300ceaa": QuestionSubmission }
         },
         Question: {
             type: "coding",
