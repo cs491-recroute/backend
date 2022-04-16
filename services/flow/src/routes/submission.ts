@@ -17,7 +17,9 @@ import { TestStartModel } from "../models/TestStart";
 import { TestModel } from "../models/Test";
 import { getFlowApplicant, getFlowApplicants, getFlowApplicantsPaginated, getUserApplicant } from "../controllers/applicantController";
 import { FilterQuery } from "mongoose";
-
+import { FileUpload } from "../models/ComponentSubmission";
+import { upload } from "../../../../common/constants/multer";
+import { deleteFile } from "../services/flowService";
 
 const router = express.Router();
 
@@ -154,10 +156,10 @@ router.post('/applicant/:applicantID/next', createMiddleware(async (req, res) =>
 
 // FORM SUBMISSIONS
 
-router.post('/form/:formID/submission/:identifier', createMiddleware(async (req, res) => {
+router.post('/form/:formID/submission/:identifier', upload.any(), createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Form Submission']
-    #swagger.description = 'Submit a formSubmission and save it to applicant'
+    #swagger.description = 'Submit a formSubmission and save it to applicant (not completely testable from swagger.)'
     #swagger.parameters['withEmail'] = { 
       in: 'query',
       required: false,
@@ -168,13 +170,49 @@ router.post('/form/:formID/submission/:identifier', createMiddleware(async (req,
       required: true,
       schema: { $ref: '#/definitions/FormSubmission'}
     }
+    #swagger.consumes = ['multipart/form-data']  
+    #swagger.parameters['file'] = {
+      in: 'formData',
+      type: 'file',
+      required: 'true',
+      description: 'Some description...',
+    }
    */
   const { formID, identifier } = req.params;
   var { withEmail }: any = req.query;
   withEmail = (withEmail === "true") ? true : false;
 
-  const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body, FormSubmissionDTOKeys);
+  req.body.formData = JSON.parse(req.body.formData);
+  const formSubmissionDTO = getBody<FormSubmissionDTO>(req.body.formData, FormSubmissionDTOKeys);
   formSubmissionDTO.formID = new Types.ObjectId(formID);
+
+  if (req.files) {
+    if (req.files.length > 3) {
+      // delete files
+      (req.files as any).forEach((file: any) => {
+        deleteFile(file.path);
+      });
+      throw new Error('Maximum 3 files are allowed');
+    }
+    (req.files as any).forEach((file: any) => {
+      if (file.size > 52428800) {
+        // delete files
+        (req.files as any).forEach((file: any) => {
+          deleteFile(file.path);
+        });
+        throw new Error('Maximum file size is 50MB');
+      }
+      const fileUpload: FileUpload = {
+        name: file.filename,
+        type: file.mimetype,
+        path: file.path
+      };
+      const submission = formSubmissionDTO.componentSubmissions.find(x => x?.componentID === file.fieldname);
+      if (submission) {
+        submission.value = fileUpload;
+      }
+    });
+  }
 
   // send userID to user service and get form
   try {
@@ -449,7 +487,6 @@ router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, 
     if (stageIndex === -1) {
       throw new Error("Corrupted URL! Please contact Recroute.");
     }
-    const stage = flow.stages[stageIndex];
     var applicant: ApplicantDocument;
 
     // identifier is email

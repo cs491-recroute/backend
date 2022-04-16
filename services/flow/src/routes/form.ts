@@ -176,7 +176,7 @@ router.get('/form/:formID/component', createMiddleware(async (req, res) => {
     const form: FormDocument = await getUserForm(userID, formID);
     return res.status(200).send(form.components);
   } catch (error: any) {
-    return res.status(400).send({ message: "User fetch error!", errorMessage: error.message });
+    return res.status(400).send({ message: error.message });
   }
 }));
 

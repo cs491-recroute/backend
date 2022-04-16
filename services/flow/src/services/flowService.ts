@@ -8,6 +8,7 @@ import { StageType } from '../models/Stage';
 import { deleteForm } from './formService';
 import { deleteTest } from './testService';
 import { TestStartModel } from '../models/TestStart';
+import fs from "fs-extra";
 
 export async function deleteFlow(userID: string, flowID: string): Promise<any> {
     try {
@@ -95,4 +96,12 @@ export async function checkFlow(stage: any, userID: any): Promise<any> {
         }
     }
     return flow;
+}
+
+export function deleteFile(path: string) {
+    fs.unlink(path, (err) => {
+        if (err) {
+            throw new Error(err.message);
+        }
+    })
 }

@@ -1,14 +1,15 @@
 import multer from "multer";
+import path from "path";
 
-export const PATH = '/home/recroute/uploads/';
+export const PATH = path.join(process.cwd().substring(0, process.cwd().lastIndexOf('/')) + '/uploads');
 
 const diskStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, PATH)
+        cb(null, PATH);
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.fieldname + '-' + uniqueSuffix)
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + file.originalname.substring(file.originalname.lastIndexOf('.')));
     }
 });
 

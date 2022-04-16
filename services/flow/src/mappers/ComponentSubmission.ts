@@ -39,7 +39,7 @@ export function componentSubmissionMapper(component: Component, componentSubmiss
             value.selection = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.UPLOAD:
-            value.fileName = componentSubmissionDTO.value;
+            value.upload = componentSubmissionDTO.value;
             break;
         case COMPONENT_TYPES.EMAIL:
             value.email = componentSubmissionDTO.value;
