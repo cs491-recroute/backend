@@ -6,6 +6,8 @@ import { Types } from "mongoose";
 import { Prop, PropKeys } from "../models/Prop";
 import { uploadAvatar } from "../../../../common/constants/multer";
 import { getUser } from "../services/userService";
+import { userToDTO } from "../mappers/User";
+import { getCompany } from "../services/companyService";
 
 const router = express.Router();
 
@@ -42,7 +44,16 @@ router.get('/user', createMiddleware(async (req, res) => {
 
     try {
         const user = await getUser(userID, true);
-        return res.status(200).send(user);
+        const company = await getCompany(user.company.toString(), "name zoomToken");
+
+        const userDTO = userToDTO(user);
+        const companyDTO = {
+            name: company.name,
+            isLinked: company.zoomToken ? true : false
+        }
+        userDTO.company = companyDTO;
+
+        return res.status(200).send(userDTO);
     } catch (error: any) {
         return res.status(400).send({ message: error.message });
     }

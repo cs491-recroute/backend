@@ -83,7 +83,7 @@ const doc = {
             placeholders: [""],
         },
         FormSubmission: {
-            componentSubmissions: { "62370430195640b4f300ceaa": ComponentSubmission }
+            formData: { componentSubmissions: { "62370430195640b4f300ceaa": ComponentSubmission } }
         },
         TestSubmission: {
             questionSubmissions: { "62370430195640b4f300ceaa": QuestionSubmission }

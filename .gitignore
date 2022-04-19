@@ -3,3 +3,4 @@ node_modules
 services/flow/src/swagger/swagger.json
 services/user/src/swagger/swagger.json
 common/constants/gmail_auth/
+common/constants/zoom_auth/

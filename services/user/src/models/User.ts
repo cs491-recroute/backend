@@ -57,8 +57,30 @@ export const UserKeys = [
   "name",
   "email",
   "company",
+  "profileImage",
   "roles",
   "availableTimes",
   "interviewInstances",
   "isAdmin"
+];
+
+// USER DTO
+
+export interface UserDTO {
+  name: String,
+  email: String,
+  company: { name: String, isLinked: boolean },
+  profileImage: Buffer,
+  roles: ROLES[],
+  availableTimes: TimeSlot[],
+};
+
+export const UserDTOKeys = [
+  "_id",
+  "name",
+  "email",
+  "company",
+  "profileImage",
+  "roles",
+  "availableTimes"
 ];

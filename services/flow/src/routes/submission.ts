@@ -170,11 +170,11 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
       required: true,
       schema: { $ref: '#/definitions/FormSubmission'}
     }
-    #swagger.consumes = ['multipart/form-data']  
+    #swagger.consumes = ['multipart/form-data']
     #swagger.parameters['file'] = {
       in: 'formData',
       type: 'file',
-      required: 'true',
+      required: 'false',
       description: 'Some description...',
     }
    */

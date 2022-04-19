@@ -1,4 +1,5 @@
 import { Schema, Types, model, HydratedDocument } from 'mongoose';
+import { Token } from 'nodemailer/lib/xoauth2';
 
 // QUESTION
 
@@ -22,11 +23,32 @@ const questionWrapperSchema = new Schema<QuestionWrapper>({
 export const QuestionWrapperModel = model<QuestionWrapper>("QuestionWrapper", questionWrapperSchema);
 export type QuestionWrapperDocument = HydratedDocument<QuestionWrapper> | null;
 
+// ZOOM TOKEN
+
+export interface ZoomToken {
+  access_token: String,
+  token_type: String,
+  refresh_token: String,
+  expires_in: Number,
+  scope: String
+}
+
+const zoomTokenSchema = new Schema<ZoomToken>({
+  access_token: { type: String, required: true },
+  token_type: { type: String, required: true },
+  refresh_token: { type: String, required: true },
+  expires_in: { type: Number, required: true },
+  scope: { type: String, required: true },
+}, { _id: false, autoCreate: false });
+
+export const ZoomTokenModel = model<ZoomToken>("ZoomToken", zoomTokenSchema);
+
 // COMPANY
 
 export interface Company {
   name: String,
   domain: String,
+  zoomToken: ZoomToken,
   users: Types.ObjectId[],
   flows: Types.ObjectId[],
   forms: Types.ObjectId[],
@@ -38,6 +60,7 @@ export interface Company {
 const schema = new Schema<Company>({
   name: { type: String, required: true },
   domain: { type: String, required: true },
+  zoomToken: { type: zoomTokenSchema },
   users: { type: [Schema.Types.ObjectId], ref: 'User' },
   flows: { type: [Schema.Types.ObjectId], ref: 'Flow' },
   forms: { type: [Schema.Types.ObjectId], ref: 'Form' },
