@@ -54,7 +54,8 @@ export interface Company {
   forms: Types.ObjectId[],
   tests: Types.ObjectId[],
   interviews: Types.ObjectId[],
-  questions: QuestionWrapper[]
+  questions: QuestionWrapper[],
+  apiKey: string
 }
 
 const schema = new Schema<Company>({
@@ -66,7 +67,8 @@ const schema = new Schema<Company>({
   forms: { type: [Schema.Types.ObjectId], ref: 'Form' },
   tests: { type: [Schema.Types.ObjectId], ref: 'Test' },
   interviews: { type: [Schema.Types.ObjectId], ref: 'Interview' },
-  questions: { type: [questionWrapperSchema] }
+  questions: { type: [questionWrapperSchema] },
+  apiKey: { type: String }
 }, { timestamps: true });
 
 export const CompanyModel = model<Company>("Company", schema);

@@ -50,6 +50,26 @@ router.get('/company', createMiddleware(async (req, res) => {
   return res.status(200).send(company);
 }));
 
+router.get('/company/flows', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Company']
+    #swagger.description = 'Get flows of the company with apiKey'
+    #swagger.parameters['apiKey'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+  */
+
+  const apiKey = req.query.apiKey?.toString();
+  const result: CompanyDocument = await CompanyModel.findOne({ apiKey }, 'flows');
+
+  if (!result) {
+    return res.status(400).send({ message: 'Company with the specified apiKey is not found' });
+  }
+  return res.status(200).send(result.flows || []);
+}));
+
 router.get('/company/:companyID', createMiddleware(async (req, res) => {
   /*
   #swagger.tags = ['Company']

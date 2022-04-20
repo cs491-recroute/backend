@@ -26,3 +26,27 @@ export async function getUserFlow(userID: string, flowID: string, query?: any): 
     throw new Error(error?.response?.data?.message || error);
   }
 }
+
+export async function getFlowWithApiKey(apiKey: string, flowID: string): Promise<NonNullable<FlowDocument>> {
+  try {
+    const { data: flows } = await apiService.useService(SERVICES.user).get(`/company/flows`, { params: { apiKey }});
+
+    if (!flows) {
+      throw new Error("Company has no flows!");
+    }
+
+    if (!flows.includes(flowID)) {
+      throw new Error("Company don't have flow with specified id!")
+    }
+
+    const flow: FlowDocument = await FlowModel.findById(flowID);
+
+    if (!flow) {
+      throw new Error("Not found");
+    }
+
+    return flow;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || error);
+  }
+};

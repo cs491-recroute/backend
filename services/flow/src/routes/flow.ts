@@ -1,11 +1,12 @@
 import express from "express";
+import cors from 'cors';
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { SERVERS, SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
 import { Flow, FlowDocument, FlowKeys, FlowModel } from "../models/Flow";
 import { StageType } from "../models/Stage";
 import { Condition, ConditionDocument, ConditionKeys, ConditionModel } from "../models/Condition";
-import { getUserFlow } from "../controllers/flowController";
+import { getUserFlow, getFlowWithApiKey } from "../controllers/flowController";
 import { Prop, PropKeys } from "../models/Prop";
 import { deleteFlow, parseStages } from '../services/flowService';
 import { readHtml } from "../../../../common/services/html_reader";
@@ -301,22 +302,33 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   }
 }));
 
-router.post('/flow/:flowID/invite/:email', createMiddleware(async (req, res) => {
+router.post('/flow/:flowID/invite/:email', cors(), createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Flow']
     #swagger.description = 'Invite email to apply for the flow'
     #swagger.parameters['userID'] = { 
       in: 'query',
-      required: true,
+      type: 'string'
+    }
+    #swagger.parameters['apiKey'] = { 
+      in: 'query',
       type: 'string'
     }
    */
 
   const { flowID, email } = req.params;
   const userID = getUserID(req);
+  const apiKey = req.query.apiKey?.toString();;
 
   try {
-    const flow = await getUserFlow(userID, flowID, req.query);
+    let flow: FlowDocument;
+    if (userID) {
+      flow = await getUserFlow(userID, flowID, req.query);
+    } else if (apiKey) {
+      flow = await getFlowWithApiKey(apiKey, flowID);
+    } else {
+      return res.status(400).send({ message: 'Authorization is failed!' });
+    }
 
     // check if flow active
     if (!flow.active) {
@@ -357,6 +369,28 @@ router.post('/flow/:flowID/invite/:email', createMiddleware(async (req, res) => 
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
+}));
+
+router.get('/activeFlows/:apiKey', cors(), createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Flow']
+    #swagger.description = 'Get active flow ID and names with API key'
+  */
+  const { apiKey } = req.params;
+
+  if (!apiKey) {
+    return res.status(400).send({ message: 'Specify apiKey!' });
+  }
+
+  let flows: FlowDocument[];
+  try {
+    const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/company/flows`, { params: { apiKey }});
+    flows = await FlowModel.find({ '_id': { $in: flowIDs }, active: true }, ['name', '_id']);
+  } catch (error: any) {
+    return res.status(400).send(error.response.data.message);
+  }
+  return res.status(200).send(flows);
+
 }));
 
 export { router as flowRouter }
