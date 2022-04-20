@@ -5,5 +5,5 @@ export enum SERVICES {
 };
 
 export enum SERVERS {
-    prod = "92.205.57.121"
+    prod = "recroute.co"
 };

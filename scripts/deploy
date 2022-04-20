@@ -1,6 +1,6 @@
 USERNAME="recroute"
 REMOTE_PATH="/home/${USERNAME}/backend"
-REMOTE_HOST="92.205.57.121"
+REMOTE_HOST="recroute.co"
 
 RSYNC_ARGS=(--delete --verbose --archive --compress)
 RSYNC_ARGS+=(--exclude-from "./scripts/.rsyncignore")

@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response, Application, RequestHandler } from 'express';
+import https from 'https';
+import fs from 'fs-extra';
 
 export function connectToDatabase(connectFunc: any, success: () => void, error: (err: string) => void) {
   const { DB_HOSTNAME, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME } = process.env;
@@ -14,7 +16,7 @@ export function connectToDatabase(connectFunc: any, success: () => void, error: 
 }
 
 export function mountExpress(app: Application, middlewares: Array<RequestHandler>) {
-  const { PORT, SERVICE_NAME } = process.env;
+  const { HOST, PORT, SERVICE_NAME } = process.env;
 
   // Logger
   app.use((req, res, next) => {
@@ -32,9 +34,30 @@ export function mountExpress(app: Application, middlewares: Array<RequestHandler
     return;
   });
 
+  if (HOST === "localhost") {
+    httpServer(app, PORT, SERVICE_NAME);
+  }
+  else {
+    httpsServer(app, PORT, SERVICE_NAME);
+  }
+}
+
+export function httpServer(app: Application, PORT: any, SERVICE_NAME: any) {
   app.listen(PORT, () => {
-    console.log(`${SERVICE_NAME} service is listening on port ${PORT}`);
-  })
+    console.log(`(http) ${SERVICE_NAME} service is listening on port ${PORT}`);
+  });
+}
+
+export function httpsServer(app: Application, PORT: any, SERVICE_NAME: any) {
+  const https_options = {
+    key: fs.readFileSync("/etc/ssl/recroute.co/generated-private-key.txt"),
+    cert: fs.readFileSync("/etc/ssl/recroute.co/acef6459c969fd6c.crt"),
+    ca: fs.readFileSync("/etc/ssl/recroute.co/gd_bundle-g2-g1.crt")
+  };
+
+  https.createServer(https_options, app).listen(PORT, () => {
+    console.log(`(https) ${SERVICE_NAME} service is listening on port ${PORT}`);
+  });
 }
 
 export function createMiddleware(callback: (req: Request, res: Response, next?: NextFunction) => Promise<Response<any, Record<string, any>> | void>) {

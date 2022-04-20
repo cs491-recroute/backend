@@ -3,7 +3,7 @@ services=('user' 'flow')
 host="localhost"
 
 if [[ "${1}" = "prod" ]]; then
-    host="92.205.57.121"
+    host="recroute.co"
 fi
 
 for i in "${!services[@]}"; do

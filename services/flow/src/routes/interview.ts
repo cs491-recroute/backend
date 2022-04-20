@@ -187,7 +187,7 @@ router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(
 
 }));
 
-router.put('/interview/:interviewID/instance/:instanceID/', createMiddleware(async (req, res) => {
+router.put('/interview/:interviewID/instance/:instanceID', createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Interview', 'InterviewInstance']
     #swagger.description = 'Update grade property of '

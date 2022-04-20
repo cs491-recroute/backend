@@ -21,6 +21,7 @@ const doc = {
         description: "Manage operations related to a flow"
     },
     host: host,
+    schemes: ['http', 'https'],
     definitions: {
         Flow: {
             name: "Senior Java Developer - 1",

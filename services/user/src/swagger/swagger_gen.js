@@ -11,6 +11,7 @@ const doc = {
         description: "Manage operations related to a user"
     },
     host: host,
+    schemes: ['http', 'https'],
     definitions: {
         Company: {
             name: "Google",
