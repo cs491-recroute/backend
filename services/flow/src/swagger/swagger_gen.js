@@ -108,6 +108,10 @@ const doc = {
             sort: { "stageIndex": 1 },
             page: 2,
             limit: 2
+        },
+        TimeSlotInfo: {
+            interviewerID: "625182833db70cfc30aaf2b7",
+            timeSlotID: "625182833db70cfc30aaf2b7"
         }
     }
 };

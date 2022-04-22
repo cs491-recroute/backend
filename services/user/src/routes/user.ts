@@ -1,13 +1,14 @@
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { ACCESS_MODIFIERS, Company, CompanyDocument, CompanyModel, QuestionWrapperModel } from "../models/Company";
-import { ROLES, TimeSlot, timeSlotKeys, UserDocument, UserModel } from "../models/User";
+import { ROLES, TimeSlot, timeSlotKeys, UserModel } from "../models/User";
 import { Types } from "mongoose";
 import { Prop, PropKeys } from "../models/Prop";
 import { uploadAvatar } from "../../../../common/constants/multer";
 import { getUser } from "../services/userService";
 import { userToDTO } from "../mappers/User";
 import { getCompany } from "../services/companyService";
+import { zoomRefreshToken } from "../services/oauthService";
 
 const router = express.Router();
 
@@ -39,11 +40,17 @@ router.get('/user', createMiddleware(async (req, res) => {
         required: true,
         type: 'string'
      }
+     #swagger.parameters['pp'] = { 
+        in: 'query',
+        required: false,
+        type: 'boolean'
+     }
      */
     const userID = getUserID(req);
+    const pp = !(req.query.pp === "false");
 
     try {
-        const user = await getUser(userID, true);
+        const user = await getUser(userID, pp);
         const company = await getCompany(user.company.toString(), "name zoomToken");
 
         const userDTO = userToDTO(user);
@@ -54,6 +61,62 @@ router.get('/user', createMiddleware(async (req, res) => {
         userDTO.company = companyDTO;
 
         return res.status(200).send(userDTO);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
+router.get('/user/company', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['User']
+     #swagger.description = 'return companyID of user'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     */
+    const userID = getUserID(req);
+
+    try {
+        const user = await getUser(userID, true);
+        return res.status(200).send(user.company);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
+router.get('/user/zoomtoken', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['User']
+     #swagger.description = 'return zoom token of user'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     #swagger.parameters['refresh'] = { 
+        in: 'query',
+        required: false,
+        type: 'boolean'
+     }
+     */
+    const userID = getUserID(req);
+    const refresh = req.query.refresh === "true";
+
+    try {
+        const user = await getUser(userID, true);
+        let zoomToken;
+        if (refresh) {
+            zoomToken = await zoomRefreshToken(user.company.toString());
+        }
+        else {
+            const company = await getCompany(user.company.toString(), "zoomToken");
+            zoomToken = company.zoomToken;
+        }
+
+        if (!zoomToken) throw new Error("Company zoom token is not found!");
+        return res.status(200).send(zoomToken.access_token);
     } catch (error: any) {
         return res.status(400).send({ message: error.message });
     }
@@ -107,7 +170,72 @@ router.put('/user', createMiddleware(async (req, res) => {
     }
 }));
 
-router.put('/user/time-slots', createMiddleware(async (req, res) => {
+router.put('/user/timeSlots/all', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['User']
+     #swagger.description = 'update all time slots'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     #swagger.parameters['TimeSlots'] = { 
+        in: 'body',
+        required: true,
+        schema: { $ref: '#/definitions/TimeSlots'}
+     }
+     */
+    const userID = getUserID(req);
+    let timeSlots = [];
+    if (req.body) {
+        for (let timeSlot of req.body) {
+            timeSlots.push(getBody<TimeSlot>(timeSlot, timeSlotKeys));
+        }
+    }
+
+    try {
+        const user = await getUser(userID);
+        user.availableTimes = timeSlots;
+        await user.save();
+        return res.status(200).send(user);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
+router.put('/user/timeSlot/:timeSlotID/all', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['User']
+     #swagger.description = 'update a timeSlot'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     #swagger.parameters['TimeSlot'] = { 
+        in: 'body',
+        required: true,
+        schema: { $ref: '#/definitions/TimeSlot'}
+     }
+     */
+    const userID = getUserID(req);
+    const { timeSlotID } = req.params;
+    let newTimeSlot = getBody<TimeSlot>(req.body, timeSlotKeys);
+
+    try {
+        const user = await getUser(userID);
+        const timeSlot = (user.availableTimes as any).id(timeSlotID);
+        if (!timeSlot) throw new Error("TimeSlot not found!");
+
+        timeSlot.set(newTimeSlot);
+        await user.save();
+        return res.status(200).send(user);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
+router.post('/user/timeSlots', createMiddleware(async (req, res) => {
     /**
      #swagger.tags = ['User']
      #swagger.description = 'add new time slots'
@@ -140,7 +268,7 @@ router.put('/user/time-slots', createMiddleware(async (req, res) => {
     }
 }));
 
-router.delete('/user/time-slots', createMiddleware(async (req, res) => {
+router.delete('/user/timeSlots', createMiddleware(async (req, res) => {
     /**
      #swagger.tags = ['User']
      #swagger.description = 'delete time slots'
@@ -507,6 +635,25 @@ router.get('/users/interview/interviewers', createMiddleware(async (req, res) =>
         const user = await getUser(userID);
         const users = await UserModel.find({ company: user.company }).select("name");
         return res.status(200).send(users);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
+router.get('/user/:userID/timeSlot/:timeSlotID', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['Interview']
+     #swagger.description = 'Get if user is available at time slot'
+     */
+    const { userID, timeSlotID } = req.params;
+
+    try {
+        const user = await getUser(userID);
+        const timeSlot: TimeSlot = (user.availableTimes as any).id(timeSlotID);
+        if (!timeSlot) throw new Error("TimeSlot not found!");
+        if (timeSlot.scheduled) throw new Error("TimeSlot is scheduled");
+
+        return res.status(200).send(timeSlot);
     } catch (error: any) {
         return res.status(400).send({ message: error.message });
     }

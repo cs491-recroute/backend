@@ -48,7 +48,7 @@ export const ZoomTokenModel = model<ZoomToken>("ZoomToken", zoomTokenSchema);
 export interface Company {
   name: String,
   domain: String,
-  zoomToken: ZoomToken,
+  zoomToken?: ZoomToken,
   users: Types.ObjectId[],
   flows: Types.ObjectId[],
   forms: Types.ObjectId[],

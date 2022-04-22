@@ -5,17 +5,23 @@ import paginate from 'mongoose-paginate-v2';
 
 export interface TimeSlot {
   startTime: Date,
-  durationInMins: Number
+  durationInMins: Number,
+  scheduled: Boolean,
+  meetingID?: String,
 }
 
 const timeSlotSchema = new Schema<TimeSlot>({
   startTime: { type: Date, required: true },
-  durationInMins: { type: Number, required: true }
+  durationInMins: { type: Number, required: true },
+  scheduled: { type: Boolean, default: false },
+  meetingID: { type: String, required: false }
 }, { autoCreate: false });
 
 export const timeSlotKeys = [
   "startTime",
-  "durationInMins"
+  "durationInMins",
+  "scheduled",
+  "meetingID"
 ];
 
 // ROLES

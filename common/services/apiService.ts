@@ -4,7 +4,6 @@ import { SERVICES } from '../constants/services';
 // eslint-disable-next-line no-unused-vars
 type ApiService = AxiosInstance & { useService: (service: SERVICES) => AxiosInstance }
 export const apiService = Axios.create() as ApiService;
-const { HOST } = process.env;
 
 let interceptor: number;
 apiService.useService = (service: SERVICES): AxiosInstance => {

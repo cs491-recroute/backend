@@ -12,7 +12,8 @@ export enum COMPONENT_TYPES {
     SINGLE_CHOICE = 'singleChoice',
     MULTIPLE_CHOICE = 'multipleChoice',
     UPLOAD = 'upload',
-    EMAIL = 'email'
+    EMAIL = 'email',
+    NUMBER = 'number'
 };
 
 export interface Option {
@@ -35,6 +36,7 @@ export interface Component {
     placeholder: String;
     placeholders: String[];
     options: Option[];
+    number: Number;
 }
 
 export const componentSchema = new Schema<Component>({
@@ -44,7 +46,8 @@ export const componentSchema = new Schema<Component>({
     titles: { type: [String], default: undefined },
     placeholder: { type: String, default: undefined },
     placeholders: { type: [String], default: undefined },
-    options: { type: [optionSchema], default: undefined }
+    options: { type: [optionSchema], default: undefined },
+    number: { type: Number, default: undefined }
 }, { timestamps: true, autoCreate: false });
 
 export const ComponentModel = model<Component>("Component", componentSchema);

@@ -5,7 +5,8 @@ export interface InterviewInstance {
     interviewer: Types.ObjectId;
     startTime: Date;
     lengthInMins: Number;
-    grade: Number;
+    meetingID: String;
+    grade?: Number;
 };
 
 export const InterviewInstanceSchema = new Schema<InterviewInstance>({
@@ -13,6 +14,7 @@ export const InterviewInstanceSchema = new Schema<InterviewInstance>({
     interviewer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     startTime: { type: Date, required: true },
     lengthInMins: { type: Number, required: true },
+    meetingID: { type: String, required: true },
     grade: { type: Number, required: false, default: undefined }
 }, { timestamps: true, autoCreate: false });
 
@@ -23,5 +25,6 @@ export const InterviewInstanceKeys = [
     "interviewer",
     "startTime",
     "lengthInMins",
+    "meetingID",
     "grade"
 ];

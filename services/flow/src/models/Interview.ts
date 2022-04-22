@@ -6,7 +6,7 @@ export interface Interview {
     name: String;
     interviewLengthInMins: Number;
     breakLengthInMins: Number;
-    instances?: InterviewInstance[];
+    instances: InterviewInstance[];
     startTime: Date;
     interviewers: Types.ObjectId[];
 };
@@ -16,7 +16,7 @@ const schema = new Schema<Interview>({
     name: { type: String, required: true, default: 'Interview' },
     interviewLengthInMins: { type: Number, required: true, default: 60 },
     breakLengthInMins: { type: Number, required: true, default: 15 },
-    instances: { type: [InterviewInstanceSchema], required: false },
+    instances: { type: [InterviewInstanceSchema] },
     startTime: { type: Date, required: true, default: new Date() },
     interviewers: { type: [Schema.Types.ObjectId], ref: 'User', required: true }
 }, { timestamps: true });

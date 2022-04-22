@@ -28,6 +28,12 @@ const doc = {
             name: "title",
             value: null
         },
+        TimeSlot: {
+            startTime: new Date().toISOString(),
+            durationInMins: 60,
+            scheduled: false,
+            meetingID: null
+        },
         TimeSlots: [{
             startTime: new Date().toISOString(),
             durationInMins: 60

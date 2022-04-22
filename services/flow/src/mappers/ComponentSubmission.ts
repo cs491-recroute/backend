@@ -44,6 +44,9 @@ export function componentSubmissionMapper(component: Component, componentSubmiss
         case COMPONENT_TYPES.EMAIL:
             value.email = componentSubmissionDTO.value;
             break;
+        case COMPONENT_TYPES.NUMBER:
+            value.number = componentSubmissionDTO.value;
+            break;
     }
 
     return value;
