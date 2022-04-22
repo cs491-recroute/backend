@@ -59,5 +59,6 @@ export const ComponentKeys = [
     "titles",
     "placeholder",
     "placeholders",
-    "options"
+    "options",
+    "number"
 ];
