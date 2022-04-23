@@ -548,9 +548,8 @@ router.post('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
    */
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const { stageIndex, stageCompleted, select, sort_by, order_by, page, limit, filters = {} } = req.body;
+  const { stageIndex, stageCompleted, sort_by, order_by, page, limit, filters = {} } = req.body;
   const paginateOptions = {
-    ...(select && { select }),
     ...(sort_by && { sort: { [sort_by as string]: order_by || 'desc' } }),
     ...(page && { page: Number(page) }),
     ...(limit && { limit: Number(limit) }),
@@ -566,7 +565,7 @@ router.post('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
     const query: FilterQuery<Applicant> = Object.entries(filters).reduce((acc, [key, value]) => {
       return { ...acc, [key]: { $regex: '.*' + value + '.*', $options: 'i' } };
     }, {});
-    if (stageIndex && stageCompleted) {
+    if (stageIndex !== undefined && stageCompleted !== undefined) {
       query.stageIndex = stageIndex;
       query.stageCompleted = stageCompleted;
       applicants = await getFlowApplicantsPaginated(userID, flowID, paginateOptions, query);
