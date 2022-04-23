@@ -112,6 +112,17 @@ const doc = {
         TimeSlotInfo: {
             interviewerID: "625182833db70cfc30aaf2b7",
             timeSlotID: "625182833db70cfc30aaf2b7"
+        },
+        SubmissionQueries: {
+            stageIndex: 1,
+            stageCompleted: true,
+            sort_by: 'email',
+            order_by: 'asc',
+            page: 1,
+            limit: 10,
+            filters: {
+                email: 'a'
+            }
         }
     }
 };

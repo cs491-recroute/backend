@@ -531,7 +531,7 @@ router.get('/:flowID/:stageID/:identifier/access', createMiddleware(async (req, 
 
 // STAGE SUBMISSIONS
 
-router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
+router.post('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Submission']
     #swagger.description = 'Get submissions with stage index and completed query'
@@ -540,50 +540,15 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
       required: true,
       type: 'string'
     }
-    #swagger.parameters['stageIndex'] = { 
-      in: 'query',
+    #swagger.parameters['Queries'] = { 
+      in: 'body',
       required: false,
-      type: 'number'
-    }
-    #swagger.parameters['stageCompleted'] = { 
-      in: 'query',
-      required: false,
-      type: 'boolean'
-    }
-    #swagger.parameters['select'] = { 
-      in: 'query',
-      required: false,
-      description: 'Example: [email stageIndex]',
-      type: 'array'
-    }
-    #swagger.parameters['sort_by'] = { 
-      in: 'query',
-      required: false,
-      description: 'Example: stageIndex',
-      type: 'string'
-    }
-    #swagger.parameters['order_by'] = { 
-      in: 'query',
-      required: false,
-      description: 'Example: asc | desc',
-      type: 'string'
-    }
-    #swagger.parameters['page'] = { 
-      in: 'query',
-      required: false,
-      description: 'Example: 2',
-      type: 'number'
-    }
-    #swagger.parameters['limit'] = { 
-      in: 'query',
-      required: false,
-      description: 'Example: 10',
-      type: 'number'
+      schema: { $ref: '#/definitions/SubmissionQueries' }
     }
    */
   const userID = getUserID(req);
   const { flowID } = req.params;
-  const { stageIndex, stageCompleted, select, sort_by, order_by, page, limit } = req.query;
+  const { stageIndex, stageCompleted, select, sort_by, order_by, page, limit, filters = {} } = req.body;
   const paginateOptions = {
     ...(select && { select }),
     ...(sort_by && { sort: { [sort_by as string]: order_by || 'desc' } }),
@@ -598,15 +563,16 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
   // send userID to user service and get form
   try {
     let applicants: PaginateResult<PrettyApplicant>;
+    const query: FilterQuery<Applicant> = Object.entries(filters).reduce((acc, [key, value]) => {
+      return { ...acc, [key]: { $regex: '.*' + value + '.*', $options: 'i' } };
+    }, {});
     if (stageIndex && stageCompleted) {
-      const query: FilterQuery<Applicant> = {
-        stageIndex: stageIndex,
-        stageCompleted: (stageCompleted === "true")
-      }
+      query.stageIndex = stageIndex;
+      query.stageCompleted = stageCompleted;
       applicants = await getFlowApplicantsPaginated(userID, flowID, paginateOptions, query);
     }
     else {
-      applicants = await getFlowApplicantsPaginated(userID, flowID, paginateOptions);
+      applicants = await getFlowApplicantsPaginated(userID, flowID, paginateOptions, query);
     }
     if (!applicants.docs) {
       applicants.docs = [];
