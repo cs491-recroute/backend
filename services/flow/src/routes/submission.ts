@@ -92,6 +92,10 @@ router.post('/applicant/:applicantID/next', createMiddleware(async (req, res) =>
       return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
     }
 
+    if (!applicant.stageCompleted) {
+      return res.status(400).send({ message: 'Applicant must complete current stage before moving to next stage!' });
+    };
+
     applicant.stageIndex = Number(applicant.stageIndex) + 1;
     applicant.stageCompleted = false;
     await applicant.save();

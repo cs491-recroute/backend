@@ -9,7 +9,7 @@ import { apiService } from "../../../../common/services/apiService";
 import { Applicant, ApplicantDocument, ApplicantModel } from "../models/Applicant";
 import { FlowDocument, FlowModel } from "../models/Flow";
 import { getUserFlow } from "./flowController";
-import { FilterQuery, PaginateModel, PaginateOptions, PaginateResult } from "mongoose";
+import { FilterQuery, PaginateModel, PaginateOptions, PaginateResult, Types } from "mongoose";
 import { COMPONENT_TYPES } from '../models/Component';
 import { StageType } from '../models/Stage';
 
@@ -156,6 +156,7 @@ const componentParser = (componentProps: ComponentDocument, answer: ComponentSub
 };
 
 export type PrettyApplicant = {
+    id: Types.ObjectId,
     stageIndex: Applicant['stageIndex'],
     email: Applicant['email'],
     stageCompleted: Applicant['stageCompleted'],
@@ -166,6 +167,7 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
     if (!applicant?.stageSubmissions) return null;
 
     const parsedApplicant: PrettyApplicant = {
+        id: applicant._id,
         stageIndex: applicant.stageIndex,
         email: applicant.email,
         stageCompleted: applicant.stageCompleted,
