@@ -608,7 +608,10 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
       applicants.docs = [];
     }
 
-    const counts = await ApplicantModel.aggregate([ { $group: { _id: { stageIndex: "$stageIndex", completed: "$stageCompleted" }, count: { $sum: 1 } }}]);
+    const counts = await ApplicantModel.aggregate([
+      { $match: { flowID: new Types.ObjectId(flowID) } }, 
+      { $group: { _id: { stageIndex: "$stageIndex", completed: "$stageCompleted" }, count: { $sum: 1 } }}
+    ]);
     const stageCounts = counts.map(({ _id: { stageIndex, completed }, count }) => ({ stageIndex, completed, count }));
     return res.status(200).send({ ...applicants, stageCounts });
   } catch (error: any) {
