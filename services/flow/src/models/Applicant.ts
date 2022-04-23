@@ -8,12 +8,12 @@ import paginate from 'mongoose-paginate-v2';
 
 export interface FormSubmission {
     formID: Types.ObjectId,
-    componentSubmissions: { [key: string]: ComponentSubmission };
+    componentSubmissions: Map<string, ComponentSubmission>;
 }
 
 const formSubmissionSchema = new Schema<FormSubmission>({
     formID: { type: Schema.Types.ObjectId, ref: 'Form', required: true },
-    componentSubmissions: { type: Map, of: componentSubmissionSchema, default: {} }
+    componentSubmissions: { type: Map, of: componentSubmissionSchema }
 }, { timestamps: true, autoCreate: false });
 
 export const FormSubmissionKeys = [
@@ -37,13 +37,13 @@ export const FormSubmissionDTOKeys = [
 
 export interface TestSubmission {
     testID: Types.ObjectId,
-    questionSubmissions: { [key: string]: QuestionSubmission },
+    questionSubmissions: Map<string, QuestionSubmission>,
     grade: Number
 }
 
 const testSubmissionSchema = new Schema<TestSubmission>({
     testID: { type: Schema.Types.ObjectId, ref: 'Test', required: true },
-    questionSubmissions: { type: Map, of: questionSubmissionSchema, default: {} },
+    questionSubmissions: { type: Map, of: questionSubmissionSchema },
     grade: { type: Number, default: 0 }
 }, { timestamps: true, autoCreate: false });
 
@@ -118,7 +118,7 @@ export interface Applicant {
     email: String,
     stageIndex: Number,
     stageCompleted: Boolean,
-    stageSubmissions?: { [key: string]: StageSubmission },
+    stageSubmissions?: Map<string, StageSubmission>,
 };
 
 export const applicantSchema = new Schema<Applicant>({

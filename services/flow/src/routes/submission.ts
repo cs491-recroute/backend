@@ -1,3 +1,4 @@
+import { PrettyApplicant } from './../controllers/applicantController';
 import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
@@ -592,7 +593,7 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
 
   // send userID to user service and get form
   try {
-    let applicants: PaginateResult<ApplicantDocument>;
+    let applicants: PaginateResult<PrettyApplicant>;
     if (stageIndex && stageCompleted) {
       const query: FilterQuery<Applicant> = {
         stageIndex: stageIndex,
@@ -607,7 +608,9 @@ router.get('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
       applicants.docs = [];
     }
 
-    return res.status(200).send(applicants);
+    const counts = await ApplicantModel.aggregate([ { $group: { _id: { stageIndex: "$stageIndex", completed: "$stageCompleted" }, count: { $sum: 1 } }}]);
+    const stageCounts = counts.map(({ _id: { stageIndex, completed }, count }) => ({ stageIndex, completed, count }));
+    return res.status(200).send({ ...applicants, stageCounts });
   } catch (error: any) {
     return res.status(400).send({ message: error.message });
   }
