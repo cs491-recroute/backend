@@ -1,16 +1,17 @@
 import { Schema, Types } from 'mongoose';
-import { COMPONENT_TYPES } from './Component';
 
 export interface FileUpload {
     name: String,
     type: String,
-    path: String
+    path: String,
+    originalName: String
 }
 
 export const fileUploadSchema = new Schema<FileUpload>({
     name: { type: String, required: true },
     type: { type: String, required: true },
     path: { type: String, required: true },
+    originalName: { type: String, required: true }
 }, { timestamps: true, autoCreate: false });
 
 // COMPONENT SUBMISSION

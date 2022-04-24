@@ -21,6 +21,7 @@ import { FilterQuery } from "mongoose";
 import { FileUpload } from "../models/ComponentSubmission";
 import { upload } from "../../../../common/constants/multer";
 import { deleteFile } from "../services/flowService";
+import fs from 'fs-extra';
 
 const router = express.Router();
 
@@ -46,6 +47,33 @@ router.get('/applicant/:applicantID', createMiddleware(async (req, res) => {
     return res.status(200).send(applicant);
   } catch (error: any) {
     return res.status(400).send({ message: "User fetch error!", errorMessage: error.message });
+  }
+}));
+
+router.get('/applicant/:applicantID/stage/:stageID/component/:componentID/file', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Applicant', 'File']
+    #swagger.description = 'Get file submitted by applicant '
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+   */
+  const userID = getUserID(req);
+  const { applicantID, stageID, componentID } = req.params;
+
+  try {
+    const applicant = await getUserApplicant(userID, applicantID);
+    const file = applicant.stageSubmissions?.get(stageID)
+      ?.formSubmission?.componentSubmissions?.get(componentID)?.upload;
+    if (!file) throw new Error("FileUpload schema is not found.");
+
+    res.setHeader('Content-Type', 'multipart/form-data');
+    res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+    return res.status(200).send(fs.readFileSync(file.path.toString()));
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message });
   }
 }));
 
@@ -210,7 +238,8 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
       const fileUpload: FileUpload = {
         name: file.filename,
         type: file.mimetype,
-        path: file.path
+        path: file.path,
+        originalName: file.originalname
       };
       const submission = Object.values(formSubmissionDTO.componentSubmissions).find(x => x?.componentID === file.fieldname);
       if (submission) {
@@ -578,8 +607,8 @@ router.post('/flow/:flowID/submissions', createMiddleware(async (req, res) => {
     }
 
     const counts = await ApplicantModel.aggregate([
-      { $match: { flowID: new Types.ObjectId(flowID) } }, 
-      { $group: { _id: { stageIndex: "$stageIndex", completed: "$stageCompleted" }, count: { $sum: 1 } }}
+      { $match: { flowID: new Types.ObjectId(flowID) } },
+      { $group: { _id: { stageIndex: "$stageIndex", completed: "$stageCompleted" }, count: { $sum: 1 } } }
     ]);
     const stageCounts = counts.map(({ _id: { stageIndex, completed }, count }) => ({ stageIndex, completed, count }));
     return res.status(200).send({ ...applicants, stageCounts });
