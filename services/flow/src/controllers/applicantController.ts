@@ -107,6 +107,10 @@ const componentParser = (componentProps: ComponentDocument, answer: ComponentSub
             value = answer.address;
             break;
         }
+        case COMPONENT_TYPES.NUMBER: {
+            value = answer.number;
+            break;
+        }
         case COMPONENT_TYPES.DATE_PICKER: {
             value = answer.date;
             break;
