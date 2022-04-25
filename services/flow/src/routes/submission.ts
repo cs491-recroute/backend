@@ -3,7 +3,7 @@ import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
 import { FlowModel } from "../models/Flow";
-import { Applicant, ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, StageSubmission, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
+import { Applicant, ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, InterviewSubmission, InterviewSubmissionKeys, StageSubmission, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
 import { PaginateResult, Types } from 'mongoose';
 import * as MailService from '../../../../common/services/gmail-api';
 import * as nextStageInfo from '../../../../common/constants/mail_templates/nextStageInfo';
@@ -22,6 +22,8 @@ import { FileUpload } from "../models/ComponentSubmission";
 import { upload } from "../../../../common/constants/multer";
 import { deleteFile } from "../services/flowService";
 import fs from 'fs-extra';
+import { getUserInterview } from '../controllers/interviewController';
+import { InterviewInstance } from '../models/InterviewInstance';
 
 const router = express.Router();
 
@@ -486,6 +488,60 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
       return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error.message }); // TODO: inform developers
     }
     return res.status(200).send({ testSubmission: testSubmissionDTO });
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message });
+  }
+}));
+
+// INTERVIEW SUBMISSIONS
+
+router.post('/interview/:interviewID/instance/:instanceID/sumbission/:applicantID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Interview Submission']
+    #swagger.description = 'Post interview grade and notes'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+    #swagger.parameters['InterviewSubmission'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/InterviewSubmission'}
+    }
+  */
+
+  const userID = getUserID(req);
+  const { interviewID, instanceID, applicantID } = req.params;
+  const interviewSubmission = getBody<InterviewSubmission>(req.body, InterviewSubmissionKeys);
+  interviewSubmission.instanceID = instanceID as any;
+
+  try {
+    const interview = await getUserInterview(userID, interviewID);
+    const instance: InterviewInstance = (interview.instances as any)?.id(instanceID);
+    if (!instance) throw new Error("Instance with instanceID not found!");
+    if (!instance.interviewer.equals(userID)) throw new Error("Only interviewer can grade the interview!");
+
+    const flow = await getUserFlow(userID, interview.flowID.toString());
+    if (!flow.active) throw new Error("Flow is not active!");
+    const stageIndex = flow.stages.findIndex(x => x.stageID.toString() === interviewID);
+    if (stageIndex === -1) throw new Error("Stage not found!");
+    const stage = flow.stages[stageIndex];
+
+    const applicant = await getFlowApplicant(applicantID, interview.flowID.toString());
+    if (applicant.stageIndex !== stageIndex) {
+      throw new Error("Applicant is not allowed to submit this stage.");
+    }
+    if (applicant.stageCompleted || applicant.stageSubmissions?.get(stage.id)) {
+      throw new Error("Only single submission is allowed.");
+    }
+
+    const stageSubmission: StageSubmission = { type: StageType.INTERVIEW, stageID: stage.id, interviewSubmission: interviewSubmission };
+    applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
+    applicant.stageCompleted = true;
+    await applicant.save();
+
+    return res.status(200).send({ message: "success" });
   } catch (error: any) {
     return res.status(400).send({ message: error.message });
   }

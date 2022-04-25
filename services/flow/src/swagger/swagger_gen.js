@@ -63,6 +63,7 @@ const doc = {
             value: '10'
         },
         Component: {
+            name: "City",
             type: "dropDown",
             required: true,
             title: "Select your city",
@@ -72,6 +73,7 @@ const doc = {
             placeholders: [""],
         },
         ComponentWithOptions: {
+            name: "City",
             type: "dropDown",
             required: true,
             title: "Select your city",
@@ -90,11 +92,13 @@ const doc = {
             questionSubmissions: { "62370430195640b4f300ceaa": QuestionSubmission }
         },
         Question: {
+            name: "PalindromicSubsequence",
             type: "coding",
             description: "Please answer",
             testCases: [{ input: 1, output: 2 }, { input: 'test', output: 'tset' }]
         },
         QuestionTemplate: {
+            name: "PalindromicSubsequence",
             type: "coding",
             description: "Please answer",
             testCases: [{ input: 1, output: 2 }, { input: 'test', output: 'tset' }],
@@ -123,6 +127,10 @@ const doc = {
             filters: {
                 email: 'a'
             }
+        },
+        InterviewSubmission: {
+            notes: "",
+            grade: 85
         }
     }
 };

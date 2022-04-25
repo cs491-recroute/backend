@@ -56,6 +56,7 @@ export interface Question {
     isTemplate: Boolean;
     categoryID?: Types.ObjectId;
     description: String;
+    name: String;
     type: QUESTION_TYPES;
     options?: QuestionOption[];
     testCases?: TestCase[];
@@ -66,6 +67,7 @@ export const questionSchema = new Schema<Question>({
     isTemplate: { type: Boolean, default: false },
     categoryID: { type: Schema.Types.ObjectId, ref: 'QuestionCategory', default: undefined },
     description: { type: String, required: true },
+    name: { type: String, required: true },
     type: { type: String, enum: QUESTION_TYPES, required: true },
     options: { type: [questionOptionSchema], default: undefined },
     testCases: { type: [testCaseSchema], default: undefined },
@@ -78,6 +80,7 @@ export const QuestionKeys = [
     "isTemplate",
     "categoryID",
     "description",
+    "name",
     "type",
     "options",
     "testCases",

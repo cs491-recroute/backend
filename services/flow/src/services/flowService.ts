@@ -3,19 +3,21 @@ import { Stage, StageDocument } from './../models/Stage';
 import { SERVICES } from '../../../../common/constants/services';
 import { apiService } from '../../../../common/services/apiService';
 import { getUserFlow } from '../controllers/flowController';
-import { FlowModel } from '../models/Flow';
+import { FlowDocument, FlowModel } from '../models/Flow';
 import { StageType } from '../models/Stage';
 import { deleteForm } from './formService';
 import { deleteTest } from './testService';
 import { TestStartModel } from '../models/TestStart';
 import fs from "fs-extra";
+import { ApplicantModel } from '../models/Applicant';
 
 export async function deleteFlow(userID: string, flowID: string): Promise<any> {
     try {
         await apiService.useService(SERVICES.user).delete(`/user/${userID}/flow/${flowID}`);
         const flow = await FlowModel.findById(flowID);
+        if (!flow) throw new Error("Flow not found!");
         // delete stages
-        if (flow?.stages) {
+        if (flow.stages) {
             for (let stage of flow?.stages) {
                 var deleteStage;
                 switch (stage.type) {
@@ -37,6 +39,12 @@ export async function deleteFlow(userID: string, flowID: string): Promise<any> {
                     throw new Error("Stage type is not correct!");
                 }
                 await deleteStage(userID, stage.stageID.toString());
+            }
+        }
+        if (flow.applicants) {
+            for (const applicantID of flow.applicants) {
+                // TODO: delete files uploaded by applicants
+                await ApplicantModel.findByIdAndDelete(applicantID);
             }
         }
         await flow?.remove();
@@ -86,17 +94,22 @@ export function parseStageProps(response: any, stage: any) {
     }, { type: stage.type, stageID: stage.stageID });
 }
 
-export async function checkFlow(stage: any, userID: any): Promise<any> {
+export async function checkFlow(stage: any, userID: any): Promise<NonNullable<FlowDocument>> {
     // check if flow active
-    var flow;
     if (stage.flowID) {
-        flow = await getUserFlow(userID, stage.flowID.toString());
+        const flow = await getUserFlow(userID, stage.flowID.toString());
+        if (!flow) {
+            throw new Error("Flow not found!");
+        }
         if (flow.active) {
             throw new Error("Stage of an active flow cannot be changed.");
         }
+        return flow;
+    } else {
+        throw new Error("Provided stage is a template!");
     }
-    return flow;
 }
+
 
 export function deleteFile(path: string) {
     fs.unlink(path, (err) => {

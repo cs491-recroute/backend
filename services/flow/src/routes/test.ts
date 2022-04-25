@@ -215,6 +215,11 @@ router.post('/templates/question', createMiddleware(async (req, res) => {
     required: true,
     type: 'string'
   }
+  #swagger.parameters['accessModifier'] = {
+    in: 'query',
+    required: false,
+    type: 'public | private'
+  }
   #swagger.parameters['Question'] = {
     in: 'body',
     required: true,
@@ -222,6 +227,7 @@ router.post('/templates/question', createMiddleware(async (req, res) => {
   }
   */
   const userID = getUserID(req);
+  const { accessModifier } = req.query;
   const question = getBody<Question>(req.body, QuestionKeys);
 
   try {
@@ -231,7 +237,7 @@ router.post('/templates/question', createMiddleware(async (req, res) => {
 
     const questionModel: QuestionDocument = new QuestionModel(question);
     questionModel.isTemplate = true;
-    await apiService.useService(SERVICES.user).post(`/user/${userID}/question/${questionModel.id}`);
+    await apiService.useService(SERVICES.user).post(`/user/${userID}/question/${questionModel.id}`, undefined, { params: { accessModifier } });
     await questionModel.save();
     return res.status(200).send(question);
   } catch (error: any) {

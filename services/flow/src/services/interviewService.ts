@@ -27,7 +27,7 @@ export async function setMeeting(access_token: string, meetingOptions: any, refr
                 retries++;
             }
             else {
-                throw error;
+                throw error.response.data.message;
             }
         }
     }

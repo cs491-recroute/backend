@@ -195,63 +195,6 @@ router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(
 
 }));
 
-router.put('/interview/:interviewID/instance/:instanceID', createMiddleware(async (req, res) => {
-  /*
-    #swagger.tags = ['Interview', 'InterviewInstance']
-    #swagger.description = 'Update grade property of '
-    #swagger.parameters['userID'] = { 
-      in: 'query',
-      required: true,
-      type: 'string'
-    }
-    #swagger.parameters['InstanceProp'] = { 
-      in: 'body',
-      required: true,
-      schema: { $ref: '#/definitions/Prop'}
-    }
-  */
-
-  const userID = getUserID(req);
-  const { interviewID, instanceID } = req.params;
-  const instanceProp = getBody<Prop>(req.body, PropKeys);
-
-  // check prop for inconvenient change requests
-  switch (instanceProp.name) {
-    case "_id" || "id":
-      return res.status(400).send({ message: "id cannot be changed." });
-    case "interviewee":
-      return res.status(400).send({ message: "Interviewee of an interview instance cannot be updated from this controller. (Try to delete and recreate it)" });
-    case "interviewer":
-    // send mail to old interviewer to say that the intereview is transferred.
-    // send mail to new interviewer about the interview information.
-    case "startTime":
-    // reschedule interview and send mail to both interviewee and interviewer.
-    case "lengthInMins":
-    // reschedule interview and send mail to both interviewee and interviewer.
-    case "grade":
-      if (instanceProp.value > 100 || instanceProp.value < 0) {
-        return res.status(400).send({ message: "Grade property should have value between 0 and 100." });
-      }
-  }
-
-  try {
-    // edit instance
-    const interview = await getUserInterview(userID, interviewID);
-    await checkFlow(interview, userID);
-
-    const instance = (interview.instances as any)?.id(instanceID);
-    if (!instance) {
-      return res.status(400).send({ message: "Instance with instanceID not found!" });
-    }
-
-    (instance as any)[instanceProp.name] = instanceProp.value;
-    await interview.save();
-    return res.status(200).send({ interview: interview });
-  } catch (error: any) {
-    return res.status(400).send({ message: error.message || error });
-  }
-}));
-
 router.post('/interview/:interviewID/instance', createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Interview', 'InterviewInstance']
@@ -384,7 +327,7 @@ router.post('/interview/:interviewID/instance', createMiddleware(async (req, res
       return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error.message }); // TODO: inform developers
     }
 
-    return res.status(200).send(meeting);
+    return res.status(200).send(instance);
   } catch (error: any) {
     console.log(error);
     return res.status(400).send({ message: error?.response?.data?.message || error.message });

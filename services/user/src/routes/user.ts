@@ -757,10 +757,11 @@ router.post('/user/:userID/question/:questionID', createMiddleware(async (req, r
      * #swagger.description = 'add question to user's company - ( used by FlowService )'
      */
     const { userID, questionID } = req.params;
+    const accessModifier = req.query.accessModifier === "public" ? ACCESS_MODIFIERS.PUBLIC : ACCESS_MODIFIERS.PRIVATE;
     try {
         const user = await getUser(userID);
         const { company } = await user.populate<{ company: Company }>('company');
-        const questionWrapper = new QuestionWrapperModel({ questionID: questionID, userID: userID, accessModifier: ACCESS_MODIFIERS.PRIVATE });
+        const questionWrapper = new QuestionWrapperModel({ questionID: questionID, userID: userID, accessModifier: accessModifier });
         company.questions.push(questionWrapper);
         await CompanyModel.updateOne(company);
         return res.status(200).send({ message: "success" });
