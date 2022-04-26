@@ -13,13 +13,17 @@ export async function zoomRefreshToken(companyID: string): Promise<ZoomToken> {
         grant_type: "refresh_token",
         refresh_token: company.zoomToken.refresh_token
     }
-    const response = await axios.post(`https://zoom.us/oauth/token`, undefined, { headers: { "Content-Type": contentType, "Authorization": clientAuth }, params: params });
-    if (response) {
-        company.zoomToken = new ZoomTokenModel(response.data);
-        await company.save();
-        return company.zoomToken;
-    }
-    else {
-        throw new Error("Refresh token is not saved!");
+    try {
+        const response = await axios.post(`https://zoom.us/oauth/token`, undefined, { headers: { "Content-Type": contentType, "Authorization": clientAuth }, params: params });
+        if (response) {
+            company.zoomToken = new ZoomTokenModel(response.data);
+            await company.save();
+            return company.zoomToken;
+        }
+        else {
+            throw new Error("Refresh token is not saved!");
+        }
+    } catch (error: any) {
+        throw new Error(error?.response?.data?.message || error.message || error);
     }
 }

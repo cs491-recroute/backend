@@ -1,5 +1,5 @@
 import express from "express";
-import { SERVICES } from "../../../../common/constants/services";
+import { SERVERS, SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { getFlowApplicant } from "../controllers/applicantController";
@@ -226,7 +226,7 @@ router.post('/interview/:interviewID/instance', createMiddleware(async (req, res
 
   try {
     const interview = await InterviewModel.findById(interviewID).populate<{ flowID: FlowDocument }>('flowID');
-    if (!interview) throw new Error("Interveiw not found!");
+    if (!interview) throw new Error("Interview not found!");
 
     // check if applicant is in the (interview => flow)
     const applicant = await getFlowApplicant(applicantID, interview.flowID.id);
@@ -305,16 +305,18 @@ router.post('/interview/:interviewID/instance', createMiddleware(async (req, res
       const { data: { email, name } } = await apiService.useService(SERVICES.user).get('/user', { params: { userID: timeSlotInfo.interviewerID } });
       if (!email || !name) throw Error("Interviewer is not reachable!");
 
-      let html = await readHtml("info_w_link");
+      let html = await readHtml("info_w_two_link");
       let header = meetingInfo.HEADER_INTERVIEVEWER.replace(new RegExp("{interviewer}", 'g'), name);
-      let body = meetingInfo.BODY_INTERVIEVEWER.replace(new RegExp("{date}", 'g'), new Date(meeting.start_time).toString());
+      let body = meetingInfo.BODY_INTERVIEVEWER_ZOOM.replace(new RegExp("{date}", 'g'), new Date(meeting.start_time).toString());
       body = body.replace(new RegExp("{flowName}", 'g'), interview.flowID.name.toString());
       body = body.replace(new RegExp("{interviewName}", 'g'), interview.name.toString());
       body = body.replace(new RegExp("{applicantEmail}", 'g'), applicant.email.toString());
 
       html = html.replace("{header}", header);
-      html = html.replace("{body}", body);
-      html = html.replace("{link}", meeting.start_url);
+      html = html.replace("{body_zoom}", body);
+      html = html.replace("{body_grade}", meetingInfo.BODY_INTERVIEVEWER_GRADE);
+      html = html.replace("{link_zoom}", meeting.start_url);
+      html = html.replace("{link_grade}", `http://${SERVERS.prod}/modal/${interview.id}/${instance.id}/${applicant.id}/grade`);
 
       const mail = {
         to: email,
