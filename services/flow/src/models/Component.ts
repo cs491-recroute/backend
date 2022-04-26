@@ -31,17 +31,19 @@ export const OptionKeys = [
 export interface Component {
     type: COMPONENT_TYPES;
     required: Boolean;
-    title: String;
-    titles: String[];
-    placeholder: String;
-    placeholders: String[];
-    options: Option[];
-    number: Number;
+    name?: String;
+    title?: String;
+    titles?: String[];
+    placeholder?: String;
+    placeholders?: String[];
+    options?: Option[];
+    number?: Number;
 }
 
 export const componentSchema = new Schema<Component>({
     type: { type: String, enum: COMPONENT_TYPES, required: true },
     required: { type: Boolean, required: true },
+    name: { type: String, default: undefined },
     title: { type: String, default: undefined },
     titles: { type: [String], default: undefined },
     placeholder: { type: String, default: undefined },
@@ -55,6 +57,7 @@ export type ComponentDocument = HydratedDocument<Component> | null;
 export const ComponentKeys = [
     "type",
     "required",
+    "name",
     "title",
     "titles",
     "placeholder",

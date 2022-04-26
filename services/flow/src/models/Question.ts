@@ -55,8 +55,8 @@ export const QuestionCategoryKeys = [
 export interface Question {
     isTemplate: Boolean;
     categoryID?: Types.ObjectId;
+    name?: String;
     description: String;
-    name: String;
     type: QUESTION_TYPES;
     options?: QuestionOption[];
     testCases?: TestCase[];
@@ -66,8 +66,8 @@ export interface Question {
 export const questionSchema = new Schema<Question>({
     isTemplate: { type: Boolean, default: false },
     categoryID: { type: Schema.Types.ObjectId, ref: 'QuestionCategory', default: undefined },
+    name: { type: String, default: "Question" },
     description: { type: String, required: true },
-    name: { type: String, required: true },
     type: { type: String, enum: QUESTION_TYPES, required: true },
     options: { type: [questionOptionSchema], default: undefined },
     testCases: { type: [testCaseSchema], default: undefined },
@@ -79,8 +79,8 @@ export type QuestionDocument = HydratedDocument<Question> | null;
 export const QuestionKeys = [
     "isTemplate",
     "categoryID",
-    "description",
     "name",
+    "description",
     "type",
     "options",
     "testCases",

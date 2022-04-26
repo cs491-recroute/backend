@@ -495,7 +495,7 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
 
 // INTERVIEW SUBMISSIONS
 
-router.post('/interview/:interviewID/instance/:instanceID/sumbission/:applicantID', createMiddleware(async (req, res) => {
+router.post('/interview/:interviewID/instance/:instanceID/submission/:applicantID', createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Interview Submission']
     #swagger.description = 'Post interview grade and notes'
