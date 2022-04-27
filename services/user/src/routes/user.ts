@@ -170,6 +170,63 @@ router.put('/user', createMiddleware(async (req, res) => {
     }
 }));
 
+router.get('/user/:targetUserID/timeSlots', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['User']
+     #swagger.description = 'get user time slots'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     */
+    const userID = getUserID(req);
+    const { targetUserID } = req.params;
+
+    try {
+        const user = await getUser(userID);
+        const targetUser = await getUser(targetUserID);
+        if (!user.company.equals(targetUser.company)) throw new Error("User cannot fetch user in another company!");
+
+        return res.status(200).send(targetUser.availableTimes);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
+router.post('/user/timeSlots', createMiddleware(async (req, res) => {
+    /**
+     #swagger.tags = ['User']
+     #swagger.description = 'add new time slots'
+     #swagger.parameters['userID'] = { 
+        in: 'query',
+        required: true,
+        type: 'string'
+     }
+     #swagger.parameters['TimeSlots'] = { 
+        in: 'body',
+        required: true,
+        schema: { $ref: '#/definitions/TimeSlots'}
+     }
+     */
+    const userID = getUserID(req);
+    let timeSlots = [];
+    if (req.body) {
+        for (let timeSlot of req.body) {
+            timeSlots.push(getBody<TimeSlot>(timeSlot, timeSlotKeys));
+        }
+    }
+
+    try {
+        const user = await getUser(userID);
+        user.availableTimes = user.availableTimes.concat(timeSlots);
+        await user.save();
+        return res.status(200).send(user);
+    } catch (error: any) {
+        return res.status(400).send({ message: error.message });
+    }
+}));
+
 router.put('/user/timeSlots/all', createMiddleware(async (req, res) => {
     /**
      #swagger.tags = ['User']
@@ -228,39 +285,6 @@ router.put('/user/timeSlot/:timeSlotID/all', createMiddleware(async (req, res) =
         if (!timeSlot) throw new Error("TimeSlot not found!");
 
         timeSlot.set(newTimeSlot);
-        await user.save();
-        return res.status(200).send(user);
-    } catch (error: any) {
-        return res.status(400).send({ message: error.message });
-    }
-}));
-
-router.post('/user/timeSlots', createMiddleware(async (req, res) => {
-    /**
-     #swagger.tags = ['User']
-     #swagger.description = 'add new time slots'
-     #swagger.parameters['userID'] = { 
-        in: 'query',
-        required: true,
-        type: 'string'
-     }
-     #swagger.parameters['TimeSlots'] = { 
-        in: 'body',
-        required: true,
-        schema: { $ref: '#/definitions/TimeSlots'}
-     }
-     */
-    const userID = getUserID(req);
-    let timeSlots = [];
-    if (req.body) {
-        for (let timeSlot of req.body) {
-            timeSlots.push(getBody<TimeSlot>(timeSlot, timeSlotKeys));
-        }
-    }
-
-    try {
-        const user = await getUser(userID);
-        user.availableTimes = user.availableTimes.concat(timeSlots);
         await user.save();
         return res.status(200).send(user);
     } catch (error: any) {
