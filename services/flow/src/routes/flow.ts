@@ -354,7 +354,7 @@ router.post('/flow/:flowID/invite/:email', cors(), createMiddleware(async (req, 
 
       html = html.replace("{header}", header);
       html = html.replace("{body}", body);
-      html = html.replace("{link}", `http://${SERVERS.prod}/fill/${flow.id}/${flow.stages[0]?.id}`);
+      html = html.replace("{link}", `http://${SERVERS.prod}/fill/${flow.id}/${flow.stages[0]?.id}?email=${email}`);
 
       const mail = {
         to: email,
