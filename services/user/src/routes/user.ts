@@ -2,7 +2,7 @@ import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { ACCESS_MODIFIERS, Company, CompanyDocument, CompanyModel, QuestionWrapperModel } from "../models/Company";
 import { ROLES, TimeSlot, timeSlotKeys, UserModel } from "../models/User";
-import { Types } from "mongoose";
+import { HydratedDocument, Types } from "mongoose";
 import { Prop, PropKeys } from "../models/Prop";
 import { uploadAvatar } from "../../../../common/constants/multer";
 import { getUser } from "../services/userService";
@@ -170,25 +170,33 @@ router.put('/user', createMiddleware(async (req, res) => {
     }
 }));
 
-router.get('/user/:targetUserID/timeSlots', createMiddleware(async (req, res) => {
+router.get('/user/timeSlots', createMiddleware(async (req, res) => {
     /**
      #swagger.tags = ['User']
-     #swagger.description = 'get user time slots'
-     #swagger.parameters['userID'] = { 
+     #swagger.description = 'get time slots of the users with their userID'
+     #swagger.parameters['userIDs'] = { 
         in: 'query',
         required: true,
-        type: 'string'
+        schema: { $ref: '#/definitions/TimeSlotIDs'}
      }
      */
-    const userID = getUserID(req);
-    const { targetUserID } = req.params;
+    const userIDs = JSON.parse(req.query.userIDs as string) as string[];
 
     try {
-        const user = await getUser(userID);
-        const targetUser = await getUser(targetUserID);
-        if (!user.company.equals(targetUser.company)) throw new Error("User cannot fetch user in another company!");
+        const timeSlotsDTO = [];
 
-        return res.status(200).send(targetUser.availableTimes);
+        for (const userID of userIDs) {
+            const user = await getUser(userID);
+            for (const timeSlot of user.availableTimes as HydratedDocument<TimeSlot>[]) {
+                const element = {
+                    interviewerID: userID,
+                    ...timeSlot.toJSON()
+                }
+                timeSlotsDTO.push(element);
+            }
+        }
+
+        return res.status(200).send(timeSlotsDTO);
     } catch (error: any) {
         return res.status(400).send({ message: error.message });
     }
