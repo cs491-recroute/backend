@@ -263,7 +263,7 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
                         if (componentProps?.type === COMPONENT_TYPES.HEADER) {
                             return;
                         }
-                        parsedComponents[componentID] = conditionComponentParser(componentProps, (value as any).toJSON());
+                        parsedComponents[componentID] = componentParser(componentProps, (value as any).toJSON());
                     });
                     result = parsedComponents;
                 }
@@ -314,7 +314,7 @@ export const parseStageSubmission = (stageSubmission: NonNullable<StageSubmissio
                     if (componentProps?.type === COMPONENT_TYPES.HEADER) {
                         return;
                     }
-                    parsedComponents[componentID] = componentParser(componentProps, (value as any).toJSON());
+                    parsedComponents[componentID] = conditionComponentParser(componentProps, (value as any).toJSON());
                 });
                 result = parsedComponents;
             }
