@@ -140,7 +140,67 @@ const componentParser = (componentProps: ComponentDocument, answer: ComponentSub
             break;
         }
         case COMPONENT_TYPES.SINGLE_CHOICE: {
-            value = (componentProps.options as any).id(answer.selection)?.description;
+            value = (componentProps.options as any).id(answer.selection)?.description; // TODO: Combine component parsers
+            break;
+        }
+        case COMPONENT_TYPES.UPLOAD: {
+            value = answer.upload;
+            break;
+        }
+        case COMPONENT_TYPES.EMAIL: {
+            value = answer.email;
+            break;
+        }
+    }
+    return {
+        componentID: answer.componentID,
+        value,
+        type: componentProps?.type
+    }
+};
+
+// TODO: Combine component parsers
+const conditionComponentParser = (componentProps: ComponentDocument, answer: ComponentSubmission) => {
+    let value: any = '';
+    switch (componentProps?.type) {
+        case COMPONENT_TYPES.ADRESS: {
+            value = answer.address;
+            break;
+        }
+        case COMPONENT_TYPES.NUMBER: {
+            value = answer.number;
+            break;
+        }
+        case COMPONENT_TYPES.DATE_PICKER: {
+            value = answer.date;
+            break;
+        }
+        case COMPONENT_TYPES.DROPDOWN: {
+            value = (componentProps.options as any).id(answer.selection).id;
+            break;
+        }
+        case COMPONENT_TYPES.FULL_NAME: {
+            value = { name: answer.name, surname: answer.surname };
+            break;
+        }
+        case COMPONENT_TYPES.LONG_TEXT: {
+            value = answer.text;
+            break;
+        }
+        case COMPONENT_TYPES.MULTIPLE_CHOICE: {
+            value = answer.selections?.map(optionID => (componentProps.options as any).id(optionID).id);
+            break;
+        }
+        case COMPONENT_TYPES.PHONE: {
+            value = answer.phoneNumber;
+            break;
+        }
+        case COMPONENT_TYPES.SHORT_TEXT: {
+            value = answer.text;
+            break;
+        }
+        case COMPONENT_TYPES.SINGLE_CHOICE: {
+            value = (componentProps.options as any).id(answer.selection).id;
             break;
         }
         case COMPONENT_TYPES.UPLOAD: {
@@ -203,7 +263,7 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
                         if (componentProps?.type === COMPONENT_TYPES.HEADER) {
                             return;
                         }
-                        parsedComponents[componentID] = componentParser(componentProps, (value as any).toJSON());
+                        parsedComponents[componentID] = conditionComponentParser(componentProps, (value as any).toJSON());
                     });
                     result = parsedComponents;
                 }

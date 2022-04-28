@@ -24,7 +24,16 @@ export async function checkCondition(flow: NonNullable<FlowDocument>, applicant:
             const componentSubmission = parsedStageSubmission?.[condition.field.toString()];
             if (!componentSubmission) return false;
 
-            const value = componentSubmission.value;
+            let value;
+            if (componentSubmission.type === COMPONENT_TYPES.FULL_NAME) {
+                value = `${componentSubmission.value.name} ${componentSubmission.value.surname}`
+            }
+            else {
+                value = componentSubmission.value;
+            }
+
+
+            if (value === null || value === undefined) return false;
             switch (typeof value) {
                 case "string": {
                     switch (condition.operation) {
@@ -65,23 +74,6 @@ export async function checkCondition(flow: NonNullable<FlowDocument>, applicant:
                 }
                 case "object": {
                     switch (componentSubmission.type) {
-                        case COMPONENT_TYPES.FULL_NAME: {
-                            switch (condition.operation) {
-                                case OPERATIONS.eq: {
-                                    return (componentSubmission.value.name.toLowerCase() === condition.value?.name.toLowerCase() &&
-                                        componentSubmission.value.surname.toLowerCase() === condition.value?.surname.toLowerCase());
-                                }
-                                case OPERATIONS.ne: {
-                                    return !(componentSubmission.value.name.toLowerCase() === condition.value?.name.toLowerCase() &&
-                                        componentSubmission.value.surname.toLowerCase() === condition.value?.surname.toLowerCase());
-                                }
-                                case OPERATIONS.includes: {
-                                    return ((componentSubmission.value.name as string).toLowerCase().includes(condition.value?.name.toLowerCase()) &&
-                                        (componentSubmission.value.surname as string).toLowerCase().includes(condition.value?.surname.toLowerCase()));
-                                }
-                            }
-                            break;
-                        }
                         case COMPONENT_TYPES.DATE_PICKER: {
                             switch (condition.operation) {
                                 case OPERATIONS.eq: {
@@ -135,6 +127,7 @@ export async function checkCondition(flow: NonNullable<FlowDocument>, applicant:
             if (!condition.field) {
                 // calculate grade over 100
                 const value = parsedStageSubmission.totalGrade / parsedStageSubmission.totalPoints * 100;
+                if (value === null || value === undefined) return false;
                 switch (condition.operation) {
                     case OPERATIONS.eq: {
                         return (value === condition.value);
@@ -163,6 +156,7 @@ export async function checkCondition(flow: NonNullable<FlowDocument>, applicant:
             if (!condition.field) {
                 // calculate grade over 100
                 const value = parsedStageSubmission.grade;
+                if (value === null || value === undefined) return false;
                 switch (condition.operation) {
                     case OPERATIONS.eq: {
                         return (value === condition.value);

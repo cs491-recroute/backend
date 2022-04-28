@@ -170,7 +170,7 @@ router.put('/user', createMiddleware(async (req, res) => {
     }
 }));
 
-router.get('/user/timeSlots', createMiddleware(async (req, res) => {
+router.get('/user/available/timeSlots', createMiddleware(async (req, res) => {
     /**
      #swagger.tags = ['User']
      #swagger.description = 'get time slots of the users with their userID'
@@ -188,11 +188,13 @@ router.get('/user/timeSlots', createMiddleware(async (req, res) => {
         for (const userID of userIDs) {
             const user = await getUser(userID);
             for (const timeSlot of user.availableTimes as HydratedDocument<TimeSlot>[]) {
-                const element = {
-                    interviewerID: userID,
-                    ...timeSlot.toJSON()
+                if (!timeSlot.scheduled && timeSlot.startTime > new Date()) {
+                    const element = {
+                        interviewerID: userID,
+                        ...timeSlot.toJSON()
+                    }
+                    timeSlotsDTO.push(element);
                 }
-                timeSlotsDTO.push(element);
             }
         }
 
