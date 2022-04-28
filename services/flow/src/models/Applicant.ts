@@ -111,6 +111,9 @@ export const StageSubmissionKeys = [
     "interviewSubmission"
 ];
 
+export const StageSubmissionModel = model<StageSubmission>("StageSubmission", stageSubmissionSchema);
+export type StageSubmissionDocument = HydratedDocument<StageSubmission> | null;
+
 // APPLICANT
 
 export interface Applicant {

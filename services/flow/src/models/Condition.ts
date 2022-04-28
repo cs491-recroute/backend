@@ -13,18 +13,18 @@ export enum OPERATIONS {
 
 export interface Condition {
   from: Types.ObjectId;
-  to: Types.ObjectId;
+  to?: Types.ObjectId;
   field?: Types.ObjectId; // If field is not specified, use 'from' stage as field
   operation: OPERATIONS;
-  value: String;
+  value: any;
 };
 
 export const ConditionSchema = new Schema<Condition>({
   from: { type: Schema.Types.ObjectId, required: true, ref: 'Stage' },
-  to: { type: Schema.Types.ObjectId, required: true, ref: 'Stage' },
-  field: { type: Schema.Types.ObjectId },
+  to: { type: Schema.Types.ObjectId, required: false, ref: 'Stage' },
+  field: { type: Schema.Types.ObjectId, default: undefined },
   operation: { type: String, enum: OPERATIONS, required: true },
-  value: { type: String, required: true }
+  value: { type: Schema.Types.Mixed, required: true }
 }, { timestamps: true, autoCreate: false });
 
 export const ConditionModel = model<Condition>("Condition", ConditionSchema);

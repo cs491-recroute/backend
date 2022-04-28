@@ -1,4 +1,4 @@
-import { Schema, Types } from 'mongoose';
+import { HydratedDocument, Schema, Types } from 'mongoose';
 
 export interface FileUpload {
     name: String,
@@ -69,3 +69,5 @@ export const ComponentSubmissionDTOKeys = [
     "componentID",
     "value"
 ];
+
+export type ComponentSubmissionDocument = HydratedDocument<ComponentSubmission> | null;

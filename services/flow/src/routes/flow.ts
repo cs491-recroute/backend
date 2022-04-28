@@ -254,6 +254,8 @@ router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
   };
 }));
 
+// CONDITION
+
 router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Flow']
@@ -281,26 +283,67 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
 
   try {
     const flow = await getUserFlow(userID, flowID, req.query);
-
-    // check if flow active
-    if (flow.active) {
-      return res.status(400).send({ message: "Cannot add a condition to an active flow." });
-    }
+    if (flow.active) throw new Error("Cannot add a condition to an active flow.");
 
     const fromIndex = flow.stages.findIndex(stage => stage.id === condition.from);
-    const toIndex = flow.stages.findIndex(stage => stage.id === condition.to);
+    if (fromIndex === -1) throw new Error("From stage id is incorrect");
 
-    if (fromIndex !== -1 && toIndex !== -1 && fromIndex + 1 === toIndex) {
-      let conditionModel: ConditionDocument = new ConditionModel(condition);
-      flow.conditions.push(conditionModel);
-      await flow.save();
-      return res.status(200).send({ condition: conditionModel });
-    }
-    return res.status(400).send({ message: 'Invalid condition' });
+    const conditionIndex = flow.conditions.findIndex(x => x.from.equals(condition.from));
+    if (conditionIndex !== -1) throw new Error("There is an existing condition for that stage");
+
+    let conditionModel: ConditionDocument = new ConditionModel(condition);
+    flow.conditions.push(conditionModel);
+    await flow.save();
+    return res.status(200).send({ condition: conditionModel });
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
 }));
+
+router.put('/flow/:flowID/condition/:conditionID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Flow']
+    #swagger.description = 'Update existing condition in flow with specified information'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+    #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
+    #swagger.parameters['Condition'] = { 
+      in: 'body',
+      required: true,
+      schema: { $ref: '#/definitions/Condition'}
+    }
+   */
+
+  const { flowID, conditionID } = req.params;
+  const userID = getUserID(req);
+  const condition = getBody<Condition>(req.body, ConditionKeys);
+
+  try {
+    const flow = await getUserFlow(userID, flowID, req.query);
+    if (flow.active) throw new Error("Cannot add a condition to an active flow.");
+
+    const fromIndex = flow.stages.findIndex(stage => stage.id === condition.from);
+    if (fromIndex === -1) throw new Error("From stage id is incorrect");
+
+    const oldCondition = (flow.conditions as any).id(conditionID);
+    if (!oldCondition) throw new Error("Condition not found!");
+
+    oldCondition.set(condition);
+    await flow.save();
+    return res.status(200).send(oldCondition);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+// INVITE
 
 router.post('/flow/:flowID/invite/:email', cors(), createMiddleware(async (req, res) => {
   /*
@@ -371,6 +414,8 @@ router.post('/flow/:flowID/invite/:email', cors(), createMiddleware(async (req, 
   }
 }));
 
+// API KEY
+
 router.get('/activeFlows/:apiKey', cors(), createMiddleware(async (req, res) => {
   /*
     #swagger.tags = ['Flow']
@@ -384,7 +429,7 @@ router.get('/activeFlows/:apiKey', cors(), createMiddleware(async (req, res) => 
 
   let flows: FlowDocument[];
   try {
-    const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/company/flows`, { params: { apiKey }});
+    const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/company/flows`, { params: { apiKey } });
     flows = await FlowModel.find({ '_id': { $in: flowIDs }, active: true }, ['name', '_id']);
   } catch (error: any) {
     return res.status(400).send(error.response.data.message);

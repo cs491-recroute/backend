@@ -3,13 +3,10 @@ import express from "express";
 import { createMiddleware, getBody, getUserID } from "../../../../common/services/utils";
 import { FormModel } from "../models/Form";
 import { FlowModel } from "../models/Flow";
-import { Applicant, ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, InterviewSubmission, InterviewSubmissionKeys, StageSubmission, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
+import { Applicant, ApplicantDocument, ApplicantModel, FormSubmissionDTO, FormSubmissionDTOKeys, InterviewSubmission, InterviewSubmissionKeys, StageSubmission, StageSubmissionDocument, StageSubmissionModel, TestSubmissionDTO, TestSubmissionDTOKeys } from "../models/Applicant";
 import { PaginateResult, Types } from 'mongoose';
 import * as MailService from '../../../../common/services/gmail-api';
-import * as nextStageInfo from '../../../../common/constants/mail_templates/nextStageInfo';
 import * as submitInfo from '../../../../common/constants/mail_templates/submitInfo';
-import { apiService } from "../../../../common/services/apiService";
-import { SERVERS, SERVICES } from "../../../../common/constants/services";
 import { StageType } from "../models/Stage";
 import { formSubmissionMapper, testSubmissionMapper } from "../mappers/Applicant";
 import { getUserFlow } from "../controllers/flowController";
@@ -24,6 +21,8 @@ import { deleteFile } from "../services/flowService";
 import fs from 'fs-extra';
 import { getUserInterview } from '../controllers/interviewController';
 import { InterviewInstance } from '../models/InterviewInstance';
+import { checkCondition } from '../services/conditionService';
+import { nextStage } from '../services/submissionService';
 
 const router = express.Router();
 
@@ -118,71 +117,8 @@ router.post('/applicant/:applicantID/next', createMiddleware(async (req, res) =>
   try {
     const applicant = await getUserApplicant(userID, applicantID);
     const flow = await getUserFlow(userID, applicant.flowID.toString());
-    if (applicant.stageIndex === flow.stages.length) {
-      return res.status(400).send({ message: 'Applicant already completed all stages, cannot increment current stage!' });
-    }
 
-    if (!applicant.stageCompleted) {
-      return res.status(400).send({ message: 'Applicant must complete current stage before moving to next stage!' });
-    };
-
-    applicant.stageIndex = Number(applicant.stageIndex) + 1;
-    applicant.stageCompleted = false;
-    await applicant.save();
-
-    if (applicant.stageIndex < flow.stages.length) {
-      try {
-        const { data: { company: { name: companyName } } } = await apiService.useService(SERVICES.user).get(`/company/${flow.companyID}`);
-        if (!companyName) {
-          throw new Error("Company not found!");
-        }
-
-        let html = await readHtml("info_w_link");
-
-        // TODO: applicant name -> header
-        const [applicantName, domain] = applicant.email.toString().split('@');
-        let header = nextStageInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
-        let body = nextStageInfo.BODY.replace(new RegExp("{companyName}", 'g'), companyName);
-        body = body.replace(new RegExp("{flowName}", 'g'), flow.name.toString());
-
-        const stage = flow.stages[Number(applicant.stageIndex)];
-        if (!stage) {
-          throw new Error("Stage not found!");
-        }
-
-        let nextStageText;
-        switch (stage.type) {
-          case StageType.FORM:
-            nextStageText = nextStageInfo.FORM;
-            break;
-          case StageType.TEST:
-            nextStageText = nextStageInfo.TEST;
-            break;
-          case StageType.INTERVIEW:
-            nextStageText = nextStageInfo.INTERVIEW;
-            break;
-        }
-        nextStageText = nextStageText.replace(new RegExp("{companyName}", 'g'), companyName);
-        body = body.replace(new RegExp("{stageInfo}", 'g'), nextStageText);
-        html = html.replace("{header}", header);
-        html = html.replace("{body}", body);
-        html = html.replace("{link}", `http://${SERVERS.prod}/fill/${flow.id}/${flow.stages[Number(applicant.stageIndex)].id}/${applicant.id}`);
-
-        const mail = {
-          to: applicant.email.toString(),
-          subject: `(Recroute): Congrats! Next stage is waiting for you on the Job in ${companyName}.`,
-          html: html
-        };
-
-        await MailService.sendMessage(mail);
-      } catch (error: any) {
-        return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error.message }); // TODO: inform developers
-      }
-    }
-    else {
-      // TODO: Stages are completed. What to do?
-    }
-
+    await nextStage(flow, applicant);
     return res.status(200).send({ message: 'success' });
   } catch (error: any) {
     console.log({ errorMessage: error || error.message });
@@ -286,7 +222,7 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
     }
     const stageID = flow.stages[stageIndex].id;
     var applicant: ApplicantDocument;
-    var stageSubmission: StageSubmission = { type: StageType.FORM, stageID: stageID, formSubmission: formSubmission };
+    var stageSubmission: StageSubmissionDocument = new StageSubmissionModel({ type: StageType.FORM, stageID: stageID, formSubmission: formSubmission });
 
     // identifier is email
     if (withEmail) {
@@ -348,6 +284,10 @@ router.post('/form/:formID/submission/:identifier', upload.any(), createMiddlewa
       await MailService.sendMessage(mail);
     } catch (error: any) {
       return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error.message }); // TODO: inform developers
+    }
+
+    if (await checkCondition(flow, applicant, stageSubmission.stageID.toString())) {
+      await nextStage(flow, applicant);
     }
 
     return res.status(200).send({ formSubmission: formSubmissionDTO });
@@ -445,7 +385,7 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
       throw new Error("Late submission is not allowed!");
     }
 
-    const stageSubmission: StageSubmission = { type: StageType.TEST, stageID: stage.id, testSubmission: testSubmission };
+    const stageSubmission: StageSubmissionDocument = new StageSubmissionModel({ type: StageType.TEST, stageID: stage.id, testSubmission: testSubmission });
 
     const applicant = await getFlowApplicant(applicantID, test.flowID.toString());
     if (applicant.stageIndex !== stageIndex) {
@@ -487,6 +427,11 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     } catch (error: any) {
       return res.status(400).send({ message: 'Not able to send mail!', errorMessage: error.message }); // TODO: inform developers
     }
+
+    if (await checkCondition(flow, applicant, stageSubmission.stageID.toString())) {
+      await nextStage(flow, applicant);
+    }
+
     return res.status(200).send({ testSubmission: testSubmissionDTO });
   } catch (error: any) {
     return res.status(400).send({ message: error.message });
@@ -536,10 +481,14 @@ router.post('/interview/:interviewID/instance/:instanceID/submission/:applicantI
       throw new Error("Only single submission is allowed.");
     }
 
-    const stageSubmission: StageSubmission = { type: StageType.INTERVIEW, stageID: stage.id, interviewSubmission: interviewSubmission };
+    const stageSubmission: StageSubmissionDocument = new StageSubmissionModel({ type: StageType.INTERVIEW, stageID: stage.id, interviewSubmission: interviewSubmission });
     applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
     applicant.stageCompleted = true;
     await applicant.save();
+
+    if (await checkCondition(flow, applicant, stageSubmission.stageID.toString())) {
+      await nextStage(flow, applicant);
+    }
 
     return res.status(200).send({ message: "success" });
   } catch (error: any) {

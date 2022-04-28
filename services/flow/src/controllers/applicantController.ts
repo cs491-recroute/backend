@@ -1,4 +1,4 @@
-import { Form } from './../models/Form';
+import { Form, FormDocument } from './../models/Form';
 import { ComponentSubmission } from './../models/ComponentSubmission';
 import { QuestionSubmission } from './../models/QuestionSubmission';
 import { QuestionDocument, QUESTION_TYPES } from './../models/Question';
@@ -6,10 +6,10 @@ import { ComponentDocument } from '../models/Component';
 import { Test } from './../models/Test';
 import { SERVICES } from "../../../../common/constants/services";
 import { apiService } from "../../../../common/services/apiService";
-import { Applicant, ApplicantDocument, ApplicantModel } from "../models/Applicant";
-import { FlowDocument, FlowModel } from "../models/Flow";
+import { Applicant, ApplicantDocument, ApplicantModel, FormSubmission, StageSubmission, StageSubmissionDocument } from "../models/Applicant";
+import { FlowModel } from "../models/Flow";
 import { getUserFlow } from "./flowController";
-import { FilterQuery, PaginateModel, PaginateOptions, PaginateResult, Types } from "mongoose";
+import { FilterQuery, HydratedDocument, PaginateModel, PaginateOptions, PaginateResult, Types } from "mongoose";
 import { COMPONENT_TYPES } from '../models/Component';
 import { StageType } from '../models/Stage';
 
@@ -177,7 +177,7 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
         stageCompleted: applicant.stageCompleted,
         stageSubmissions: {},
     };
-    
+
 
     applicant.stageSubmissions.forEach(stageSubmission => {
         let result;
@@ -213,7 +213,7 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
                 result = stageSubmission.interviewSubmission as any;
                 break;
             }
-            default: {}
+            default: { }
         }
         const { createdAt, updatedAt } = stageSubmission as any;
         parsedApplicant.stageSubmissions[stageSubmission.stageID.toString()] = {
@@ -223,6 +223,50 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
         };
     })
     return parsedApplicant;
+}
+
+export const parseStageSubmission = (stageSubmission: NonNullable<StageSubmissionDocument>) => {
+    let result;
+    switch (stageSubmission.type) {
+        case StageType.TEST: {
+            const { testID: testProps, questionSubmissions } = stageSubmission.testSubmission || {};
+            if (questionSubmissions) {
+                const parsedQuestions = {
+                    totalPoints: 0,
+                    totalGrade: 0
+                } as { [key: string]: any };
+                questionSubmissions.forEach((value, questionID) => {
+                    const questionProps = ((testProps as any as Test).questions as any).id(questionID);
+                    parsedQuestions[questionID] = questionParser(questionProps, (value as any).toJSON());
+                    parsedQuestions['totalPoints'] += questionProps.points;
+                    parsedQuestions['totalGrade'] += parsedQuestions[questionID].grade;
+                });
+                result = parsedQuestions;
+            }
+            break;
+        }
+        case StageType.FORM: {
+            const { formID: formProps, componentSubmissions } = stageSubmission.formSubmission || {};
+            if (componentSubmissions) {
+                const parsedComponents = {} as { [key: string]: any };
+                componentSubmissions.forEach((value, componentID) => {
+                    const componentProps: ComponentDocument = ((formProps as any as Form).components as any).id(componentID);
+                    if (componentProps?.type === COMPONENT_TYPES.HEADER) {
+                        return;
+                    }
+                    parsedComponents[componentID] = componentParser(componentProps, (value as any).toJSON());
+                });
+                result = parsedComponents;
+            }
+            break;
+        }
+        case StageType.INTERVIEW: {
+            result = stageSubmission.interviewSubmission as any;
+            break;
+        }
+        default: { }
+    }
+    return result;
 }
 
 export async function getFlowApplicantsPaginated(userID: string, flowID: string, options: PaginateOptions, query?: FilterQuery<Applicant>): Promise<NonNullable<PaginateResult<PrettyApplicant>>> {
