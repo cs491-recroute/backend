@@ -178,7 +178,7 @@ const conditionComponentParser = (componentProps: ComponentDocument, answer: Com
             break;
         }
         case COMPONENT_TYPES.DROPDOWN: {
-            value = (componentProps.options as any).id(answer.selection).id;
+            value = (componentProps.options as any).id(answer.selection)?.id;
             break;
         }
         case COMPONENT_TYPES.FULL_NAME: {
@@ -190,7 +190,7 @@ const conditionComponentParser = (componentProps: ComponentDocument, answer: Com
             break;
         }
         case COMPONENT_TYPES.MULTIPLE_CHOICE: {
-            value = answer.selections?.map(optionID => (componentProps.options as any).id(optionID).id);
+            value = answer.selections?.map(optionID => (componentProps.options as any).id(optionID)?.id);
             break;
         }
         case COMPONENT_TYPES.PHONE: {
@@ -202,7 +202,7 @@ const conditionComponentParser = (componentProps: ComponentDocument, answer: Com
             break;
         }
         case COMPONENT_TYPES.SINGLE_CHOICE: {
-            value = (componentProps.options as any).id(answer.selection).id;
+            value = (componentProps.options as any).id(answer.selection)?.id;
             break;
         }
         case COMPONENT_TYPES.UPLOAD: {
