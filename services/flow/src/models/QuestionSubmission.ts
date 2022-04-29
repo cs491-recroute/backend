@@ -14,7 +14,7 @@ export interface QuestionSubmission {
     text?: String,
     options?: Types.ObjectId[],
     code?: String,
-    grade: Number,
+    grade: number,
     testCaseResults: TestCaseResult[]
 }
 

@@ -78,7 +78,8 @@ const questionParser = (questionProps: QuestionDocument, answer: QuestionSubmiss
             return {
                 ...answer,
                 options: answer.options?.map(optionID => (questionProps.options as any).id(optionID)?.description),
-                type: questionProps.type
+                type: questionProps.type,
+                percentageGrade: questionProps.points ? Math.round((answer.grade / questionProps.points) * 100) : 0
             }
         }
         case QUESTION_TYPES.CODING: {
@@ -88,7 +89,8 @@ const questionParser = (questionProps: QuestionDocument, answer: QuestionSubmiss
                     ...(questionProps.testCases as any).id(testCaseID).toJSON(),
                     ...rest
                 })),
-                type: questionProps.type
+                type: questionProps.type,
+                percentageGrade: questionProps.points ? Math.round((answer.grade / questionProps.points) * 100) : 0
             }
         }
         default: {

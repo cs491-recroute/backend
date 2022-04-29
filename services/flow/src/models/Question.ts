@@ -60,7 +60,7 @@ export interface Question {
     type: QUESTION_TYPES;
     options?: QuestionOption[];
     testCases?: TestCase[];
-    points: Number
+    points: number
 };
 
 export const questionSchema = new Schema<Question>({
