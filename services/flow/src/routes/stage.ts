@@ -355,7 +355,7 @@ router.get('/question/:questionID', createMiddleware(async (req, res) => {
   const { questionID } = req.params;
 
   try {
-    const test: TestDocument = await TestModel.findOne({ 'questions._id': questionID });
+    const test: TestDocument = await TestModel.findOne({ 'questions._id': questionID, isTemplate: false });
     if (!test) return res.status(400).send({ message: "Test not found!" });
     const question = (test.questions as any).id(questionID);
 
