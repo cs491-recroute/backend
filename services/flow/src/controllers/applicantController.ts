@@ -243,9 +243,10 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
 
     applicant.stageSubmissions.forEach(stageSubmission => {
         let result;
+        let totalScore;
         switch (stageSubmission.type) {
             case StageType.TEST: {
-                const { testID: testProps, questionSubmissions } = stageSubmission.testSubmission || {};
+                const { testID: testProps, questionSubmissions, grade = 0 } = stageSubmission.testSubmission || {};
                 if (questionSubmissions) {
                     const parsedQuestions = {} as { [key: string]: any };
                     questionSubmissions.forEach((value, questionID) => {
@@ -253,6 +254,11 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
                         parsedQuestions[questionID] = questionParser(questionProps, (value as any).toJSON());
                     });
                     result = parsedQuestions;
+
+                    const totalPoints = (testProps as any as Test).questions.reduce((total, current) => {
+                        return total + (current.points || 0);
+                    }, 0);
+                    totalScore = totalPoints && Math.round((grade / totalPoints) * 100);
                 }
                 break;
             }
@@ -281,7 +287,8 @@ const parseApplicant = (applicant: ApplicantDocument): PrettyApplicant => {
         parsedApplicant.stageSubmissions[stageSubmission.stageID.toString()] = {
             date: createdAt || updatedAt,
             stageID: stageSubmission.stageID,
-            submissions: result
+            submissions: result,
+            ...(stageSubmission.type === StageType.TEST && { totalScore })
         };
     })
     return parsedApplicant;

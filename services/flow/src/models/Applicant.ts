@@ -38,7 +38,7 @@ export const FormSubmissionDTOKeys = [
 export interface TestSubmission {
     testID: Types.ObjectId,
     questionSubmissions: Map<string, QuestionSubmission>,
-    grade: Number
+    grade: number
 }
 
 const testSubmissionSchema = new Schema<TestSubmission>({

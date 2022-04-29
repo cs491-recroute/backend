@@ -385,6 +385,13 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
       throw new Error("Late submission is not allowed!");
     }
 
+    // calculate total grade
+    let totalGrade = 0;
+    for (const questionSubmission of Object.values(testSubmission.questionSubmissions)) {
+      totalGrade += Number(questionSubmission.grade);
+    }
+    testSubmission.grade = totalGrade;
+    
     const stageSubmission: StageSubmissionDocument = new StageSubmissionModel({ type: StageType.TEST, stageID: stage.id, testSubmission: testSubmission });
 
     const applicant = await getFlowApplicant(applicantID, test.flowID.toString());
@@ -394,13 +401,6 @@ router.post('/test/:testID/submission/:applicantID', createMiddleware(async (req
     if (applicant.stageCompleted || applicant.get(`stageSubmissions.${stage.id}`)) {
       throw new Error("Only single submission is allowed.");
     }
-
-    // calculate total grade
-    let totalGrade = 0;
-    for (const questionSubmission of Object.values(testSubmission.questionSubmissions)) {
-      totalGrade += Number(questionSubmission.grade);
-    }
-    testSubmission.grade = totalGrade;
 
     // save flow with updated applicant
     applicant.set(`stageSubmissions.${stageSubmission.stageID}`, stageSubmission);
