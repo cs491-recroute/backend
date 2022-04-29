@@ -294,7 +294,7 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
     let conditionModel: ConditionDocument = new ConditionModel(condition);
     flow.conditions.push(conditionModel);
     await flow.save();
-    return res.status(200).send({ condition: conditionModel });
+    return res.status(200).send(flow);
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
@@ -337,7 +337,7 @@ router.put('/flow/:flowID/condition/:conditionID', createMiddleware(async (req, 
 
     oldCondition.set(condition);
     await flow.save();
-    return res.status(200).send(oldCondition);
+    return res.status(200).send(flow);
   } catch (error: any) {
     return res.status(400).send({ message: error.message || error });
   }
