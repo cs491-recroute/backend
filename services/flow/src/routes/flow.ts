@@ -258,7 +258,7 @@ router.delete('/flow/:flowID', createMiddleware(async (req, res) => {
 
 router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
   /*
-    #swagger.tags = ['Flow']
+    #swagger.tags = ['Flow', 'Condition']
     #swagger.description = 'Create new condition to flow with specified information'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -302,7 +302,7 @@ router.post('/flow/:flowID/condition', createMiddleware(async (req, res) => {
 
 router.put('/flow/:flowID/condition/:conditionID', createMiddleware(async (req, res) => {
   /*
-    #swagger.tags = ['Flow']
+    #swagger.tags = ['Flow', 'Condition']
     #swagger.description = 'Update existing condition in flow with specified information'
     #swagger.parameters['userID'] = { 
       in: 'query',
@@ -336,6 +336,40 @@ router.put('/flow/:flowID/condition/:conditionID', createMiddleware(async (req, 
     if (!oldCondition) throw new Error("Condition not found!");
 
     oldCondition.set(condition);
+    await flow.save();
+    return res.status(200).send(flow.conditions);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
+}));
+
+router.delete('/flow/:flowID/condition/:conditionID', createMiddleware(async (req, res) => {
+  /*
+    #swagger.tags = ['Flow', 'Condition']
+    #swagger.description = 'Delete existing condition in flow'
+    #swagger.parameters['userID'] = { 
+      in: 'query',
+      required: true,
+      type: 'string'
+    }
+    #swagger.parameters['applicants'] = { 
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
+   */
+
+  const { flowID, conditionID } = req.params;
+  const userID = getUserID(req);
+
+  try {
+    const flow = await getUserFlow(userID, flowID, req.query);
+    if (flow.active) throw new Error("Cannot add a condition to an active flow.");
+
+    const oldCondition: ConditionDocument = (flow.conditions as any).id(conditionID);
+    if (!oldCondition) throw new Error("Condition not found!");
+
+    await oldCondition.remove();
     await flow.save();
     return res.status(200).send(flow.conditions);
   } catch (error: any) {
