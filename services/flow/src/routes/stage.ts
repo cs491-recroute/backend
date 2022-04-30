@@ -347,15 +347,15 @@ router.get('/flow/:flowID/stage/:stageID', createMiddleware(async (req, res) => 
   }
 }));
 
-router.get('/question/:questionID', createMiddleware(async (req, res) => {
+router.get('/test/:testID/question/:questionID', createMiddleware(async (req, res) => {
   /*
   #swagger.tags = ['Stage']
   #swagger.description = 'Get question information for filling'
   */
-  const { questionID } = req.params;
+  const { testID, questionID } = req.params;
 
   try {
-    const test: TestDocument = await TestModel.findOne({ 'questions._id': questionID, isTemplate: false });
+    const test: TestDocument = await TestModel.findById(new Types.ObjectId(testID));
     if (!test) return res.status(400).send({ message: "Test not found!" });
     const question = (test.questions as any).id(questionID);
 
