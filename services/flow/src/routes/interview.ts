@@ -163,6 +163,7 @@ router.put('/interview/:interviewID/instance/:instanceID/all', createMiddleware(
 
     const interview = await getUserInterview(userID, interviewID);
     const flow = await checkFlow(interview, userID);
+    if (!flow) throw new Error("Flow of the interview is not found!");
 
     // check if interviewee match with the flow
     const applicant = (flow.applicants as any)?.id(instance.interviewee);
@@ -316,7 +317,7 @@ router.post('/interview/:interviewID/instance', createMiddleware(async (req, res
       html = html.replace("{body_zoom}", body);
       html = html.replace("{body_grade}", meetingInfo.BODY_INTERVIEVEWER_GRADE);
       html = html.replace("{link_zoom}", meeting.start_url);
-      html = html.replace("{link_grade}", `http://${SERVERS.prod}/modal/${interview.id}/${instance.id}/${applicant.id}/grade`);
+      html = html.replace("{link_grade}", `http://${SERVERS.prod}/modal/interview/${interview.id}/${instance.id}/${applicant.id}/grade`);
 
       const mail = {
         to: email,

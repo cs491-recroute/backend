@@ -94,7 +94,7 @@ export function parseStageProps(response: any, stage: any) {
     }, { type: stage.type, stageID: stage.stageID });
 }
 
-export async function checkFlow(stage: any, userID: any): Promise<NonNullable<FlowDocument>> {
+export async function checkFlow(stage: any, userID: any): Promise<FlowDocument> {
     // check if flow active
     if (stage.flowID) {
         const flow = await getUserFlow(userID, stage.flowID.toString());
@@ -106,7 +106,7 @@ export async function checkFlow(stage: any, userID: any): Promise<NonNullable<Fl
         }
         return flow;
     } else {
-        throw new Error("Provided stage is a template!");
+        return null;
     }
 }
 

@@ -55,7 +55,12 @@ export async function nextStage(flow: NonNullable<FlowDocument>, applicant: NonN
             body = body.replace(new RegExp("{stageInfo}", 'g'), nextStageText);
             html = html.replace("{header}", header);
             html = html.replace("{body}", body);
-            html = html.replace("{link}", `http://${SERVERS.prod}/fill/${flow.id}/${flow.stages[Number(applicant.stageIndex)].id}/${applicant.id}`);
+            if (stage.type === StageType.INTERVIEW) {
+                html = html.replace("{link}", `http://${SERVERS.prod}/modal/${stage.stageID.toString()}/${applicant.id}/schedule`);
+            }
+            else {
+                html = html.replace("{link}", `http://${SERVERS.prod}/fill/${flow.id}/${stage.id}/${applicant.id}`);
+            }
 
             const mail = {
                 to: applicant.email.toString(),
