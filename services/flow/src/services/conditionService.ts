@@ -24,15 +24,7 @@ export async function checkCondition(flow: NonNullable<FlowDocument>, applicant:
             const componentSubmission = parsedStageSubmission?.[condition.field.toString()];
             if (!componentSubmission) return false;
 
-            let value;
-            if (componentSubmission.type === COMPONENT_TYPES.FULL_NAME) {
-                value = `${componentSubmission.value.name} ${componentSubmission.value.surname}`
-            }
-            else {
-                value = componentSubmission.value;
-            }
-
-
+            const value = componentSubmission.value;
             if (value === null || value === undefined) return false;
             switch (typeof value) {
                 case "string": {

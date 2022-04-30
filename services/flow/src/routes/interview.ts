@@ -13,6 +13,7 @@ import { setMeeting } from "../services/interviewService";
 import { readHtml } from "../../../../common/services/html_reader";
 import * as meetingInfo from '../../../../common/constants/mail_templates/meetingInfo';
 import * as MailService from '../../../../common/services/gmail-api';
+import moment from "moment";
 
 const router = express.Router();
 
@@ -284,7 +285,7 @@ router.post('/interview/:interviewID/instance', createMiddleware(async (req, res
 
       const [applicantName, domain] = applicant.email.toString().split('@');
       let header = meetingInfo.HEADER.replace(new RegExp("{applicantName}", 'g'), applicantName);
-      let body = meetingInfo.BODY.replace(new RegExp("{date}", 'g'), new Date(meeting.start_time).toString());
+      let body = meetingInfo.BODY.replace(new RegExp("{date}", 'g'), `${moment(new Date(meeting.start_time)).format('LLLL')} (UTC)`);
 
       html = html.replace("{header}", header);
       html = html.replace("{body}", body);
@@ -308,7 +309,7 @@ router.post('/interview/:interviewID/instance', createMiddleware(async (req, res
 
       let html = await readHtml("info_w_two_link");
       let header = meetingInfo.HEADER_INTERVIEVEWER.replace(new RegExp("{interviewer}", 'g'), name);
-      let body = meetingInfo.BODY_INTERVIEVEWER_ZOOM.replace(new RegExp("{date}", 'g'), new Date(meeting.start_time).toString());
+      let body = meetingInfo.BODY_INTERVIEVEWER_ZOOM.replace(new RegExp("{date}", 'g'), `${moment(new Date(meeting.start_time)).format('LLLL')} (UTC)`);
       body = body.replace(new RegExp("{flowName}", 'g'), interview.flowID.name.toString());
       body = body.replace(new RegExp("{interviewName}", 'g'), interview.name.toString());
       body = body.replace(new RegExp("{applicantEmail}", 'g'), applicant.email.toString());

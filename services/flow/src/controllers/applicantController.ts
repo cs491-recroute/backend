@@ -182,7 +182,7 @@ const conditionComponentParser = (componentProps: ComponentDocument, answer: Com
             break;
         }
         case COMPONENT_TYPES.FULL_NAME: {
-            value = { name: answer.name, surname: answer.surname };
+            value = `${answer?.name || ''}${answer?.surname ? (' ' + answer?.surname) : ('')}`;
             break;
         }
         case COMPONENT_TYPES.LONG_TEXT: {
