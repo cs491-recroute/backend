@@ -512,7 +512,7 @@ router.post('/user/:userID/flow/:flowID', createMiddleware(async (req, res) => {
     company.flows.push(new Types.ObjectId(flowID));
 
     try {
-        await CompanyModel.updateOne(company);
+        await CompanyModel.updateOne({ _id: company._id }, { flows: company.flows });
     } catch (error: any) {
         return res.status(400).send({ message: error.message });
     }
