@@ -10,6 +10,7 @@ import { deleteTest } from './testService';
 import { TestStartModel } from '../models/TestStart';
 import fs from "fs-extra";
 import { ApplicantModel } from '../models/Applicant';
+import { deleteInterview } from './interviewService';
 
 export async function deleteFlow(userID: string, flowID: string): Promise<any> {
     try {
@@ -31,8 +32,8 @@ export async function deleteFlow(userID: string, flowID: string): Promise<any> {
                             await testStart.remove();
                         }
                         break;
-                    case StageType.FORM:
-                        deleteStage = deleteForm;
+                    case StageType.INTERVIEW:
+                        deleteStage = deleteInterview;
                         break;
                 }
                 if (!deleteStage) {
@@ -42,14 +43,15 @@ export async function deleteFlow(userID: string, flowID: string): Promise<any> {
             }
         }
         if (flow.applicants) {
-            for (const applicantID of flow.applicants) {
+            const applicants = await ApplicantModel.find({ _id: flow.applicants });
+            for (const applicant of applicants) {
                 // TODO: delete files uploaded by applicants
-                await ApplicantModel.findByIdAndDelete(applicantID);
+                await applicant.remove();
             }
         }
         await flow?.remove();
     } catch (error: any) {
-        throw new Error(error?.response?.data?.message || error);
+        throw new Error(error?.response?.data?.message || error.message || error);
     }
 }
 
