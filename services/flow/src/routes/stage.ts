@@ -63,6 +63,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
         formClone.isNew = true;
         formClone.isTemplate = false;
         formClone.flowID = new Types.ObjectId(flowID);
+        formClone.name = `Clone of ${form.name}`;
         await formClone.save();
         stageModel.stageID = formClone._id;
         try {
@@ -79,6 +80,7 @@ router.post('/flow/:flowID/stage/', createMiddleware(async (req, res) => {
         test.isNew = true;
         test.isTemplate = false;
         test.flowID = new Types.ObjectId(flowID);
+        test.name = `Clone of ${test.name}`;
         await test.save();
         stageModel.stageID = test._id;
         try {
