@@ -6,7 +6,7 @@ import { apiService } from "../../../../common/services/apiService";
 import { Flow, FlowDocument, FlowKeys, FlowModel } from "../models/Flow";
 import { StageType } from "../models/Stage";
 import { Condition, ConditionDocument, ConditionKeys, ConditionModel } from "../models/Condition";
-import { getUserFlow, getFlowWithApiKey } from "../controllers/flowController";
+import { getUserFlow, getFlowWithApiKey, getUserFlows } from "../controllers/flowController";
 import { Prop, PropKeys } from "../models/Prop";
 import { deleteFlow, parseStages } from '../services/flowService';
 import { readHtml } from "../../../../common/services/html_reader";
@@ -34,16 +34,75 @@ router.get('/flows', createMiddleware(async (req, res) => {
   */
 
   const userID = getUserID(req);
-  const applicants = (req.query.applicants === "true") ? "+applicants" : "-applicants";
 
   try {
-    const { data: flowIDs } = await apiService.useService(SERVICES.user).get(`/user/${userID}/flows`);
-    const flows: FlowDocument[] = await FlowModel.find({ '_id': { $in: flowIDs } }).select(applicants);
+    const flows = await getUserFlows(userID, req.query);
     return res.status(200).send(flows);
   } catch (error: any) {
     return res.status(400).send({ message: 'Cannot get user flows!', errorMessage: error.message });
   }
 
+}));
+
+router.put('/flows', createMiddleware(async (req, res) => {
+  /*
+  #swagger.tags = ['Flow']
+  #swagger.description = 'Update single property of the given flows'
+  #swagger.parameters['userID'] = { 
+    in: 'query',
+    required: true,
+    type: 'string'
+  }
+  #swagger.parameters['applicants'] = { 
+    in: 'query',
+    required: false,
+    type: 'boolean'
+  }
+  #swagger.parameters['flowIDs[]'] = { 
+    in: 'query',
+    required: true,
+    schema: { $ref: '#/definitions/IDs'}
+  }
+  #swagger.parameters['FlowProp'] = { 
+    in: 'body',
+    required: true,
+    schema: { $ref: '#/definitions/Prop'}
+  }
+  */
+
+  const userID = getUserID(req);
+  const flowIDs = req.query.flowIDs as string[];
+  const flowProp = getBody<Prop>(req.body, PropKeys);
+
+  // check prop for inconvenient change requests
+  switch (flowProp.name) {
+    case "_id" || "id":
+      return res.status(400).send({ message: "id cannot be changed." });
+    case "stages":
+      return res.status(400).send({ message: "Stages of flow cannot be updated from this controller." });
+    case "conditions":
+      return res.status(400).send({ message: "Conditions of flow cannot be updated from this controller." });
+    case "applicants":
+      return res.status(400).send({ message: "Applicants of flow cannot be updated from this controller." });
+    case "companyID":
+      return res.status(400).send({ message: "Referance `companyID` of a flow cannot be changed." });
+  }
+
+  try {
+    const flows = await getUserFlows(userID, req.query);
+    const flowsToUpdate = flows.filter(flow => flowIDs.includes(flow?.id));
+    for (const flow of flowsToUpdate) {
+      if (!flow) throw new Error("Flow is null!");
+      if (flowProp.name !== "active" && flowProp.name !== "favorite" && flow.active) throw new Error("An active flow cannot be changed.");
+
+      (flow as any)[flowProp.name] = flowProp.value;
+      await flow.save();
+    }
+
+    return res.status(200).send(flows);
+  } catch (error: any) {
+    return res.status(400).send({ message: error.message || error });
+  }
 }));
 
 router.get('/flow/:flowID', createMiddleware(async (req, res) => {
@@ -163,7 +222,7 @@ router.put('/flow/:flowID', createMiddleware(async (req, res) => {
 
   try {
     const flow = await getUserFlow(userID, flowID, req.query);
-    if (flowProp.name !== "active" && flow.active) {
+    if (flowProp.name !== "active" && flowProp.name !== "favorite" && flow.active) {
       return res.status(400).send({ message: "An active flow cannot be changed." });
     }
 

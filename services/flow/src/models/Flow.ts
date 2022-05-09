@@ -13,6 +13,8 @@ export interface Flow {
     endDate?: Date;
     applicants: Types.ObjectId[];
     companyID: Types.ObjectId;
+    favorite: boolean;
+    archived: boolean;
 };
 
 const schema = new Schema<Flow>({
@@ -23,7 +25,9 @@ const schema = new Schema<Flow>({
     startDate: { type: Date },
     endDate: { type: Date },
     applicants: { type: [Schema.Types.ObjectId], ref: 'Applicant', default: [] },
-    companyID: { type: Schema.Types.ObjectId, ref: 'Company', required: true }
+    companyID: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    favorite: { type: Boolean, default: false },
+    archived: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export const FlowModel = model<Flow>("Flow", schema);
@@ -36,5 +40,7 @@ export const FlowKeys = [
     "startDate",
     "endDate",
     "applicants",
-    "companyID"
+    "companyID",
+    "favorite",
+    "archived"
 ];
