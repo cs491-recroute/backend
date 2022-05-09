@@ -58,10 +58,10 @@ router.put('/flows', createMiddleware(async (req, res) => {
     required: false,
     type: 'boolean'
   }
-  #swagger.parameters['flowIDs[]'] = { 
+  #swagger.parameters['flowIDs'] = { 
     in: 'query',
     required: true,
-    schema: { $ref: '#/definitions/IDs'}
+    type: 'array'
   }
   #swagger.parameters['FlowProp'] = { 
     in: 'body',
